@@ -1,0 +1,32 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# Django cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Databases (Do not commit your local database!)
+db.sqlite3
+db.sqlite3-journal
+
+# Media and Static files
+/media/
+/staticfiles/
+
+# Environment variables / Secrets
+.env
+.secrets
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs
+*.njsproj
+*.sln
+*.swp
