@@ -1,0 +1,144 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Edit User</h1>
+        <a href="{% url 'user_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Users
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Edit: {{ edit_user.get_full_name }}</h6>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="mb-3">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'user_edit' edit_user.pk %}">
+                        {% csrf_token %}
+
+                        <h5 class="font-weight-bold text-gray-700 mb-3">Personal Details</h5>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="first_name">First Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control{% if form.first_name.errors %} is-invalid{% endif %}"
+                                    id="first_name" name="first_name"
+                                    value="{{ form.first_name.value }}" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="last_name">Last Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control{% if form.last_name.errors %} is-invalid{% endif %}"
+                                    id="last_name" name="last_name"
+                                    value="{{ form.last_name.value }}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="email">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control{% if form.email.errors %} is-invalid{% endif %}"
+                                    id="email" name="email"
+                                    value="{{ form.email.value }}" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="phone">Phone Number</label>
+                                <input type="tel" class="form-control"
+                                    id="phone" name="phone"
+                                    value="{{ form.phone.value }}">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="date_of_birth">Date of Birth</label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
+                                    value="{{ form.date_of_birth.value }}">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="gender">Gender</label>
+                                <select class="form-control" id="gender" name="gender">
+                                    <option value="">---------</option>
+                                    <option value="male" {% if form.gender.value == 'male' %}selected{% endif %}>Male</option>
+                                    <option value="female" {% if form.gender.value == 'female' %}selected{% endif %}>Female</option>
+                                    <option value="other" {% if form.gender.value == 'other' %}selected{% endif %}>Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <h5 class="font-weight-bold text-gray-700 mb-3">Account Details</h5>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="username">Username <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control{% if form.username.errors %} is-invalid{% endif %}"
+                                    id="username" name="username"
+                                    value="{{ form.username.value }}" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="role">Role <span class="text-danger">*</span></label>
+                                <select class="form-control{% if form.role.errors %} is-invalid{% endif %}" id="role" name="role" required>
+                                    <option value="">---------</option>
+                                    <option value="admin" {% if form.role.value == 'admin' %}selected{% endif %}>Admin</option>
+                                    <option value="doctor" {% if form.role.value == 'doctor' %}selected{% endif %}>Doctor</option>
+                                    <option value="nurse" {% if form.role.value == 'nurse' %}selected{% endif %}>Nurse</option>
+                                    <option value="receptionist" {% if form.role.value == 'receptionist' %}selected{% endif %}>Receptionist</option>
+                                    <option value="pharmacist" {% if form.role.value == 'pharmacist' %}selected{% endif %}>Pharmacist</option>
+                                    <option value="lab_technician" {% if form.role.value == 'lab_technician' %}selected{% endif %}>Lab Technician</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="is_active" name="is_active"
+                                    {% if form.is_active.value %}checked{% endif %}>
+                                <label class="custom-control-label" for="is_active">Active Account</label>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-end">
+                            <a href="{% url 'user_list' %}" class="btn btn-secondary mr-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save fa-sm"></i> Save Changes
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
