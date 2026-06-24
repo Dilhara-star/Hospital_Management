@@ -25,3 +25,5 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.get_role_display()}"
+
+ 

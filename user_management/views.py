@@ -1,15 +1,24 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .forms import UserCreateForm, UserEditForm
 from .models import UserProfile
+from django.http import JsonResponse
+from django.http import HttpResponse
+import pprint
 
 
+@login_required
 def user_list(request):
     profiles = UserProfile.objects.select_related('user').all()
+    # you can read all the profiles and return them as JSON or render them in a template
+    # data = list(profiles.values())
+    # return HttpResponse(f'<pre>{pprint.pformat(data)}</pre>')
     return render(request, 'dashboard/user_management/user_list.html', {'profiles': profiles})
 
 
+@login_required
 def user_create(request):
     if request.method == 'POST':
         form = UserCreateForm(request.POST)
@@ -23,6 +32,7 @@ def user_create(request):
     return render(request, 'dashboard/user_management/user_add.html', {'form': form})
 
 
+@login_required
 def user_edit(request, user_id):
     # URL එකෙන් ආපු user_id use කරලා database එකෙන් user object එක ගන්නවා, නැත්නම් 404 error එකක් දෙනවා
     user = get_object_or_404(User, pk=user_id)
@@ -47,6 +57,7 @@ def user_edit(request, user_id):
     return render(request, 'dashboard/user_management/user_edit.html', {'form': form, 'edit_user': user})
 
 
+@login_required
 def user_delete(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     if request.method == 'POST':
