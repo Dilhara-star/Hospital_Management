@@ -20,9 +20,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    # path('doctors', include('doctors.urls')), 
+    # path('admin/', admin.site.urls),
     path('dashboard/', include('apps.dashboard.urls')),
+    path('', include('apps.frontend.urls')),
     path('Users/', include('apps.user_management.urls')),
 
 
