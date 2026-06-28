@@ -28,9 +28,19 @@
   <link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
 
   <style>
-    /* Push hero content below the fixed header (topbar 40px + branding 60px) */
-    .hero {
-      padding-top: 100px;
+    /* Fixed header is 40px topbar + 60px branding = 100px total.
+       body padding-top is the Bootstrap-recommended fix for fixed-top navbars
+       so every page's content starts below the header, not behind it. */
+    body {
+      padding-top: 100px !important;
+    }
+    /* When scrolled, topbar collapses to 0 — shrink the offset to match */
+    body.scrolled {
+      padding-top: 60px !important;
+    }
+    /* Smooth the transition so content doesn't jump */
+    body {
+      transition: padding-top 0.3s ease;
     }
   </style>
 

@@ -65,6 +65,59 @@
           <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>
 
+        <!-- Profile / Auth -->
+        <div class="d-flex align-items-center ms-3">
+          {% if request.user.is_authenticated %}
+            <div class="dropdown profile-dropdown">
+              <button class="btn p-0 border-0 bg-transparent profile-icon-btn d-flex align-items-center gap-2"
+                      id="profileMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle" style="font-size:1.6rem; color:#2c4964;"></i>
+                <span class="d-none d-md-inline text-dark small fw-semibold">{{ request.user.username }}</span>
+                <i class="bi bi-chevron-down small" style="color:#2c4964;"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="profileMenuBtn"
+                  style="min-width:180px; border-radius:10px;">
+                <li class="px-3 py-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-person-circle fs-4 text-primary"></i>
+                    <div>
+                      <div class="fw-semibold small">{{ request.user.get_full_name|default:request.user.username }}</div>
+                      <div class="text-muted" style="font-size:0.72rem;">{{ request.user.email }}</div>
+                    </div>
+                  </div>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                  <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'profile' %}">
+                    <i class="bi bi-person-badge text-secondary"></i> Profile
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                  <form method="post" action="{% url 'logout' %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger">
+                      <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          {% else %}
+            <a href="{% url 'login' %}"
+               class="btn btn-sm me-2 px-3"
+               style="border:1.5px solid #2c4964; color:#2c4964; border-radius:20px; font-weight:600;">
+              Sign In
+            </a>
+            <a href="#"
+               class="btn btn-sm px-3"
+               style="background:#2c4964; color:#fff; border-radius:20px; font-weight:600;">
+              Sign Up
+            </a>
+          {% endif %}
+        </div>
+
       </div>
 
     </div>
