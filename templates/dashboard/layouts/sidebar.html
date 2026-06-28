@@ -29,20 +29,37 @@
     </div>
 
 
-        <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseusers"
-            aria-expanded="true" aria-controls="collapseusers">
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsepausers"
+            aria-expanded="true" aria-controls="collapsepausers">
             <i class="fas fa-fw fa-cog"></i>
-            <span>Users</span>
+            <span>Patient details</span>
         </a>
-        <div id="collapseusers" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+        <div id="collapsepausers" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <h6 class="collapse-header">User Management:</h6>
                 <a class="collapse-item" href="{% url 'user_create' %}">Add User</a>
-                <a class="collapse-item" href="{% url 'user_list' %}">All Users</a>
+                <a class="collapse-item" href="{% url 'patient_user_list' %}">All Users</a>
             </div>
         </div>
     </li>
+    
+        <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsestaffusers"
+            aria-expanded="true" aria-controls="collapsestaffusers">
+            <i class="fas fa-fw fa-cog"></i>
+            <span>Staff details</span>
+        </a>
+        <div id="collapsestaffusers" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">User Management:</h6>
+                <a class="collapse-item" href="{% url 'user_create' %}">Add User</a>
+                <a class="collapse-item" href="{% url 'staff_user_list' %}">All Users</a>
+            </div>
+        </div>
+    </li>
+
+
     
     <!-- Nav Item - Components Collapse Menu -->
     <li class="nav-item">

@@ -17,6 +17,16 @@ def user_list(request):
     # return HttpResponse(f'<pre>{pprint.pformat(data)}</pre>')
     return render(request, 'dashboard/user_management/user_list.html', {'profiles': profiles})
 
+@login_required
+def staff_user_list(request):
+    profiles = UserProfile.objects.select_related('user').filter(role='admin')
+    return render(request, 'dashboard/user_management/user_list.html', {'profiles': profiles})
+
+@login_required
+def patient_user_list(request):
+    profiles = UserProfile.objects.select_related('user').filter(role='user')
+    return render(request, 'dashboard/user_management/user_list.html', {'profiles': profiles})
+
 
 @login_required
 def user_create(request):
