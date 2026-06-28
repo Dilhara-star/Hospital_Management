@@ -39,6 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.dashboard',
     'apps.user_management',
+    'apps.frontend',
+    
+]
+STATICFILES_DIRS = [
+    BASE_DIR / 'vendor' / 'sb_admin',   # ← only this is listed
 ]
 
 MIDDLEWARE = [
@@ -128,6 +133,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'vendor' / 'sb_admin',
+    BASE_DIR / 'vendor' / 'Clinic' / 'Clinic-1.0.0',
 ]
 
 LOGIN_URL = '/dashboard/login/'
