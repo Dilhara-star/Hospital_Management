@@ -107,6 +107,7 @@
                                 <label for="role">Role <span class="text-danger">*</span></label>
                                 <select class="form-control{% if form.role.errors %} is-invalid{% endif %}" id="role" name="role" required>
                                     <option value="">---------</option>
+                                    <option value="user" {% if form.role.value == 'user' %}selected{% endif %}>User</option>
                                     <option value="admin" {% if form.role.value == 'admin' %}selected{% endif %}>Admin</option>
                                     <option value="doctor" {% if form.role.value == 'doctor' %}selected{% endif %}>Doctor</option>
                                     <option value="nurse" {% if form.role.value == 'nurse' %}selected{% endif %}>Nurse</option>

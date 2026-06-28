@@ -9,21 +9,28 @@ def dashboard_index(request):
     return render(request, 'dashboard/index.html')
 
 
-def login_view(request):
-    # If the user is already authenticated, redirect them to the dashboard index
-    if request.user.is_authenticated:
-        return redirect('dashboard_index')
+def _redirect_by_role(user):
+    """User role → home page. All staff roles → dashboard."""
+    if hasattr(user, 'profile') and user.profile.role == 'user':
+        return redirect('frontend_index')
+    return redirect('dashboard_index')
 
-    # If the request method is POST, authenticate the user
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return _redirect_by_role(request.user)
+
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
         user = authenticate(request, username=username, password=password)
-        
-        # If the user is authenticated, log them in and redirect them to the dashboard index
+
         if user is not None:
             login(request, user)
-            return redirect(request.GET.get('next', 'dashboard_index'))
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            return _redirect_by_role(user)
         else:
             messages.error(request, 'Invalid username or password.')
 
