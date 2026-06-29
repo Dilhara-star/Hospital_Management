@@ -1,0 +1,128 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Staff Profile</h1>
+        <div>
+            <a href="{% url 'staff_edit' staff_user.pk %}" class="btn btn-sm btn-primary shadow-sm mr-2">
+                <i class="fas fa-edit fa-sm"></i> Edit Profile
+            </a>
+            <a href="{% url 'staff_user_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm"></i> Back to Staff
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!-- Left: Summary Card -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-user-md fa-4x text-primary"></i>
+                    </div>
+                    <h5 class="font-weight-bold">{{ staff_user.get_full_name }}</h5>
+                    <p class="text-muted mb-1">@{{ staff_user.username }}</p>
+                    <p class="mb-2">
+                        <span class="badge badge-primary badge-pill px-3 py-2">{{ profile.get_role_display }}</span>
+                    </p>
+                    {% if staff_user.is_active %}
+                    <span class="badge badge-success badge-pill px-3">Active</span>
+                    {% else %}
+                    <span class="badge badge-secondary badge-pill px-3">Inactive</span>
+                    {% endif %}
+                    <hr>
+                    <div class="text-left">
+                        {% if sp %}
+                        <p class="mb-1"><strong>Employee ID:</strong> <span class="text-primary font-weight-bold">{{ sp.employee_id }}</span></p>
+                        {% endif %}
+                        <p class="mb-1"><strong>Email:</strong> {{ staff_user.email }}</p>
+                        <p class="mb-1"><strong>Phone:</strong> {{ profile.phone|default:"—" }}</p>
+                        <p class="mb-1"><strong>Gender:</strong> {{ profile.get_gender_display|default:"—" }}</p>
+                        <p class="mb-0"><strong>DOB:</strong> {{ profile.date_of_birth|default:"—" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Detail Cards -->
+        <div class="col-lg-8">
+
+            <!-- Employment Details -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-briefcase mr-1"></i> Employment Details</h6>
+                </div>
+                <div class="card-body">
+                    {% if sp %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Department</div>
+                            <div>{{ sp.get_department_display|default:"—" }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Specialization</div>
+                            <div>{{ sp.specialization|default:"—" }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Qualification</div>
+                            <div>{{ sp.qualification|default:"—" }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">License / Registration No.</div>
+                            <div>{{ sp.license_number|default:"—" }}</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Hire Date</div>
+                            <div>{{ sp.hire_date|default:"—" }}</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Employment Type</div>
+                            <div>
+                                {% if sp.employment_type == 'full_time' %}<span class="badge badge-success">Full Time</span>
+                                {% elif sp.employment_type == 'part_time' %}<span class="badge badge-warning">Part Time</span>
+                                {% elif sp.employment_type == 'contract' %}<span class="badge badge-info">Contract</span>
+                                {% else %}—{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Shift</div>
+                            <div>{{ sp.get_shift_display|default:"—" }}</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">Employment details not yet recorded. <a href="{% url 'staff_edit' staff_user.pk %}">Add details</a></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger"><i class="fas fa-phone-alt mr-1"></i> Emergency Contact</h6>
+                </div>
+                <div class="card-body">
+                    {% if sp and sp.emergency_contact_name %}
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Name</div>
+                            <div class="font-weight-bold">{{ sp.emergency_contact_name }}</div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Phone</div>
+                            <div>{{ sp.emergency_contact_phone|default:"—" }}</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No emergency contact recorded.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

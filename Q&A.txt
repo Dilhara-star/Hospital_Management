@@ -1,2 +1,11 @@
 Staff only add Staff
 Patients Only add Patients
+user password validation - should has 8 charactors, mix,etc.
+user email validation - @, domain
+Bday validation
+
+
+
+
+Commnets
+ctrl + ?

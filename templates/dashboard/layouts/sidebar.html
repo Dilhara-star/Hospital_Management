@@ -32,29 +32,29 @@
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsepausers"
             aria-expanded="true" aria-controls="collapsepausers">
-            <i class="fas fa-fw fa-cog"></i>
-            <span>Patient details</span>
+            <i class="fas fa-fw fa-procedures"></i>
+            <span>Patient Details</span>
         </a>
         <div id="collapsepausers" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <h6 class="collapse-header">User Management:</h6>
-                <a class="collapse-item" href="{% url 'user_create' %}">Add User</a>
-                <a class="collapse-item" href="{% url 'patient_user_list' %}">All Users</a>
+                <h6 class="collapse-header">Patient Management:</h6>
+                <a class="collapse-item" href="{% url 'patient_add' %}">Register Patient</a>
+                <a class="collapse-item" href="{% url 'patient_user_list' %}">All Patients</a>
             </div>
         </div>
     </li>
-    
-        <li class="nav-item">
+
+    <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsestaffusers"
             aria-expanded="true" aria-controls="collapsestaffusers">
-            <i class="fas fa-fw fa-cog"></i>
-            <span>Staff details</span>
+            <i class="fas fa-fw fa-user-md"></i>
+            <span>Staff Details</span>
         </a>
         <div id="collapsestaffusers" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <h6 class="collapse-header">User Management:</h6>
-                <a class="collapse-item" href="{% url 'user_create' %}">Add User</a>
-                <a class="collapse-item" href="{% url 'staff_user_list' %}">All Users</a>
+                <h6 class="collapse-header">Staff Management:</h6>
+                <a class="collapse-item" href="{% url 'user_create' %}">Add Staff Member</a>
+                <a class="collapse-item" href="{% url 'staff_user_list' %}">All Staff</a>
             </div>
         </div>
     </li>

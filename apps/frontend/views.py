@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from .forms import ProfileDetailsForm, ProfilePictureForm, ChangePasswordForm
-from apps.user_management.models import UserProfile
+from apps.user_management.models import UserProfile, PatientProfile
 
 
 def frontend_index(request):
@@ -53,4 +53,16 @@ def profile_view(request):
         'picture_form': picture_form,
         'password_form': password_form,
         'profile': profile,
+    })
+
+
+@login_required
+def patient_portal(request):
+    try:
+        patient = request.user.patient_profile
+    except PatientProfile.DoesNotExist:
+        patient = None
+    return render(request, 'frontend/patient_portal.html', {
+        'patient': patient,
+        'user': request.user,
     })

@@ -10,9 +10,13 @@ def dashboard_index(request):
 
 
 def _redirect_by_role(user):
-    """User role → home page. All staff roles → dashboard."""
-    if hasattr(user, 'profile') and user.profile.role == 'user':
-        return redirect('frontend_index')
+    """Route patients to patient portal, regular users to frontend, staff to dashboard."""
+    if hasattr(user, 'profile'):
+        role = user.profile.role
+        if role == 'patient':
+            return redirect('patient_portal')
+        if role == 'user':
+            return redirect('frontend_index')
     return redirect('dashboard_index')
 
 

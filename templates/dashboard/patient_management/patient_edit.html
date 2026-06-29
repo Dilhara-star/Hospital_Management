@@ -1,0 +1,210 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Edit Patient</h1>
+        <a href="{% url 'patient_user_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm"></i> Back to Patients
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-danger alert-dismissible fade show">
+        <strong><i class="fas fa-exclamation-triangle"></i> Please fix the following errors:</strong>
+        <ul class="mb-0 mt-1">
+            {% for field in form %}{% for error in field.errors %}
+            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}{% endfor %}
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+    </div>
+    {% endif %}
+
+    <!-- MRN Banner -->
+    <div class="alert alert-info py-2">
+        <i class="fas fa-id-badge mr-1"></i>
+        Editing patient: <strong>{{ patient.user.get_full_name }}</strong> &nbsp;|&nbsp;
+        MRN: <strong class="text-primary">{{ patient.mrn }}</strong> &nbsp;|&nbsp;
+        Registered: <strong>{{ patient.registered_date }}</strong>
+    </div>
+
+    <form method="post" action="{% url 'patient_edit' patient.pk %}">
+        {% csrf_token %}
+        <div class="row">
+
+            <!-- Left Column -->
+            <div class="col-lg-8">
+
+                <!-- Account Information -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-user-lock mr-1"></i> Account Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>First Name <span class="text-danger">*</span></label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Last Name <span class="text-danger">*</span></label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Email Address <span class="text-danger">*</span></label>
+                                {{ form.email }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Username <span class="text-danger">*</span></label>
+                                {{ form.username }}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="is_active" name="is_active"
+                                    {% if form.is_active.value %}checked{% endif %}>
+                                <label class="custom-control-label" for="is_active">Active Account</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Information -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-id-card mr-1"></i> Personal Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>Phone Number</label>
+                                {{ form.phone }}
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Date of Birth</label>
+                                {{ form.date_of_birth }}
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Gender</label>
+                                {{ form.gender }}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Address</label>
+                            {{ form.address }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medical Information -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-heartbeat mr-1"></i> Medical Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>Blood Type</label>
+                                {{ form.blood_type }}
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Patient Status</label>
+                                {{ form.status }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Known Allergies</label>
+                                {{ form.allergies }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Chronic Conditions</label>
+                                {{ form.chronic_conditions }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4">
+
+                <!-- Emergency Contact -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-danger"><i class="fas fa-phone-alt mr-1"></i> Emergency Contact</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Contact Name</label>
+                            {{ form.emergency_contact_name }}
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Phone</label>
+                            {{ form.emergency_contact_phone }}
+                        </div>
+                        <div class="form-group">
+                            <label>Relationship</label>
+                            {{ form.emergency_contact_relationship }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insurance Information -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-success"><i class="fas fa-shield-alt mr-1"></i> Insurance Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Insurance Provider</label>
+                            {{ form.insurance_provider }}
+                        </div>
+                        <div class="form-group">
+                            <label>Policy / Member Number</label>
+                            {{ form.insurance_number }}
+                        </div>
+                        <div class="form-group">
+                            <label>Policy Expiry Date</label>
+                            {{ form.insurance_expiry }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <a href="{% url 'patient_detail' patient.pk %}" class="btn btn-info btn-block">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a href="{% url 'patient_user_list' %}" class="btn btn-secondary btn-block">
+                            Cancel
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

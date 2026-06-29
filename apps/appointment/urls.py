@@ -4,9 +4,8 @@ from django.conf import settings
 from django.conf.urls.static import static 
 
 urlpatterns = [
-    path('', views.frontend_index, name='frontend_index'),
-    path('profile/', views.profile_view, name='profile'),
-    path('patient-portal/', views.patient_portal, name='patient_portal'),
+    path('', views.appointment_form, name='appointment_form'),
+ 
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

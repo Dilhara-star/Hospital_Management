@@ -1,0 +1,140 @@
+{% extends 'frontend/layouts/base.html' %}
+{% load static %}
+{% block content %}
+{% get_static_prefix as sp %}
+
+<section class="section" style="padding-top: 100px; padding-bottom: 60px; background: #f8f9fa;">
+<div class="container">
+
+    <!-- Welcome Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-radius:12px; background: linear-gradient(135deg,#0d6efd,#0a58ca);">
+                <div class="card-body p-4 text-white d-flex align-items-center justify-content-between flex-wrap">
+                    <div>
+                        <h3 class="mb-1">Welcome back, {{ user.get_full_name|default:user.username }}!</h3>
+                        {% if patient %}
+                        <p class="mb-0 opacity-75">Medical Record No: <strong>{{ patient.mrn }}</strong> &nbsp;|&nbsp; Registered: {{ patient.registered_date }}</p>
+                        {% else %}
+                        <p class="mb-0 opacity-75">Your patient profile is being set up. Please contact reception.</p>
+                        {% endif %}
+                    </div>
+                    <div class="mt-3 mt-md-0">
+                        {% if patient %}
+                        <span class="badge px-3 py-2 fs-6
+                            {% if patient.status == 'active' %}bg-success
+                            {% elif patient.status == 'discharged' %}bg-warning
+                            {% else %}bg-secondary{% endif %}">
+                            {{ patient.get_status_display }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if patient %}
+    <div class="row g-4">
+
+        <!-- Personal Info -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+                <div class="card-header border-0 bg-white pt-4 pb-0 px-4">
+                    <h6 class="fw-bold text-primary mb-0"><i class="bi bi-person-circle me-2"></i>Personal Information</h6>
+                </div>
+                <div class="card-body px-4">
+                    <ul class="list-unstyled mb-0">
+                        <li class="py-2 border-bottom"><span class="text-muted small d-block">Full Name</span><strong>{{ user.get_full_name }}</strong></li>
+                        <li class="py-2 border-bottom"><span class="text-muted small d-block">Email</span>{{ user.email }}</li>
+                        <li class="py-2 border-bottom"><span class="text-muted small d-block">Phone</span>{{ user.profile.phone|default:"—" }}</li>
+                        <li class="py-2 border-bottom"><span class="text-muted small d-block">Date of Birth</span>{{ user.profile.date_of_birth|default:"—" }}</li>
+                        <li class="py-2 border-bottom"><span class="text-muted small d-block">Gender</span>{{ user.profile.get_gender_display|default:"—" }}</li>
+                        <li class="py-2"><span class="text-muted small d-block">Address</span>{{ patient.address|default:"—" }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical Info -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+                <div class="card-header border-0 bg-white pt-4 pb-0 px-4">
+                    <h6 class="fw-bold text-danger mb-0"><i class="bi bi-heart-pulse me-2"></i>Medical Information</h6>
+                </div>
+                <div class="card-body px-4">
+                    <div class="mb-3 text-center">
+                        {% if patient.blood_type %}
+                        <span class="badge bg-danger px-4 py-2 fs-5">{{ patient.blood_type }}</span>
+                        <div class="text-muted small mt-1">Blood Type</div>
+                        {% else %}
+                        <span class="text-muted">Blood type not recorded</span>
+                        {% endif %}
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Known Allergies</div>
+                        <div>{{ patient.allergies|default:"None recorded" }}</div>
+                    </div>
+                    <div>
+                        <div class="text-muted small mb-1">Chronic Conditions</div>
+                        <div>{{ patient.chronic_conditions|default:"None recorded" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+
+            <!-- Emergency Contact -->
+            <div class="card border-0 shadow-sm" style="border-radius:12px;">
+                <div class="card-header border-0 bg-white pt-4 pb-0 px-4">
+                    <h6 class="fw-bold text-warning mb-0"><i class="bi bi-telephone-fill me-2"></i>Emergency Contact</h6>
+                </div>
+                <div class="card-body px-4">
+                    {% if patient.emergency_contact_name %}
+                    <p class="mb-1"><strong>{{ patient.emergency_contact_name }}</strong></p>
+                    <p class="mb-1 text-muted">{{ patient.emergency_contact_phone }}</p>
+                    <p class="mb-0 small text-muted">{{ patient.get_emergency_contact_relationship_display }}</p>
+                    {% else %}
+                    <p class="text-muted mb-0 small">No emergency contact on file.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Insurance -->
+            <div class="card border-0 shadow-sm" style="border-radius:12px;">
+                <div class="card-header border-0 bg-white pt-4 pb-0 px-4">
+                    <h6 class="fw-bold text-success mb-0"><i class="bi bi-shield-check me-2"></i>Insurance</h6>
+                </div>
+                <div class="card-body px-4">
+                    {% if patient.insurance_provider %}
+                    <p class="mb-1"><strong>{{ patient.insurance_provider }}</strong></p>
+                    <p class="mb-1 text-muted small">Policy No: {{ patient.insurance_number|default:"—" }}</p>
+                    <p class="mb-0 text-muted small">Expires: {{ patient.insurance_expiry|default:"—" }}</p>
+                    {% else %}
+                    <p class="text-muted mb-0 small">No insurance information on file.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Your patient record has not been set up yet. Please visit our reception to complete your registration.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+</section>
+
+{% endblock content %}

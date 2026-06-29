@@ -1,132 +1,80 @@
-# Django forms module එක import කරනවා
 from django import forms
-# Django built-in User model එක import කරනවා
 from django.contrib.auth.models import User
-# අපේ UserProfile model එක import කරනවා
-from .models import UserProfile
+from .models import UserProfile, PatientProfile, StaffProfile
 
 
-# නව user කෙනෙක් හදන්න form class එක
+STAFF_ROLES = ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'lab_technician']
+
+fc = {'class': 'form-control'}
+fc_date = {'class': 'form-control', 'type': 'date'}
+fc_ta = {'class': 'form-control', 'rows': '3'}
+
+
 class UserCreateForm(forms.Form):
-    # user ගේ first name - අනිවාර්යයයි, උපරිම characters 150
-    first_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}))
-    # user ගේ last name - අනිවාර්යයයි, උපරිම characters 150
-    last_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}))
-    # user ගේ email address - අනිවාර්යයයි
-    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'}))
-    # user ගේ username - අනිවාර්යයයි, උපරිම characters 150
-    username = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))
-    # phone number - අනිවාර්ය නෑ, උපරිම characters 20
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}))
-    # උපන් දිනය - අනිවාර්ය නෑ, date picker widget එකක් use කරනවා
-    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    # gender - UserProfile ගේ GENDER_CHOICES use කරනවා, අනිවාර්ය නෑ
-    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs={'class': 'form-control'}))
-    # role - UserProfile ගේ ROLE_CHOICES use කරනවා, අනිවාර්යයයි
-    role = forms.ChoiceField(choices=[('', '---------')] + UserProfile.ROLE_CHOICES, required=True, widget=forms.Select(attrs={'class': 'form-control'}))
-    # password - PasswordInput widget එකෙන් hide කරනවා
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}))
-    # password confirm කරන්න - PasswordInput widget එකෙන් hide කරනවා
-    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm Password'}))
-    # account active ද - default True
+    first_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={**fc, 'placeholder': 'First Name'}))
+    last_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={**fc, 'placeholder': 'Last Name'}))
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={**fc, 'placeholder': 'Email Address'}))
+    username = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={**fc, 'placeholder': 'Username'}))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={**fc, 'placeholder': 'Phone Number'}))
+    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
+    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    role = forms.ChoiceField(choices=[('', '---------')] + UserProfile.ROLE_CHOICES, required=True, widget=forms.Select(attrs=fc))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={**fc, 'placeholder': 'Password'}))
+    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={**fc, 'placeholder': 'Confirm Password'}))
     is_active = forms.BooleanField(required=False, initial=True)
 
-    # username unique ද කියලා check කරන clean method එක
     def clean_username(self):
-        # validated username value එක ගන්නවා
         username = self.cleaned_data['username']
-        # database එකේ same username කෙනෙක් ඉන්නවාද check කරනවා
         if User.objects.filter(username=username).exists():
-            # ඉන්නවා නම් validation error එකක් දෙනවා
             raise forms.ValidationError('Username already exists.')
-        # valid නම් username return කරනවා
         return username
 
-    # email unique ද කියලා check කරන clean method එක
     def clean_email(self):
-        # validated email value එක ගන්නවා
         email = self.cleaned_data['email']
-        # database එකේ same email එකක් ඇද check කරනවා
         if User.objects.filter(email=email).exists():
-            # ඇත්නම් validation error එකක් දෙනවා
             raise forms.ValidationError('Email address already in use.')
-        # valid නම් email return කරනවා
         return email
 
-    # සියලු fields එකවර validate කරන clean method එක
     def clean(self):
-        # parent class ගේ clean method call කරලා cleaned data ගන්නවා
         cleaned_data = super().clean()
-        # password value එක ගන්නවා
         password = cleaned_data.get('password')
-        # confirm password value එක ගන්නවා
         confirm_password = cleaned_data.get('confirm_password')
-        # දෙකම ඇත්නම් සහ match නොවෙනවා නම් error එකක් add කරනවා
         if password and confirm_password and password != confirm_password:
             self.add_error('confirm_password', 'Passwords do not match.')
-        # cleaned data return කරනවා
         return cleaned_data
 
-    # User සහ UserProfile save කරන method එක
     def save(self):
-        # validated form data ගන්නවා
         data = self.cleaned_data
-        # Django User account එක create කරනවා
         user = User.objects.create_user(
-            # username set කරනවා
             username=data['username'],
-            # email set කරනවා
             email=data['email'],
-            # password set කරනවා - Django automatically hash කරනවා
             password=data['password'],
-            # first name set කරනවා
             first_name=data['first_name'],
-            # last name set කරනවා
             last_name=data['last_name'],
-            # account active status set කරනවා, නැත්නම් default True
             is_active=data.get('is_active', True),
         )
-        # User account එකට link වෙන UserProfile create කරනවා
         UserProfile.objects.create(
-            # User object එක link කරනවා
             user=user,
-            # phone number set කරනවා, නැත්නම් empty string
             phone=data.get('phone', ''),
-            # date of birth set කරනවා, නැත්නම් None
             date_of_birth=data.get('date_of_birth'),
-            # gender set කරනවා, නැත්නම් empty string
             gender=data.get('gender', ''),
-            # role set කරනවා
             role=data['role'],
         )
-        # create කළ User object return කරනවා
         return user
 
 
-# පවතින user කෙනෙක් edit කරන්න form class එක
 class UserEditForm(forms.Form):
-    # user ගේ first name - අනිවාර්යයයි, උපරිම characters 150
-    first_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}))
-    # user ගේ last name - අනිවාර්යයයි, උපරිම characters 150
-    last_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}))
-    # user ගේ email address - අනිවාර්යයයි
-    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'}))
-    # user ගේ username - අනිවාර්යයයි, උපරිම characters 150
-    username = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))
-    # phone number - අනිවාර්ය නෑ, උපරිම characters 20
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}))
-    # උපන් දිනය - අනිවාර්ය නෑ, date picker widget එකක් use කරනවා
-    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    # gender - UserProfile ගේ GENDER_CHOICES use කරනවා, අනිවාර්ය නෑ
-    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs={'class': 'form-control'}))
-    # role - UserProfile ගේ ROLE_CHOICES use කරනවා, අනිවාර්යයයි
-    role = forms.ChoiceField(choices=[('', '---------')] + UserProfile.ROLE_CHOICES, required=True, widget=forms.Select(attrs={'class': 'form-control'}))
-    # account active ද - password field නෑ, edit කරනකොට password වෙනස් කරන්නේ නෑ
+    first_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs=fc))
+    last_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs=fc))
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs=fc))
+    username = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs=fc))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
+    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
+    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    role = forms.ChoiceField(choices=[('', '---------')] + UserProfile.ROLE_CHOICES, required=True, widget=forms.Select(attrs=fc))
     is_active = forms.BooleanField(required=False)
 
-    # instance (User object) accept කරලා initial data auto-populate කරන __init__
     def __init__(self, *args, instance=None, **kwargs):
-        # instance එකෙන් initial data build කරනවා, ModelForm style
         if instance is not None and 'initial' not in kwargs:
             profile = instance.profile
             kwargs['initial'] = {
@@ -143,7 +91,6 @@ class UserEditForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.instance = instance
 
-    # username unique ද කියලා check කරන clean method එක
     def clean_username(self):
         username = self.cleaned_data['username']
         qs = User.objects.filter(username=username)
@@ -153,7 +100,6 @@ class UserEditForm(forms.Form):
             raise forms.ValidationError('Username already exists.')
         return username
 
-    # email unique ද කියලා check කරන clean method එක
     def clean_email(self):
         email = self.cleaned_data['email']
         qs = User.objects.filter(email=email)
@@ -163,29 +109,330 @@ class UserEditForm(forms.Form):
             raise forms.ValidationError('Email address already in use.')
         return email
 
-    # User සහ UserProfile update කරන save method එක
     def save(self):
         data = self.cleaned_data
         user = self.instance
-        # form data වලින් user fields update කරනවා
         user.first_name = data['first_name']
         user.last_name = data['last_name']
         user.email = data['email']
         user.username = data['username']
-        # active status update කරනවා, නැත්නම් default False
         user.is_active = data.get('is_active', False)
-        # User object database එකේ save කරනවා
         user.save()
-
-        # user ට link වෙච්ච profile object එක ගන්නවා
         profile = user.profile
-        # form data වලින් profile fields update කරනවා
         profile.phone = data.get('phone', '')
         profile.date_of_birth = data.get('date_of_birth')
         profile.gender = data.get('gender', '')
         profile.role = data['role']
-        # UserProfile object database එකේ save කරනවා
+        profile.save()
+        return user
+
+
+# ── Patient Forms ─────────────────────────────────────────────────────────────
+
+class PatientCreateForm(forms.Form):
+    # Account
+    first_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
+    last_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
+    email = forms.EmailField(widget=forms.EmailInput(attrs=fc))
+    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
+    password = forms.CharField(widget=forms.PasswordInput(attrs=fc))
+    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs=fc))
+    is_active = forms.BooleanField(required=False, initial=True)
+    # Personal
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
+    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
+    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    address = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
+    # Medical
+    blood_type = forms.ChoiceField(choices=PatientProfile.BLOOD_TYPE_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    allergies = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
+    chronic_conditions = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
+    # Emergency contact
+    emergency_contact_name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
+    emergency_contact_phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
+    emergency_contact_relationship = forms.ChoiceField(choices=PatientProfile.RELATIONSHIP_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    # Insurance
+    insurance_provider = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
+    insurance_number = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs=fc))
+    insurance_expiry = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
+    # Status
+    status = forms.ChoiceField(choices=PatientProfile.STATUS_CHOICES, widget=forms.Select(attrs=fc))
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError('Username already exists.')
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Email address already in use.')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pw = cleaned_data.get('password')
+        cpw = cleaned_data.get('confirm_password')
+        if pw and cpw and pw != cpw:
+            self.add_error('confirm_password', 'Passwords do not match.')
+        return cleaned_data
+
+    def save(self):
+        data = self.cleaned_data
+        user = User.objects.create_user(
+            username=data['username'],
+            email=data['email'],
+            password=data['password'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            is_active=data.get('is_active', True),
+        )
+        UserProfile.objects.create(
+            user=user,
+            phone=data.get('phone', ''),
+            date_of_birth=data.get('date_of_birth'),
+            gender=data.get('gender', ''),
+            role='patient',
+        )
+        patient = PatientProfile.objects.create(
+            user=user,
+            blood_type=data.get('blood_type', ''),
+            allergies=data.get('allergies', ''),
+            chronic_conditions=data.get('chronic_conditions', ''),
+            address=data.get('address', ''),
+            emergency_contact_name=data.get('emergency_contact_name', ''),
+            emergency_contact_phone=data.get('emergency_contact_phone', ''),
+            emergency_contact_relationship=data.get('emergency_contact_relationship', ''),
+            insurance_provider=data.get('insurance_provider', ''),
+            insurance_number=data.get('insurance_number', ''),
+            insurance_expiry=data.get('insurance_expiry'),
+            status=data.get('status', 'active'),
+        )
+        return patient
+
+
+class PatientEditForm(forms.Form):
+    # Account
+    first_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
+    last_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
+    email = forms.EmailField(widget=forms.EmailInput(attrs=fc))
+    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
+    is_active = forms.BooleanField(required=False)
+    # Personal
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
+    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
+    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    address = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
+    # Medical
+    blood_type = forms.ChoiceField(choices=PatientProfile.BLOOD_TYPE_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    allergies = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
+    chronic_conditions = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
+    # Emergency contact
+    emergency_contact_name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
+    emergency_contact_phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
+    emergency_contact_relationship = forms.ChoiceField(choices=PatientProfile.RELATIONSHIP_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    # Insurance
+    insurance_provider = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
+    insurance_number = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs=fc))
+    insurance_expiry = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
+    # Status
+    status = forms.ChoiceField(choices=PatientProfile.STATUS_CHOICES, widget=forms.Select(attrs=fc))
+
+    def __init__(self, *args, instance=None, **kwargs):
+        self.instance = instance
+        if instance and 'initial' not in kwargs:
+            user = instance.user
+            try:
+                profile = user.profile
+            except UserProfile.DoesNotExist:
+                profile = None
+            kwargs['initial'] = {
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email,
+                'username': user.username,
+                'is_active': user.is_active,
+                'phone': profile.phone if profile else '',
+                'date_of_birth': profile.date_of_birth if profile else None,
+                'gender': profile.gender if profile else '',
+                'address': instance.address,
+                'blood_type': instance.blood_type,
+                'allergies': instance.allergies,
+                'chronic_conditions': instance.chronic_conditions,
+                'emergency_contact_name': instance.emergency_contact_name,
+                'emergency_contact_phone': instance.emergency_contact_phone,
+                'emergency_contact_relationship': instance.emergency_contact_relationship,
+                'insurance_provider': instance.insurance_provider,
+                'insurance_number': instance.insurance_number,
+                'insurance_expiry': instance.insurance_expiry,
+                'status': instance.status,
+            }
+        super().__init__(*args, **kwargs)
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        qs = User.objects.filter(username=username)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.user.pk)
+        if qs.exists():
+            raise forms.ValidationError('Username already exists.')
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        qs = User.objects.filter(email=email)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.user.pk)
+        if qs.exists():
+            raise forms.ValidationError('Email address already in use.')
+        return email
+
+    def save(self):
+        data = self.cleaned_data
+        patient = self.instance
+        user = patient.user
+
+        user.first_name = data['first_name']
+        user.last_name = data['last_name']
+        user.email = data['email']
+        user.username = data['username']
+        user.is_active = data.get('is_active', False)
+        user.save()
+
+        profile = user.profile
+        profile.phone = data.get('phone', '')
+        profile.date_of_birth = data.get('date_of_birth')
+        profile.gender = data.get('gender', '')
         profile.save()
 
-        # updated User object return කරනවා
+        patient.blood_type = data.get('blood_type', '')
+        patient.allergies = data.get('allergies', '')
+        patient.chronic_conditions = data.get('chronic_conditions', '')
+        patient.address = data.get('address', '')
+        patient.emergency_contact_name = data.get('emergency_contact_name', '')
+        patient.emergency_contact_phone = data.get('emergency_contact_phone', '')
+        patient.emergency_contact_relationship = data.get('emergency_contact_relationship', '')
+        patient.insurance_provider = data.get('insurance_provider', '')
+        patient.insurance_number = data.get('insurance_number', '')
+        patient.insurance_expiry = data.get('insurance_expiry')
+        patient.status = data.get('status', 'active')
+        patient.save()
+
+        return patient
+
+
+# ── Staff Forms ───────────────────────────────────────────────────────────────
+
+STAFF_ROLE_CHOICES = [('', '---------')] + [
+    (k, v) for k, v in UserProfile.ROLE_CHOICES if k in STAFF_ROLES
+]
+
+
+class StaffEditForm(forms.Form):
+    # Account
+    first_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
+    last_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
+    email = forms.EmailField(widget=forms.EmailInput(attrs=fc))
+    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
+    is_active = forms.BooleanField(required=False)
+    # Personal
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
+    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
+    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    role = forms.ChoiceField(choices=STAFF_ROLE_CHOICES, required=True, widget=forms.Select(attrs=fc))
+    # Employment
+    department = forms.ChoiceField(choices=StaffProfile.DEPARTMENT_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    specialization = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
+    qualification = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
+    license_number = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs=fc))
+    hire_date = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
+    employment_type = forms.ChoiceField(choices=StaffProfile.EMPLOYMENT_TYPE_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    shift = forms.ChoiceField(choices=StaffProfile.SHIFT_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    # Emergency contact
+    emergency_contact_name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
+    emergency_contact_phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
+
+    def __init__(self, *args, user_instance=None, **kwargs):
+        self.user_instance = user_instance
+        if user_instance and 'initial' not in kwargs:
+            profile = user_instance.profile
+            try:
+                sp = profile.staff_profile
+            except StaffProfile.DoesNotExist:
+                sp = None
+            initial = {
+                'first_name': user_instance.first_name,
+                'last_name': user_instance.last_name,
+                'email': user_instance.email,
+                'username': user_instance.username,
+                'is_active': user_instance.is_active,
+                'phone': profile.phone,
+                'date_of_birth': profile.date_of_birth,
+                'gender': profile.gender,
+                'role': profile.role,
+            }
+            if sp:
+                initial.update({
+                    'department': sp.department,
+                    'specialization': sp.specialization,
+                    'qualification': sp.qualification,
+                    'license_number': sp.license_number,
+                    'hire_date': sp.hire_date,
+                    'employment_type': sp.employment_type,
+                    'shift': sp.shift,
+                    'emergency_contact_name': sp.emergency_contact_name,
+                    'emergency_contact_phone': sp.emergency_contact_phone,
+                })
+            kwargs['initial'] = initial
+        super().__init__(*args, **kwargs)
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        qs = User.objects.filter(username=username)
+        if self.user_instance:
+            qs = qs.exclude(pk=self.user_instance.pk)
+        if qs.exists():
+            raise forms.ValidationError('Username already exists.')
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        qs = User.objects.filter(email=email)
+        if self.user_instance:
+            qs = qs.exclude(pk=self.user_instance.pk)
+        if qs.exists():
+            raise forms.ValidationError('Email address already in use.')
+        return email
+
+    def save(self):
+        data = self.cleaned_data
+        user = self.user_instance
+
+        user.first_name = data['first_name']
+        user.last_name = data['last_name']
+        user.email = data['email']
+        user.username = data['username']
+        user.is_active = data.get('is_active', False)
+        user.save()
+
+        profile = user.profile
+        profile.phone = data.get('phone', '')
+        profile.date_of_birth = data.get('date_of_birth')
+        profile.gender = data.get('gender', '')
+        profile.role = data['role']
+        profile.save()
+
+        sp, _ = StaffProfile.objects.get_or_create(user_profile=profile)
+        sp.department = data.get('department', '')
+        sp.specialization = data.get('specialization', '')
+        sp.qualification = data.get('qualification', '')
+        sp.license_number = data.get('license_number', '')
+        sp.hire_date = data.get('hire_date')
+        sp.employment_type = data.get('employment_type', '')
+        sp.shift = data.get('shift', '')
+        sp.emergency_contact_name = data.get('emergency_contact_name', '')
+        sp.emergency_contact_phone = data.get('emergency_contact_phone', '')
+        sp.save()
+
         return user

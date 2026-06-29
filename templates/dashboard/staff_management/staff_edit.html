@@ -1,0 +1,193 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Edit Staff Member</h1>
+        <a href="{% url 'staff_user_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm"></i> Back to Staff
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-danger alert-dismissible fade show">
+        <strong><i class="fas fa-exclamation-triangle"></i> Please fix the following errors:</strong>
+        <ul class="mb-0 mt-1">
+            {% for field in form %}{% for error in field.errors %}
+            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}{% endfor %}
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'staff_edit' staff_user.pk %}">
+        {% csrf_token %}
+        <div class="row">
+
+            <!-- Left Column -->
+            <div class="col-lg-8">
+
+                <!-- Account Information -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-user-lock mr-1"></i> Account Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>First Name <span class="text-danger">*</span></label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Last Name <span class="text-danger">*</span></label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Email Address <span class="text-danger">*</span></label>
+                                {{ form.email }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Username <span class="text-danger">*</span></label>
+                                {{ form.username }}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="is_active" name="is_active"
+                                    {% if form.is_active.value %}checked{% endif %}>
+                                <label class="custom-control-label" for="is_active">Active Account</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Information -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-id-card mr-1"></i> Personal Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>Phone Number</label>
+                                {{ form.phone }}
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Date of Birth</label>
+                                {{ form.date_of_birth }}
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Gender</label>
+                                {{ form.gender }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Role <span class="text-danger">*</span></label>
+                                {{ form.role }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Employment Details -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-briefcase mr-1"></i> Employment Details</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Department</label>
+                                {{ form.department }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Specialization</label>
+                                {{ form.specialization }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Qualification</label>
+                                {{ form.qualification }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>License / Registration No.</label>
+                                {{ form.license_number }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>Hire Date</label>
+                                {{ form.hire_date }}
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Employment Type</label>
+                                {{ form.employment_type }}
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Shift</label>
+                                {{ form.shift }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4">
+
+                <!-- Emergency Contact -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-danger"><i class="fas fa-phone-alt mr-1"></i> Emergency Contact</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Contact Name</label>
+                            {{ form.emergency_contact_name }}
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Phone</label>
+                            {{ form.emergency_contact_phone }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <a href="{% url 'staff_detail' staff_user.pk %}" class="btn btn-info btn-block">
+                            <i class="fas fa-eye"></i> View Profile
+                        </a>
+                        <a href="{% url 'staff_user_list' %}" class="btn btn-secondary btn-block">
+                            Cancel
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
