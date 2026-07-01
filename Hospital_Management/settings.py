@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'apps.dashboard',
     'apps.user_management',
     'apps.frontend',
-    
+    'apps.appointment',
+
 ]
 STATICFILES_DIRS = [
     BASE_DIR / 'vendor' / 'sb_admin',   # ← only this is listed

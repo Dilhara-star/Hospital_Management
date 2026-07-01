@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.appointment_form, name='appointment_form'),
+    path('index/', views.appointment_index, name='appointment_index')
  
 ]
 if settings.DEBUG:
