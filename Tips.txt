@@ -1,0 +1,7 @@
+[1] #####
+Varible (List) ekaka thiyana values balanna nam mulin break karann 'breakpoint()' walin. 
+ita passe terminal eke 'list(appointments.values())' kiyala denna
+
+----------------------------------------------------------------------------------
+
+

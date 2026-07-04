@@ -1,0 +1,26 @@
+appointments = Appointment.appointments.all()
+                   ^^^^^^^^^^^
+NameError: name 'Appointment' is not defined. Did you mean: 'AppointmentForm'?
+[04/Jul/2026 10:46:13] "GET /Appointments/index/ HTTP/1.1" 500 73589
+
+#######
+Error eka :
+mekedi kiyanne, 'appoimnet' word eka views ekata import karala na. (define karala na).
+
+
+=================================================================================
+TemplateDoesNotExist at /Appointments/index/
+admin\templates\frontend\appointment\index.html (Source does not exist)
+
+######
+Error eka : 
+HTML file eka hadala naa ho path eke akuru waradi.
+
+=================================================================================
+White Blank Screen
+
+#####
+Error eka :
+HTML file hadala connected but html file is empty (html ekedi mukuth nathi nisa)
+
+=================================================================================

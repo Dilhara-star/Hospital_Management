@@ -1,8 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
-
+from .models import Appointment
 from .forms import AppointmentForm
+
+@login_required
+def appointment_index(request):
+    appointments = Appointment.objects.all()
+    # breakpoint()
+    return render(request, 'dashboard/appointment_management/index.html', {'appointments': appointments})
+
 
 
 @login_required
