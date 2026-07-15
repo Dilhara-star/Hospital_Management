@@ -6,13 +6,52 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Hospital Management - Login</title>
+    <title>Medi Plus Clinic - Login</title>
     <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
+    <style>
+        body.login-page-body {
+            background-color: #f8f9fc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        body.login-page-body .container {
+            width: 100%;
+        }
+
+        .login-hero {
+            position: relative;
+            background-image: linear-gradient(160deg, rgba(19, 40, 92, 0.85) 0%, rgba(78, 115, 223, 0.55) 100%),
+                url("{% static 'img/wp2386748.jpg' %}");
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+
+        .login-hero .login-hero-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2.5rem;
+            color: #fff;
+        }
+
+        .login-hero .login-hero-content h2 {
+            font-weight: 700;
+        }
+
+        .login-hero .login-hero-content p {
+            color: rgba(255, 255, 255, 0.85);
+        }
+    </style>
 </head>
 
-<body class="bg-gradient-primary">
+<body class="login-page-body">
 
     <div class="container">
         <div class="row justify-content-center">
@@ -20,13 +59,18 @@
                 <div class="card o-hidden border-0 shadow-lg my-5">
                     <div class="card-body p-0">
                         <div class="row">
-                            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+                            <div class="col-lg-6 d-none d-lg-block login-hero">
+                                <div class="login-hero-content">
+                                    <h2 class="h4 mb-2"><i class="fas fa-hospital-alt mr-2"></i>Medi Plus Clinic</h2>
+                                    <p class="mb-0">Channeling and Web Management System</p>
+                                </div>
+                            </div>
                             <div class="col-lg-6">
                                 <div class="p-5">
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">
                                             <i class="fas fa-hospital-alt text-primary mr-2"></i>
-                                            Hospital Management
+                                            Medi Plus Clinic
                                         </h1>
                                         <p class="text-gray-600 mb-4">Sign in to your account</p>
                                     </div>

@@ -48,7 +48,7 @@ def profile_view(request):
                     messages.success(request, 'Password changed successfully.')
                     return redirect('profile')
 
-    return render(request, 'frontend/profile.html', {
+    return render(request, 'frontend/profile/profile.html', {
         'details_form': details_form,
         'picture_form': picture_form,
         'password_form': password_form,
@@ -62,7 +62,7 @@ def patient_portal(request):
         patient = request.user.patient_profile
     except PatientProfile.DoesNotExist:
         patient = None
-    return render(request, 'frontend/patient_portal.html', {
+    return render(request, 'frontend/patient/patient_portal.html', {
         'patient': patient,
         'user': request.user,
     })

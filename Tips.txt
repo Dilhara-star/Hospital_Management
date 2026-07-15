@@ -1,7 +1,42 @@
-[1] #####
+-------------------------------------
+Fixing errors - Tips
+-------------------------------------
+[1] Varible eke data thiynwad nadda dan nathi welawata.
 Varible (List) ekaka thiyana values balanna nam mulin break karann 'breakpoint()' walin. 
 ita passe terminal eke 'list(appointments.values())' kiyala denna
+
+[2] Single item ekak thiyana variable ekak check karanne
+print(appointment)
 
 ----------------------------------------------------------------------------------
 
 
+
+
+
+-------------------------------------
+Database Queries
+-------------------------------------
+appointments = Appointment.objects.all()
+# Get All Appointments (entire Table)
+
+appointment = Appointment.objects.get(pk=pk)
+# Get Appointment according to ID
+
+
+
+
+
+-------------------------------------
+HTML Importants
+-------------------------------------
+Get Item filtering ID (Inside <a href"">)
+{% url 'appointment_view' appointment.pk %}
+
+Single Item Variable ekakin item-> data1 ganima.
+{{ appointment.department }}
+
+Multiple Items walin ekain eka open karala item -> data1 ganima
+{% for appointment in appointments %} 
+{{ appointment.department }}
+{% endfor %}

@@ -135,6 +135,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'vendor' / 'sb_admin',
     BASE_DIR / 'vendor' / 'Clinic' / 'Clinic-1.0.0',
+    BASE_DIR / 'static',
 ]
 
 LOGIN_URL = '/dashboard/login/'
