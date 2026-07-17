@@ -60,6 +60,55 @@
         font-size: 0.85rem;
         margin-top: 4px;
       }
+
+      /* style for the "Back" button on step 2 of the form */
+      .appointmnet .appointment-form .django-form .btn-back {
+        background-color: transparent;
+        color: var(--accent-color);
+        padding: 15px 40px;
+        border: 2px solid var(--accent-color);
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .appointmnet .appointment-form .django-form .btn-back:hover {
+        background-color: color-mix(in srgb, var(--accent-color), transparent 90%);
+      }
+
+      /* small heading shown above each step of the form */
+      .appointmnet .appointment-form .django-form .step-heading {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--heading-color);
+        margin-bottom: 1rem;
+      }
+
+      /* box that shows the consultation fee on the payment step */
+      .appointmnet .appointment-form .django-form .fee-box {
+        background: #f4f6fb;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        font-size: 1.1rem;
+      }
+
+      /* the two payment method choice cards (online / cash) */
+      .appointmnet .appointment-form .django-form .payment-option {
+        border: 2px solid color-mix(in srgb, var(--default-color), transparent 80%);
+        border-radius: 8px;
+        padding: 1rem;
+        cursor: pointer;
+        height: 100%;
+      }
+
+      .appointmnet .appointment-form .django-form .payment-option.selected {
+        border-color: var(--accent-color);
+      }
     </style>
 
 
@@ -144,6 +193,7 @@
                   {% endfor %}
                 {% endif %}
 
+                {% if user.is_authenticated %}
                 <div class="booking-as d-flex align-items-center gap-3 mb-4 p-3" style="background:#f4f6fb; border-radius:12px;">
                   <i class="bi bi-person-circle" style="font-size:2rem; color:#2c4964;"></i>
                   <div>
@@ -152,33 +202,150 @@
                     <div class="small text-muted">{{ user.email }}</div>
                   </div>
                 </div>
+                {% endif %}
 
-                <form method="post" class="django-form">
+                <form method="post" class="django-form" id="appointmentForm">
                   {% csrf_token %}
-                  <div class="row gy-4">
-                    <div class="col-12">
-                      <label for="{{ form.department.id_for_label }}" class="form-label fw-semibold">Department</label>
-                      {{ form.department }}
-                      {% for error in form.department.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
-                    </div>
-                    <div class="col-md-6">
-                      <label for="{{ form.doctor.id_for_label }}" class="form-label fw-semibold">Doctor</label>
-                      {{ form.doctor }}
-                      {% for error in form.doctor.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
-                    </div>
-                    <div class="col-md-6">
-                      <label for="{{ form.date.id_for_label }}" class="form-label fw-semibold">Preferred Date</label>
-                      {{ form.date }}
-                      {% for error in form.date.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
-                    </div>
-                    <div class="col-12">
-                      <label for="{{ form.message.id_for_label }}" class="form-label fw-semibold">Notes (optional)</label>
-                      {{ form.message }}
-                    </div>
-                    <div class="col-12">
-                      <button type="submit" class="btn-book">Book Appointment Now</button>
+
+                  <!-- Step 1: appointment details (department, doctor, date, time slot) -->
+                  <div class="form-step" id="step-1">
+                    <div class="step-heading">Appointment Details</div>
+                    <div class="row gy-4">
+                      <div class="col-12">
+                        <label for="{{ form.department.id_for_label }}" class="form-label fw-semibold">Department</label>
+                        {{ form.department }}
+                        {% for error in form.department.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="{{ form.doctor.id_for_label }}" class="form-label fw-semibold">Doctor</label>
+                        {{ form.doctor }}
+                        {% for error in form.doctor.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="{{ form.date.id_for_label }}" class="form-label fw-semibold">Preferred Date</label>
+                        {{ form.date }}
+                        {% for error in form.date.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="{{ form.time_slot.id_for_label }}" class="form-label fw-semibold">Preferred Time Slot</label>
+                        {{ form.time_slot }}
+                        {% for error in form.time_slot.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
+                      </div>
+                      <div class="col-12">
+                        <label for="{{ form.message.id_for_label }}" class="form-label fw-semibold">Notes (optional)</label>
+                        {{ form.message }}
+                      </div>
+                      <div class="col-12 text-end">
+                        <button type="button" class="btn-book" id="nextBtn">Next</button>
+                      </div>
                     </div>
                   </div>
+
+                  <!-- Step 2: patient details (shown after Next is clicked) -->
+                  <div class="form-step d-none" id="step-2">
+                    <div class="step-heading">Patient Details</div>
+                    <div class="row gy-4">
+                      <div class="col-md-6">
+                        <label for="{{ form.patient_name.id_for_label }}" class="form-label fw-semibold">Name</label>
+                        {{ form.patient_name }}
+                        {% for error in form.patient_name.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="{{ form.patient_contact.id_for_label }}" class="form-label fw-semibold">Contact</label>
+                        {{ form.patient_contact }}
+                        {% for error in form.patient_contact.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="{{ form.patient_age.id_for_label }}" class="form-label fw-semibold">Age</label>
+                        {{ form.patient_age }}
+                        {% for error in form.patient_age.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
+                      </div>
+                      <div class="col-md-6">
+                        <label for="{{ form.patient_nic.id_for_label }}" class="form-label fw-semibold">NIC</label>
+                        {{ form.patient_nic }}
+                        {% for error in form.patient_nic.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
+                      </div>
+                      <div class="col-12">
+                        <label for="{{ form.patient_address.id_for_label }}" class="form-label fw-semibold">Address</label>
+                        {{ form.patient_address }}
+                        {% for error in form.patient_address.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
+                      </div>
+                      <div class="col-12 d-flex justify-content-between">
+                        <button type="button" class="btn-back" id="backBtn">Back</button>
+                        {% if user.is_authenticated %}
+                          <button type="button" class="btn-book" id="nextBtn2">Next: Payment</button>
+                        {% endif %}
+                      </div>
+
+                      {% if not user.is_authenticated %}
+                      <div class="col-12">
+                        <div class="login-prompt text-center p-4" style="background:#f4f6fb; border-radius:12px;">
+                          <p class="mb-3 fw-semibold">Please log in or create an account to complete your booking.</p>
+                          <a id="gotoLogin" href="{% url 'login' %}?next={% url 'appointment_form' %}" class="btn btn-primary px-4 me-2">Log In</a>
+                          <a id="gotoSignup" href="{% url 'register' %}?next={% url 'appointment_form' %}" class="btn btn-outline-primary px-4">Sign Up</a>
+                        </div>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <!-- Step 3: payment (shown after Next: Payment is clicked) -->
+                  {% if user.is_authenticated %}
+                  <div class="form-step d-none" id="step-3">
+                    <div class="step-heading">Payment</div>
+
+                    <div class="fee-box">
+                      Consultation Fee: <strong>$<span id="feeAmount">0.00</span></strong>
+                    </div>
+
+                    <div class="row gy-3 mb-4">
+                      <div class="col-md-6">
+                        <label class="payment-option d-flex align-items-start gap-2">
+                          <input type="radio" name="payment_method" value="online" id="payOnline">
+                          <span>
+                            <span class="d-block fw-semibold">Pay Online Now</span>
+                            <span class="small text-muted">Pay now with a card, appointment is confirmed instantly.</span>
+                          </span>
+                        </label>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="payment-option d-flex align-items-start gap-2">
+                          <input type="radio" name="payment_method" value="cash" id="payCash" checked>
+                          <span>
+                            <span class="d-block fw-semibold">Pay at Hospital (Cash)</span>
+                            <span class="small text-muted">Booking stays pending until you pay cash at reception.</span>
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- demo card fields, only shown when "Pay Online Now" is picked. -->
+                    <!-- these are not real card fields: they have no "name", so nothing is sent to the server. -->
+                    <div id="cardFields" class="row gy-4 d-none">
+                      <div class="col-12">
+                        <label class="form-label fw-semibold">Name on Card</label>
+                        <input type="text" class="form-control" placeholder="Full name">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-semibold">Card Number</label>
+                        <input type="text" class="form-control" placeholder="4242 4242 4242 4242" maxlength="19">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label fw-semibold">Expiry</label>
+                        <input type="text" class="form-control" placeholder="MM/YY" maxlength="5">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label fw-semibold">CVV</label>
+                        <input type="text" class="form-control" placeholder="123" maxlength="3">
+                      </div>
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-between mt-4">
+                      <button type="button" class="btn-back" id="backBtn2">Back</button>
+                      <button type="submit" class="btn-book">Confirm Booking</button>
+                    </div>
+                  </div>
+                  {% endif %}
                 </form>
               </div>
 
@@ -195,7 +362,136 @@
 
     </section><!-- /Appointmnet Section -->
 
+    <!-- consultation fee for every department, read by the script below -->
+    {{ fees|json_script:"department-fees" }}
 
+    <script>
+      // this script moves the booking form between step 1 (appointment details),
+      // step 2 (patient details) and step 3 (payment), without a page reload
+      document.addEventListener('DOMContentLoaded', function () {
+        var step1 = document.getElementById('step-1');  // appointment details block
+        var step2 = document.getElementById('step-2');  // patient details block
+        var step3 = document.getElementById('step-3');  // payment block (only exists if logged in)
+        var nextBtn = document.getElementById('nextBtn');  // Next button on step 1
+        var backBtn = document.getElementById('backBtn');  // Back button on step 2
+        var nextBtn2 = document.getElementById('nextBtn2');  // Next: Payment button on step 2
+        var backBtn2 = document.getElementById('backBtn2');  // Back button on step 3
+        var loginLink = document.getElementById('gotoLogin');  // Log In link on step 2
+        var signupLink = document.getElementById('gotoSignup');  // Sign Up link on step 2
+        var departmentField = document.getElementById('id_department');  // department dropdown on step 1
+        var feeAmount = document.getElementById('feeAmount');  // fee amount text on step 3
+        var cardFields = document.getElementById('cardFields');  // demo card fields on step 3
+        var payOnline = document.getElementById('payOnline');  // "pay online" radio button
+        var payCash = document.getElementById('payCash');  // "pay cash" radio button
+
+        // consultation fee for each department, e.g. {"cardiology": "50.00"}
+        var departmentFees = JSON.parse(document.getElementById('department-fees').textContent);
+
+        // show the fee for whichever department is currently picked
+        function updateFeeDisplay() {
+          if (!feeAmount || !departmentField) return;
+          var fee = departmentFees[departmentField.value];
+          feeAmount.textContent = fee ? parseFloat(fee).toFixed(2) : '0.00';
+        }
+
+        // show the demo card fields only when "Pay Online Now" is selected
+        function updateCardFields() {
+          if (!cardFields) return;
+          cardFields.classList.toggle('d-none', !payOnline.checked);
+        }
+
+        // ids of every field in the booking form, used to save and restore a draft
+        var fieldIds = [
+          'id_department', 'id_doctor', 'id_date', 'id_time_slot', 'id_message',
+          'id_patient_name', 'id_patient_contact', 'id_patient_age', 'id_patient_address', 'id_patient_nic'
+        ];
+
+        // save whatever the user has typed so far, before we send them off to log in
+        function saveDraft() {
+          var draft = {};
+          fieldIds.forEach(function (id) {
+            var field = document.getElementById(id);
+            if (field) draft[id] = field.value;
+          });
+          sessionStorage.setItem('appointmentDraft', JSON.stringify(draft));
+        }
+
+        // put a saved draft back into the form fields, if one exists
+        function restoreDraft() {
+          var raw = sessionStorage.getItem('appointmentDraft');
+          if (!raw) return false;
+          var draft = JSON.parse(raw);
+          fieldIds.forEach(function (id) {
+            var field = document.getElementById(id);
+            if (field && draft[id] !== undefined) field.value = draft[id];
+          });
+          sessionStorage.removeItem('appointmentDraft');
+          return true;
+        }
+
+        // if the server sent back errors for the patient fields, open step 2 first
+        var hasStep2Errors = step2.querySelector('.error-message') !== null;
+
+        // if we have a saved draft (from before a login/sign up trip), restore it
+        var draftRestored = restoreDraft();
+
+        if (hasStep2Errors || draftRestored) {
+          step1.classList.add('d-none');
+          step2.classList.remove('d-none');
+        }
+
+        // save the draft before leaving the page to log in or sign up
+        if (loginLink) loginLink.addEventListener('click', saveDraft);
+        if (signupLink) signupLink.addEventListener('click', saveDraft);
+
+        // when Next is clicked, check step 1 fields before moving on
+        nextBtn.addEventListener('click', function () {
+          var fields = step1.querySelectorAll('input, select, textarea');
+          for (var i = 0; i < fields.length; i++) {
+            if (!fields[i].checkValidity()) {
+              fields[i].reportValidity();  // show the browser's own error bubble
+              return;  // stop here, stay on step 1
+            }
+          }
+          step1.classList.add('d-none');  // hide appointment details
+          step2.classList.remove('d-none');  // show patient details
+        });
+
+        // when Back is clicked, return to step 1
+        backBtn.addEventListener('click', function () {
+          step2.classList.add('d-none');  // hide patient details
+          step1.classList.remove('d-none');  // show appointment details
+        });
+
+        // step 3 only exists for logged in users, so guard all of this
+        if (step3 && nextBtn2 && backBtn2) {
+          // when Next: Payment is clicked, check step 2 fields before moving on
+          nextBtn2.addEventListener('click', function () {
+            var fields = step2.querySelectorAll('input, select, textarea');
+            for (var i = 0; i < fields.length; i++) {
+              if (!fields[i].checkValidity()) {
+                fields[i].reportValidity();  // show the browser's own error bubble
+                return;  // stop here, stay on step 2
+              }
+            }
+            updateFeeDisplay();  // show the fee for the chosen department
+            step2.classList.add('d-none');  // hide patient details
+            step3.classList.remove('d-none');  // show payment step
+          });
+
+          // when Back is clicked on step 3, return to step 2
+          backBtn2.addEventListener('click', function () {
+            step3.classList.add('d-none');  // hide payment step
+            step2.classList.remove('d-none');  // show patient details
+          });
+
+          // switch the demo card fields on or off when the payment method changes
+          payOnline.addEventListener('change', updateCardFields);
+          payCash.addEventListener('change', updateCardFields);
+          updateCardFields();  // set the correct state on page load
+        }
+      });
+    </script>
 
 
 {% endblock content %}

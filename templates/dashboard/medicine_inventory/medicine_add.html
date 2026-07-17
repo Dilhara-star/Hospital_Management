@@ -1,0 +1,82 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Add New Medicine</h1>
+        <a href="{% url 'medicine_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm"></i> Back to Medicines
+        </a>
+    </div>
+
+    {% if form.errors %}
+    <div class="alert alert-danger alert-dismissible fade show">
+        <strong><i class="fas fa-exclamation-triangle"></i> Please fix the following errors:</strong>
+        <ul class="mb-0 mt-1">
+            {% for field in form %}{% for error in field.errors %}
+            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}{% endfor %}
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'medicine_add' %}">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-capsules mr-1"></i> Medicine Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Medicine Name <span class="text-danger">*</span></label>
+                                {{ form.name }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Manufacturer</label>
+                                {{ form.manufacturer }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>Category</label>
+                                {{ form.category }}
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Unit</label>
+                                {{ form.unit }}
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Reorder Level <span class="text-danger">*</span></label>
+                                {{ form.reorder_level }}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            {{ form.description }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-plus"></i> Add Medicine
+                        </button>
+                        <a href="{% url 'medicine_list' %}" class="btn btn-secondary btn-block">
+                            Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

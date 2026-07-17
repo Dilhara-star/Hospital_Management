@@ -5,9 +5,16 @@
 
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Appointment Details</h1>
-        <a href="{% url 'appointment_index' %}" class="btn btn-sm btn-primary shadow-sm">
-            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Appointments
-        </a>
+        <div>
+            {% if appointment.doctor == request.user %}
+            <a href="{% url 'appointment_edit' appointment.pk %}" class="btn btn-sm btn-success shadow-sm">
+                <i class="fas fa-capsules fa-sm text-white-50"></i> Prescribe Medicine
+            </a>
+            {% endif %}
+            <a href="{% url 'appointment_index' %}" class="btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Appointments
+            </a>
+        </div>
     </div>
 
     <div class="card shadow mb-4">
@@ -24,8 +31,28 @@
                         <td>{{ appointment.department }}</td>
                     </tr>
                     <tr>
-                        <th>Patient Name</th>
+                        <th>Patient Account</th>
                         <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Patient Name</th>
+                        <td>{{ appointment.patient_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Contact</th>
+                        <td>{{ appointment.patient_contact }}</td>
+                    </tr>
+                    <tr>
+                        <th>Age</th>
+                        <td>{{ appointment.patient_age }}</td>
+                    </tr>
+                    <tr>
+                        <th>NIC</th>
+                        <td>{{ appointment.patient_nic }}</td>
+                    </tr>
+                    <tr>
+                        <th>Address</th>
+                        <td>{{ appointment.patient_address }}</td>
                     </tr>
                     <tr>
                         <th>Doctor</th>
@@ -39,8 +66,57 @@
                         <th>Note</th>
                         <td>{{ appointment.message }}</td>
                     </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>{{ appointment.get_status_display }}</td>
+                    </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-money-bill-wave mr-1"></i> Payment
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if appointment.payment %}
+            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                <tbody>
+                    <tr>
+                        <th>Amount</th>
+                        <td>${{ appointment.payment.amount }}</td>
+                    </tr>
+                    <tr>
+                        <th>Method</th>
+                        <td>{{ appointment.payment.get_method_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>{{ appointment.payment.get_status_display }}</td>
+                    </tr>
+                    {% if appointment.payment.transaction_ref %}
+                    <tr>
+                        <th>Reference</th>
+                        <td>{{ appointment.payment.transaction_ref }}</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+            {% if appointment.payment.method == 'cash' and appointment.payment.status == 'pending' %}
+            <form method="post" action="{% url 'confirm_cash_payment' appointment.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-check"></i> Confirm Cash Received
+                </button>
+            </form>
+            {% endif %}
+            {% else %}
+            <p class="text-muted mb-0">No payment record for this appointment.</p>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

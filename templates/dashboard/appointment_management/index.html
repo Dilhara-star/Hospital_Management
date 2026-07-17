@@ -5,7 +5,7 @@
 
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Appointment Management</h1>
-        <a href="" class="btn btn-sm btn-primary shadow-sm">
+        <a href="{% url 'appointment_add' %}" class="btn btn-sm btn-primary shadow-sm">
             <i class="fas fa-user-plus fa-sm text-white-50"></i> Register New Appointment
         </a>
     </div>
@@ -41,8 +41,9 @@
                             <!-- <th>Phone</th>
                             <th>Emergency Contact</th> -->
                             <!-- <th>Insurance</th> -->
-                            <!-- <th>Status</th>
-                            <th>Registered</th> -->
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <!-- <th>Registered</th> -->
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
@@ -55,9 +56,10 @@
                             <th>Preferred Date</th>
                             <!-- <th>Phone</th>
                             <th>Emergency Contact</th>
-                            <th>Insurance</th> 
+                            <th>Insurance</th> -->
                             <th>Status</th>
-                            <th>Registered</th> -->
+                            <th>Payment</th>
+                            <!-- <th>Registered</th> -->
                             <th class="text-center">Actions</th>
                         </tr>
                     </tfoot>
@@ -75,15 +77,32 @@
                             <td>
                                 <div class="font-weight-bold">{{ appointment.date }}</div>
                             </td>
-                           
-                           
-                        
-                         
+                            <td>
+                                {% if appointment.status == 'confirmed' %}
+                                <span class="badge badge-success">{{ appointment.get_status_display }}</span>
+                                {% elif appointment.status == 'cancelled' %}
+                                <span class="badge badge-danger">{{ appointment.get_status_display }}</span>
+                                {% else %}
+                                <span class="badge badge-warning">{{ appointment.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if appointment.payment %}
+                                    {{ appointment.payment.get_method_display }} -
+                                    {% if appointment.payment.status == 'paid' %}
+                                    <span class="badge badge-success">Paid</span>
+                                    {% else %}
+                                    <span class="badge badge-warning">Pending</span>
+                                    {% endif %}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
                             <td class="text-center text-nowrap">
                                 <a href="{% url 'appointment_view' appointment.pk %}" class="btn btn-sm btn-info" title="View">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="" class="btn btn-sm btn-primary" title="Edit">
+                                <a href="{% url 'appointment_edit' appointment.pk %}" class="btn btn-sm btn-primary" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <button type="button" class="btn btn-sm btn-danger" title="Delete"

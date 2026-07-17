@@ -1,0 +1,136 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Supplier Management</h1>
+        <a href="{% url 'supplier_add' %}" class="btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-truck-loading fa-sm text-white-50"></i> Add New Supplier
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-truck mr-1"></i> All Suppliers
+            </h6>
+            <span class="badge badge-primary badge-pill">{{ suppliers.count }} total</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Contact Person</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Added</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tfoot class="thead-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Contact Person</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Added</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </tfoot>
+                    <tbody>
+                        {% for supplier in suppliers %}
+                        <tr>
+                            <td><span class="font-weight-bold">{{ supplier.name }}</span></td>
+                            <td>{{ supplier.contact_person|default:"—" }}</td>
+                            <td>{{ supplier.phone|default:"—" }}</td>
+                            <td>{{ supplier.email|default:"—" }}</td>
+                            <td>
+                                {% if supplier.status == 'active' %}
+                                <span class="badge badge-success">Active</span>
+                                {% else %}
+                                <span class="badge badge-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="small">{{ supplier.created_date }}</td>
+                            <td class="text-center text-nowrap">
+                                <a href="{% url 'supplier_detail' supplier.pk %}" class="btn btn-sm btn-info" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'supplier_edit' supplier.pk %}" class="btn btn-sm btn-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-danger" title="Delete"
+                                    data-toggle="modal" data-target="#deleteModal"
+                                    data-supplier-id="{{ supplier.pk }}"
+                                    data-supplier-name="{{ supplier.name }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-truck fa-2x mb-2 d-block"></i>
+                                No suppliers added yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete Supplier</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently delete supplier <strong id="deleteSupplierName"></strong>?</p>
+                <p class="text-danger small"><i class="fas fa-exclamation-triangle"></i> This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Supplier
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var deleteUrlTemplate = "{% url 'supplier_delete' 0 %}".replace('/0/', '/{id}/');
+    $('#deleteModal').on('show.bs.modal', function (e) {
+        var btn = $(e.relatedTarget);
+        $('#deleteSupplierName').text(btn.data('supplier-name'));
+        $('#deleteForm').attr('action', deleteUrlTemplate.replace('{id}', btn.data('supplier-id')));
+    });
+</script>
+{% endblock %}

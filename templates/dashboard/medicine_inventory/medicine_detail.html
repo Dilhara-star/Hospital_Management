@@ -1,0 +1,109 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Medicine Details</h1>
+        <div>
+            <a href="{% url 'medicine_edit' medicine.pk %}" class="btn btn-sm btn-primary shadow-sm mr-2">
+                <i class="fas fa-edit fa-sm"></i> Edit Medicine
+            </a>
+            <a href="{% url 'medicine_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm"></i> Back to Medicines
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!-- Left: Summary Card -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-capsules fa-4x text-primary"></i>
+                    </div>
+                    <h5 class="font-weight-bold">{{ medicine.name }}</h5>
+                    <p class="mb-2">
+                        {% if medicine.is_low_stock %}
+                        <span class="badge badge-danger badge-pill px-3 py-2">Low Stock</span>
+                        {% else %}
+                        <span class="badge badge-success badge-pill px-3 py-2">In Stock</span>
+                        {% endif %}
+                    </p>
+                    <hr>
+                    <div class="text-left">
+                        <p class="mb-1"><strong>Category:</strong> {{ medicine.get_category_display|default:"—" }}</p>
+                        <p class="mb-1"><strong>Unit:</strong> {{ medicine.get_unit_display|default:"—" }}</p>
+                        <p class="mb-1"><strong>Manufacturer:</strong> {{ medicine.manufacturer|default:"—" }}</p>
+                        <p class="mb-1"><strong>Reorder Level:</strong> {{ medicine.reorder_level }}</p>
+                        <p class="mb-0"><strong>Total Stock:</strong> {{ medicine.total_quantity }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Detail Cards -->
+        <div class="col-lg-8">
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-align-left mr-1"></i> Description</h6>
+                </div>
+                <div class="card-body">
+                    <div>{{ medicine.description|default:"Not provided"|linebreaksbr }}</div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-boxes mr-1"></i> Stock Batches</h6>
+                    <a href="{% url 'stock_add' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Add Stock Batch
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if batches %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Batch No.</th>
+                                    <th>Supplier</th>
+                                    <th>Quantity</th>
+                                    <th>Expiry Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for batch in batches %}
+                                <tr>
+                                    <td>{{ batch.batch_number }}</td>
+                                    <td>{{ batch.supplier.name|default:"—" }}</td>
+                                    <td>{{ batch.quantity }}</td>
+                                    <td>{{ batch.expiry_date }}</td>
+                                    <td>
+                                        {% if batch.is_expired %}
+                                        <span class="badge badge-danger">Expired</span>
+                                        {% elif batch.is_expiring_soon %}
+                                        <span class="badge badge-warning">Expiring Soon</span>
+                                        {% else %}
+                                        <span class="badge badge-success">Good</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No stock batches recorded for this medicine yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

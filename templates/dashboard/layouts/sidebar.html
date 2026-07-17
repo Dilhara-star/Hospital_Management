@@ -71,6 +71,41 @@
                 <h6 class="collapse-header">Appointment Management:</h6>
                 <a class="collapse-item" href="">Schedule Appointment</a>
                 <a class="collapse-item" href="{% url 'appointment_index' %}">All Appointments</a>
+                <a class="collapse-item" href="{% url 'fee_index' %}">Consultation Fees</a>
+            </div>
+        </div>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsesuppliers"
+            aria-expanded="true" aria-controls="collapsesuppliers">
+            <i class="fas fa-fw fa-truck"></i>
+            <span>Supplier Details</span>
+        </a>
+        <div id="collapsesuppliers" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Supplier Management:</h6>
+                <a class="collapse-item" href="{% url 'supplier_add' %}">Add Supplier</a>
+                <a class="collapse-item" href="{% url 'supplier_list' %}">All Suppliers</a>
+            </div>
+        </div>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseinventory"
+            aria-expanded="true" aria-controls="collapseinventory">
+            <i class="fas fa-fw fa-capsules"></i>
+            <span>Medicine Inventory</span>
+        </a>
+        <div id="collapseinventory" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Medicine Catalog:</h6>
+                <a class="collapse-item" href="{% url 'medicine_add' %}">Add Medicine</a>
+                <a class="collapse-item" href="{% url 'medicine_list' %}">All Medicines</a>
+                <div class="collapse-divider"></div>
+                <h6 class="collapse-header">Stock Batches:</h6>
+                <a class="collapse-item" href="{% url 'stock_add' %}">Add Stock Batch</a>
+                <a class="collapse-item" href="{% url 'stock_list' %}">All Stock Batches</a>
             </div>
         </div>
     </li>

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'apps.user_management',
     'apps.frontend',
     'apps.appointment',
+    'apps.inventory',
 
 ]
 STATICFILES_DIRS = [

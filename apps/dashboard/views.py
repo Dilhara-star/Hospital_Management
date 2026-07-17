@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from .forms import SignupForm
 
 
 @login_required
@@ -45,3 +46,23 @@ def logout_view(request):
     if request.method == 'POST':
         logout(request)
     return redirect('login')
+
+
+def register_view(request):
+    # already logged in users don't need to sign up again
+    if request.user.is_authenticated:
+        return _redirect_by_role(request.user)
+
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # log the new user in right away
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            return _redirect_by_role(user)
+    else:
+        form = SignupForm()
+
+    return render(request, 'dashboard/auth/register.html', {'form': form})

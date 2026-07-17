@@ -1,0 +1,96 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Supplier Details</h1>
+        <div>
+            <a href="{% url 'supplier_edit' supplier.pk %}" class="btn btn-sm btn-primary shadow-sm mr-2">
+                <i class="fas fa-edit fa-sm"></i> Edit Supplier
+            </a>
+            <a href="{% url 'supplier_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm"></i> Back to Suppliers
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!-- Left: Summary Card -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-truck fa-4x text-primary"></i>
+                    </div>
+                    <h5 class="font-weight-bold">{{ supplier.name }}</h5>
+                    <p class="mb-2">
+                        {% if supplier.status == 'active' %}
+                        <span class="badge badge-success badge-pill px-3 py-2">Active</span>
+                        {% else %}
+                        <span class="badge badge-secondary badge-pill px-3 py-2">Inactive</span>
+                        {% endif %}
+                    </p>
+                    <hr>
+                    <div class="text-left">
+                        <p class="mb-1"><strong>Added:</strong> {{ supplier.created_date }}</p>
+                        <p class="mb-1"><strong>Contact Person:</strong> {{ supplier.contact_person|default:"—" }}</p>
+                        <p class="mb-1"><strong>Phone:</strong> {{ supplier.phone|default:"—" }}</p>
+                        <p class="mb-0"><strong>Email:</strong> {{ supplier.email|default:"—" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Detail Cards -->
+        <div class="col-lg-8">
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-map-marker-alt mr-1"></i> Address</h6>
+                </div>
+                <div class="card-body">
+                    <div>{{ supplier.address|default:"Not provided"|linebreaksbr }}</div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-boxes mr-1"></i> Stock Batches Supplied</h6>
+                    <span class="badge badge-primary badge-pill">{{ supplier.stock_batches.count }} total</span>
+                </div>
+                <div class="card-body">
+                    {% if supplier.stock_batches.all %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Medicine</th>
+                                    <th>Batch No.</th>
+                                    <th>Quantity</th>
+                                    <th>Expiry Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for batch in supplier.stock_batches.all %}
+                                <tr>
+                                    <td>{{ batch.medicine.name }}</td>
+                                    <td>{{ batch.batch_number }}</td>
+                                    <td>{{ batch.quantity }}</td>
+                                    <td>{{ batch.expiry_date }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No stock batches recorded for this supplier yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
