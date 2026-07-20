@@ -22,6 +22,9 @@ urlpatterns = [
     path('staff/', views.staff_user_list, name='staff_user_list'),
     path('staff/<int:user_id>/edit/', views.staff_edit, name='staff_edit'),
     path('staff/<int:user_id>/detail/', views.staff_detail, name='staff_detail'),
+
+    # Doctor rooms
+    path('doctor-rooms/', views.doctor_room_list, name='doctor_room_list'),
 ]
 
 if settings.DEBUG:

@@ -235,6 +235,12 @@
                         <label for="{{ form.message.id_for_label }}" class="form-label fw-semibold">Notes (optional)</label>
                         {{ form.message }}
                       </div>
+                      <div class="col-12">
+                        <!-- updates live as soon as a department + doctor are picked, well before the payment step -->
+                        <div class="fee-box">
+                          Estimated Appointment Fee: <strong>$<span class="fee-amount-value">0.00</span></strong>
+                        </div>
+                      </div>
                       <div class="col-12 text-end">
                         <button type="button" class="btn-book" id="nextBtn">Next</button>
                       </div>
@@ -295,7 +301,7 @@
                     <div class="step-heading">Payment</div>
 
                     <div class="fee-box">
-                      Consultation Fee: <strong>$<span id="feeAmount">0.00</span></strong>
+                      Consultation Fee: <strong>$<span class="fee-amount-value">0.00</span></strong>
                     </div>
 
                     <div class="row gy-3 mb-4">
@@ -364,6 +370,8 @@
 
     <!-- consultation fee for every department, read by the script below -->
     {{ fees|json_script:"department-fees" }}
+    <!-- each doctor's own hourly fee, read by the script below -->
+    {{ doctor_fees|json_script:"doctor-fees" }}
 
     <script>
       // this script moves the booking form between step 1 (appointment details),
@@ -379,19 +387,25 @@
         var loginLink = document.getElementById('gotoLogin');  // Log In link on step 2
         var signupLink = document.getElementById('gotoSignup');  // Sign Up link on step 2
         var departmentField = document.getElementById('id_department');  // department dropdown on step 1
-        var feeAmount = document.getElementById('feeAmount');  // fee amount text on step 3
+        var doctorField = document.getElementById('id_doctor');  // doctor dropdown on step 1
+        var feeAmounts = document.querySelectorAll('.fee-amount-value');  // fee text shown on step 1 AND step 3
         var cardFields = document.getElementById('cardFields');  // demo card fields on step 3
         var payOnline = document.getElementById('payOnline');  // "pay online" radio button
         var payCash = document.getElementById('payCash');  // "pay cash" radio button
 
         // consultation fee for each department, e.g. {"cardiology": "50.00"}
         var departmentFees = JSON.parse(document.getElementById('department-fees').textContent);
+        // each doctor's own hourly fee, e.g. {"3": "1500.00"}
+        var doctorFees = JSON.parse(document.getElementById('doctor-fees').textContent);
 
-        // show the fee for whichever department is currently picked
+        // show the total fee (department fee + doctor's own fee) for the current picks,
+        // everywhere the fee is shown on the page (step 1 and step 3)
         function updateFeeDisplay() {
-          if (!feeAmount || !departmentField) return;
-          var fee = departmentFees[departmentField.value];
-          feeAmount.textContent = fee ? parseFloat(fee).toFixed(2) : '0.00';
+          if (!departmentField || !doctorField) return;
+          var deptFee = parseFloat(departmentFees[departmentField.value]) || 0;
+          var doctorFee = parseFloat(doctorFees[doctorField.value]) || 0;
+          var total = (deptFee + doctorFee).toFixed(2);
+          feeAmounts.forEach(function (el) { el.textContent = total; });
         }
 
         // show the demo card fields only when "Pay Online Now" is selected
@@ -440,6 +454,12 @@
           step2.classList.remove('d-none');
         }
 
+        // show the fee as soon as the page loads (covers a restored draft or a browser-remembered selection),
+        // and again live whenever the department or doctor is changed
+        updateFeeDisplay();
+        departmentField.addEventListener('change', updateFeeDisplay);
+        doctorField.addEventListener('change', updateFeeDisplay);
+
         // save the draft before leaving the page to log in or sign up
         if (loginLink) loginLink.addEventListener('click', saveDraft);
         if (signupLink) signupLink.addEventListener('click', saveDraft);
@@ -474,7 +494,7 @@
                 return;  // stop here, stay on step 2
               }
             }
-            updateFeeDisplay();  // show the fee for the chosen department
+            updateFeeDisplay();  // show the fee for the chosen department + doctor
             step2.classList.add('d-none');  // hide patient details
             step3.classList.remove('d-none');  // show payment step
           });

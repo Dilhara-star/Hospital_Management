@@ -1,0 +1,70 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    table.totals { margin-top: 16px; width: 60%; }
+    table.totals td { border: none; padding: 4px 6px; }
+    table.totals td.label { color: #777; }
+    table.totals td.value { font-weight: bold; text-align: right; }
+</style>
+</head>
+<body>
+
+    <h1>Appointment Summary Report</h1>
+    <p class="sub">
+        {{ doctor.get_full_name }}
+        {% if start_date or end_date %}&mdash; {{ start_date|default:"the start" }} to {{ end_date|default:"today" }}{% endif %}
+    </p>
+
+    <table class="totals">
+        <tr>
+            <td class="label">Total Appointments</td>
+            <td class="value">{{ total_count }}</td>
+        </tr>
+        <tr>
+            <td class="label">Pending</td>
+            <td class="value">{{ pending_count }}</td>
+        </tr>
+        <tr>
+            <td class="label">Confirmed</td>
+            <td class="value">{{ confirmed_count }}</td>
+        </tr>
+        <tr>
+            <td class="label">Cancelled</td>
+            <td class="value">{{ cancelled_count }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Patient</th>
+                <th>Department</th>
+                <th>Time Slot</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+            <tr>
+                <td>{{ appointment.date }}</td>
+                <td>{{ appointment.patient.get_full_name }}</td>
+                <td>{{ appointment.get_department_display }}</td>
+                <td>{{ appointment.get_time_slot_display }}</td>
+                <td>{{ appointment.get_status_display }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No appointments found for this period.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

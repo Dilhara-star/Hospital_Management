@@ -61,6 +61,14 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'Hospital_Management.urls'
 
 import os
+from dotenv import load_dotenv  # reads key=value lines from the .env file
+
+load_dotenv(BASE_DIR / '.env')  # load BREVO_* variables below from the .env file
+
+# Brevo email settings, used to send the appointment confirmation email
+BREVO_API_KEY = os.getenv('BREVO_API_KEY', '')  # secret key from your Brevo account
+BREVO_SENDER_EMAIL = os.getenv('BREVO_SENDER_EMAIL', '')  # "from" address, must be a verified sender in Brevo
+BREVO_SENDER_NAME = os.getenv('BREVO_SENDER_NAME', 'City Hospital')  # "from" name shown to the patient
 
 # The URL used to access the media files in the browser
 MEDIA_URL = '/media/'

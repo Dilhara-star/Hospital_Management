@@ -349,6 +349,8 @@ class StaffEditForm(forms.Form):
     hire_date = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
     employment_type = forms.ChoiceField(choices=StaffProfile.EMPLOYMENT_TYPE_CHOICES, required=False, widget=forms.Select(attrs=fc))
     shift = forms.ChoiceField(choices=StaffProfile.SHIFT_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    # doctors only: their own consultation fee, added on top of the department fee
+    hourly_fee = forms.DecimalField(required=False, min_value=0, widget=forms.NumberInput(attrs={**fc, 'step': '0.01', 'min': 0}))
     # Emergency contact
     emergency_contact_name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
     emergency_contact_phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
@@ -381,6 +383,7 @@ class StaffEditForm(forms.Form):
                     'hire_date': sp.hire_date,
                     'employment_type': sp.employment_type,
                     'shift': sp.shift,
+                    'hourly_fee': sp.hourly_fee,
                     'emergency_contact_name': sp.emergency_contact_name,
                     'emergency_contact_phone': sp.emergency_contact_phone,
                 })
@@ -431,6 +434,7 @@ class StaffEditForm(forms.Form):
         sp.hire_date = data.get('hire_date')
         sp.employment_type = data.get('employment_type', '')
         sp.shift = data.get('shift', '')
+        sp.hourly_fee = data.get('hourly_fee') or 0
         sp.emergency_contact_name = data.get('emergency_contact_name', '')
         sp.emergency_contact_phone = data.get('emergency_contact_phone', '')
         sp.save()

@@ -14,7 +14,7 @@ class SupplierAdmin(admin.ModelAdmin):
 # admin settings for the medicine model
 @admin.register(Medicine)
 class MedicineAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'unit', 'reorder_level', 'total_quantity')  # columns shown in the admin list
+    list_display = ('name', 'category', 'unit', 'price', 'reorder_level', 'total_quantity')  # columns shown in the admin list
     list_filter = ('category', 'unit')  # filter medicines by category and unit
     search_fields = ('name', 'manufacturer')  # fields you can search by
 

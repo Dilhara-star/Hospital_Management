@@ -145,6 +145,15 @@
                                 {{ form.shift }}
                             </div>
                         </div>
+                        {% if staff_user.profile.role == 'doctor' %}
+                        {# only doctors charge a personal consultation fee, so only show this field for them #}
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Hourly Fee <span class="text-muted">(Doctors only)</span></label>
+                                {{ form.hourly_fee }}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 

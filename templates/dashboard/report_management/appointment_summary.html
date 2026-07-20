@@ -1,0 +1,145 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Appointment Summary Report</h1>
+        <a href="{% url 'reports_index' %}" class="btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm"></i> Back to Reports
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-user-md mr-1"></i> {% if doctor %}{{ doctor.get_full_name }}{% else %}Appointment Summary{% endif %}
+            </h6>
+            {% if doctor %}
+            <a href="{% url 'appointment_summary_report_pdf' %}?doctor_id={{ doctor.pk }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-sm btn-danger">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+
+            <!-- filter row, GET so the page can be bookmarked / shared -->
+            <form method="get" class="form-row align-items-end mb-4">
+                {% if request.user.profile.role == 'admin' %}
+                {# only admins may filter by doctor - a doctor can only ever see their own report #}
+                <div class="form-group col-md-3">
+                    <label>Doctor</label>
+                    <select name="doctor_id" class="form-control">
+                        <option value="">-- Select Doctor --</option>
+                        {% for d in doctors %}
+                        <option value="{{ d.pk }}" {% if doctor and doctor.pk == d.pk %}selected{% endif %}>{{ d.get_full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="form-group col-md-3">
+                    <label>From</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="form-group col-md-3">
+                    <label>To</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <div class="form-group col-md-3">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+                    <a href="{% url 'appointment_summary_report' %}{% if request.user.profile.role == 'admin' and doctor %}?doctor_id={{ doctor.pk }}{% endif %}" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+
+            {% if not doctor %}
+            <p class="text-muted text-center py-4">Select a doctor above to view their appointment summary.</p>
+            {% else %}
+
+            <!-- status counts -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_count }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_count }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Confirmed</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ confirmed_count }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-left-danger shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Cancelled</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ cancelled_count }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Patient</th>
+                            <th>Department</th>
+                            <th>Time Slot</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td>{{ appointment.date }}</td>
+                            <td>{{ appointment.patient.get_full_name }}</td>
+                            <td>{{ appointment.get_department_display }}</td>
+                            <td>{{ appointment.get_time_slot_display }}</td>
+                            <td>
+                                {% if appointment.status == 'confirmed' %}
+                                <span class="badge badge-success">{{ appointment.get_status_display }}</span>
+                                {% elif appointment.status == 'cancelled' %}
+                                <span class="badge badge-danger">{{ appointment.get_status_display }}</span>
+                                {% else %}
+                                <span class="badge badge-warning">{{ appointment.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No appointments found for this period.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

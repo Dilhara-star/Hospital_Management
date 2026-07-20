@@ -125,6 +125,7 @@ class StaffProfile(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='staff_profile')
     employee_id = models.CharField(max_length=20, unique=True, blank=True)
     department = models.CharField(max_length=30, choices=DEPARTMENT_CHOICES, blank=True)
+    room_number = models.CharField(max_length=20, blank=True)  # which room this staff member sees patients in, e.g. a doctor
     specialization = models.CharField(max_length=100, blank=True)
     qualification = models.CharField(max_length=100, blank=True)
     license_number = models.CharField(max_length=50, blank=True)
@@ -133,6 +134,7 @@ class StaffProfile(models.Model):
     shift = models.CharField(max_length=20, choices=SHIFT_CHOICES, blank=True)
     emergency_contact_name = models.CharField(max_length=100, blank=True)
     emergency_contact_phone = models.CharField(max_length=20, blank=True)
+    hourly_fee = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # doctor's own consultation fee, added on top of the department fee (only meaningful for doctors)
 
     def save(self, *args, **kwargs):
         is_new = not self.pk

@@ -14,11 +14,21 @@
 
     <!-- Nav Item - Dashboard -->
     <li class="nav-item active">
-        <a class="nav-link" href="#">
+        <a class="nav-link" href="{% url 'dashboard_index' %}">
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span>Dashboard</span>
         </a>
     </li>
+
+    {% if request.user.profile.role == 'doctor' or request.user.profile.role == 'admin' %}
+    {# only doctors (their own reports) and admins (everyone's reports) can see this menu #}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'reports_index' %}">
+            <i class="fas fa-fw fa-chart-bar"></i>
+            <span>Reports</span>
+        </a>
+    </li>
+    {% endif %}
 
     <!-- Divider -->
     <hr class="sidebar-divider">
@@ -29,6 +39,8 @@
     </div>
 
 
+    {% if request.user.profile.role != 'pharmacist' %}
+    {# pharmacists only need Pharmacy Counter / Medicine Inventory, so hide this menu for them #}
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsepausers"
             aria-expanded="true" aria-controls="collapsepausers">
@@ -43,7 +55,10 @@
             </div>
         </div>
     </li>
+    {% endif %}
 
+    {% if request.user.profile.role != 'doctor' and request.user.profile.role != 'pharmacist' %}
+    {# doctors do not manage staff, and pharmacists only need their own menus, so hide this for both #}
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsestaffusers"
             aria-expanded="true" aria-controls="collapsestaffusers">
@@ -55,11 +70,15 @@
                 <h6 class="collapse-header">Staff Management:</h6>
                 <a class="collapse-item" href="{% url 'user_create' %}">Add Staff Member</a>
                 <a class="collapse-item" href="{% url 'staff_user_list' %}">All Staff</a>
+                <a class="collapse-item" href="{% url 'doctor_room_list' %}">Doctor Rooms</a>
             </div>
         </div>
     </li>
+    {% endif %}
 
 
+    {% if request.user.profile.role != 'pharmacist' %}
+    {# pharmacists only need Pharmacy Counter / Medicine Inventory, so hide this menu for them #}
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseappointments"
             aria-expanded="true" aria-controls="collapseappointments">
@@ -71,11 +90,27 @@
                 <h6 class="collapse-header">Appointment Management:</h6>
                 <a class="collapse-item" href="">Schedule Appointment</a>
                 <a class="collapse-item" href="{% url 'appointment_index' %}">All Appointments</a>
+                {% if request.user.profile.role != 'doctor' %}
+                {# fee_index already blocks doctors server-side, so hide the dead-end link too #}
                 <a class="collapse-item" href="{% url 'fee_index' %}">Consultation Fees</a>
+                {% endif %}
             </div>
         </div>
     </li>
+    {% endif %}
 
+    {% if request.user.profile.role == 'pharmacist' or request.user.profile.role == 'admin' %}
+    {# only the pharmacist (and admin, for backup) run the pharmacy counter #}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pharmacy_queue' %}">
+            <i class="fas fa-fw fa-capsules"></i>
+            <span>Pharmacy Counter</span>
+        </a>
+    </li>
+    {% endif %}
+
+    {% if request.user.profile.role != 'doctor' and request.user.profile.role != 'pharmacist' %}
+    {# doctors and pharmacists don't manage suppliers, so hide this menu for both #}
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsesuppliers"
             aria-expanded="true" aria-controls="collapsesuppliers">
@@ -90,7 +125,10 @@
             </div>
         </div>
     </li>
+    {% endif %}
 
+    {% if request.user.profile.role != 'doctor' %}
+    {# pharmacists still need Medicine Inventory, only doctors have no use for it #}
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseinventory"
             aria-expanded="true" aria-controls="collapseinventory">
@@ -109,10 +147,10 @@
             </div>
         </div>
     </li>
+    {% endif %}
 
-
-
-
+    {% if request.user.profile.role != 'doctor' and request.user.profile.role != 'pharmacist' %}
+    {# doctors and pharmacists only need their own menus, so hide the unused demo sections below for both #}
 
 
 
@@ -196,6 +234,7 @@
             <span>Tables</span>
         </a>
     </li>
+    {% endif %}
 
     <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">

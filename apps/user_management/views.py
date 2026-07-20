@@ -7,6 +7,14 @@ from .models import UserProfile, PatientProfile, StaffProfile
 
 STAFF_ROLES = ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'lab_technician']
 
+# roles allowed to assign a room to each doctor
+ROOM_STAFF_ROLES = ('admin', 'receptionist')
+
+
+def _is_room_staff(user):
+    # true only for logged in users whose profile role can assign doctor rooms
+    return hasattr(user, 'profile') and user.profile.role in ROOM_STAFF_ROLES
+
 
 # ── General User Management ───────────────────────────────────────────────────
 
@@ -58,7 +66,9 @@ def user_delete(request, user_id):
 
 @login_required
 def patient_user_list(request):
-    patients = PatientProfile.objects.select_related('user', 'user__profile').all()
+    # only show users whose current role is "patient"
+    # this stops old patients from showing here after their role gets changed (e.g. to pharmacist)
+    patients = PatientProfile.objects.select_related('user', 'user__profile').filter(user__profile__role='patient')
     return render(request, 'dashboard/patient_management/patient_list.html', {'patients': patients})
 
 
@@ -143,3 +153,35 @@ def staff_detail(request, user_id):
         'profile': profile,
         'sp': sp,
     })
+
+
+# ── Doctor Rooms ──────────────────────────────────────────────────────────────
+
+@login_required
+def doctor_room_list(request):
+    # only reception/admin staff may assign doctor rooms
+    if not _is_room_staff(request.user):
+        messages.error(request, 'You do not have permission to manage doctor rooms.')
+        return redirect('dashboard_index')
+
+    doctors = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')
+
+    if request.method == 'POST':
+        for doctor in doctors:
+            room_number = request.POST.get(f'room_{doctor.pk}', '').strip()  # room typed in for this doctor's row
+            staff_profile, _created = StaffProfile.objects.get_or_create(user_profile=doctor.profile)
+            staff_profile.room_number = room_number
+            staff_profile.save()
+        messages.success(request, 'Doctor room numbers have been updated.')
+        return redirect('doctor_room_list')
+
+    # each doctor with their current room number, so the form can show existing values
+    doctor_rows = []
+    for doctor in doctors:
+        try:
+            room_number = doctor.profile.staff_profile.room_number
+        except StaffProfile.DoesNotExist:
+            room_number = ''
+        doctor_rows.append({'doctor': doctor, 'room_number': room_number})
+
+    return render(request, 'dashboard/staff_management/doctor_rooms.html', {'doctor_rows': doctor_rows})
