@@ -20,7 +20,7 @@
         <a href="{% url 'frontend_index' %}" class="logo d-flex align-items-center">
           <!-- Uncomment the line below if you also wish to use an image logo -->
           <!-- <img src="assets/img/logo.webp" alt=""> -->
-          <h1 class="sitename">Clinic</h1>
+          <h1 class="sitename">Medi Plus Clinic</h1>
         </a>
 
         <nav id="navmenu" class="navmenu">
@@ -61,8 +61,8 @@
                 <li><a href="#">Dropdown 4</a></li>
               </ul>
             </li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="contact.html">Contact</a></li>
+            <li><a href="{% url 'about_us' %}">About</a></li>
+            <li><a href="{% url 'contact_us' %}">Contact</a></li>
           </ul>
           <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>
