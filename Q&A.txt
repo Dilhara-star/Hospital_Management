@@ -9,3 +9,7 @@ appointment date validation
 
 Commnets
 ctrl + ?
+
+
+Apppointmnt
+- Cancel, Reschdule, 
