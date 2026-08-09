@@ -1,0 +1,74 @@
+<!-- header labels for the medicine rows below -->
+<div class="row font-weight-bold small text-muted mb-2 d-none d-md-flex">
+    <div class="col-md-3">Name</div>
+    <div class="col-md-2">Stock</div>
+    <div class="col-md-2">Dosage</div>
+    <div class="col-md-1">Qty</div>
+    <div class="col-md-3">Instructions</div>
+    <div class="col-md-1"></div>
+</div>
+
+<!-- one small form per medicine, so the doctor can add it with its own dosage right away -->
+{% for medicine in medicines %}
+<form method="post" action="{% url 'appointment_edit' appointment.pk %}"
+    class="pharmacy-add-form row align-items-center border rounded py-2 px-1 mx-0 mb-2">
+    {% csrf_token %}
+    <input type="hidden" name="medicine_id" value="{{ medicine.pk }}">
+    <div class="col-md-3">
+        <div class="font-weight-bold">{{ medicine.name }}</div>
+        <div class="small text-muted">{{ medicine.get_category_display|default:"—" }}</div>
+    </div>
+    <div class="col-md-2">
+        {% if medicine.is_low_stock %}
+        <span class="badge badge-danger">Low ({{ medicine.total_quantity }})</span>
+        {% else %}
+        <span class="badge badge-success">{{ medicine.total_quantity }} in stock</span>
+        {% endif %}
+    </div>
+    <div class="col-md-2">
+        <input type="text" name="dosage" class="form-control form-control-sm" placeholder="e.g. 1 tablet" required>
+    </div>
+    <div class="col-md-1">
+        <input type="number" name="quantity" class="form-control form-control-sm" value="1" min="1" required>
+    </div>
+    <div class="col-md-3">
+        <input type="text" name="instructions" class="form-control form-control-sm" placeholder="e.g. twice daily, 5 days">
+    </div>
+    <div class="col-md-1 text-md-right mt-2 mt-md-0">
+        <button type="submit" class="btn btn-sm btn-success">
+            <i class="fas fa-plus"></i> Add
+        </button>
+    </div>
+</form>
+{% empty %}
+<p class="text-center text-muted py-4">No medicines match your search.</p>
+{% endfor %}
+
+<!-- pagination links for the medicine list, keeps the search box and category filter -->
+{% if medicines.has_other_pages %}
+<nav aria-label="Medicine pages">
+    <ul class="pagination justify-content-center mb-0">
+        {% if medicines.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?q={{ search_query }}&category={{ category }}&page={{ medicines.previous_page_number }}">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+
+        {% for page_num in medicines.paginator.page_range %}
+        <li class="page-item {% if page_num == medicines.number %}active{% endif %}">
+            <a class="page-link" href="?q={{ search_query }}&category={{ category }}&page={{ page_num }}">{{ page_num }}</a>
+        </li>
+        {% endfor %}
+
+        {% if medicines.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?q={{ search_query }}&category={{ category }}&page={{ medicines.next_page_number }}">Next</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}

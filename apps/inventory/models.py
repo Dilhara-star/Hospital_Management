@@ -49,6 +49,7 @@ class Medicine(models.Model):
     unit = models.CharField(max_length=20, choices=UNIT_CHOICES, blank=True)  # how the medicine is counted
     manufacturer = models.CharField(max_length=150, blank=True)  # company that makes the medicine
     reorder_level = models.PositiveIntegerField(default=10)  # minimum quantity before we need to reorder
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # price charged to the patient per unit
     description = models.TextField(blank=True)  # extra notes about the medicine
 
     # add up the quantity of every stock batch for this medicine

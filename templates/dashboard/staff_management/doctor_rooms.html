@@ -1,0 +1,63 @@
+{% extends 'dashboard/layouts/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Doctor Rooms</h1>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-door-open mr-1"></i> Assign a Room to Each Doctor
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Doctor</th>
+                                <th>Room Number</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in doctor_rows %}
+                            <tr>
+                                <td class="align-middle">Dr. {{ row.doctor.get_full_name }}</td>
+                                <td>
+                                    <input type="text" class="form-control"
+                                        name="room_{{ row.doctor.pk }}" value="{{ row.room_number }}" placeholder="e.g. Room 5">
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted py-4">No doctors registered yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Rooms
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

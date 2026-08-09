@@ -4,7 +4,7 @@
 
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Staff Management</h1>
-        <a href="{% url 'user_create' %}" class="btn btn-sm btn-primary shadow-sm">
+        <a href="{% url 'staff_add' %}" class="btn btn-sm btn-primary shadow-sm">
             <i class="fas fa-user-plus fa-sm text-white-50"></i> Add Staff Member
         </a>
     </div>
@@ -110,6 +110,12 @@
                                 <a href="{% url 'staff_edit' profile.user.pk %}" class="btn btn-sm btn-primary" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                <button type="button" class="btn btn-sm btn-danger" title="Delete"
+                                    data-toggle="modal" data-target="#deleteModal"
+                                    data-staff-id="{{ profile.user.pk }}"
+                                    data-staff-name="{{ profile.user.get_full_name }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </td>
                         </tr>
                         {% empty %}
@@ -127,4 +133,40 @@
     </div>
 
 </div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete Staff Member</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently delete staff member <strong id="deleteStaffName"></strong>?</p>
+                <p class="text-danger small"><i class="fas fa-exclamation-triangle"></i> This will remove their login account and all employment records. This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Staff Member
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var deleteUrlTemplate = "{% url 'staff_delete' 0 %}".replace('/0/', '/{id}/');
+    $('#deleteModal').on('show.bs.modal', function (e) {
+        var btn = $(e.relatedTarget);
+        $('#deleteStaffName').text(btn.data('staff-name'));
+        $('#deleteForm').attr('action', deleteUrlTemplate.replace('{id}', btn.data('staff-id')));
+    });
+</script>
 {% endblock %}

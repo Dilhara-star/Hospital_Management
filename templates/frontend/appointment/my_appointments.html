@@ -1,0 +1,276 @@
+{% extends 'frontend/layouts/base.html' %}
+
+{% block content %}
+<section class="appointments-section py-5" style="background:#f4f6fb; min-height:80vh;">
+  <div class="container">
+
+    <!-- Page Title -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h4 class="fw-bold" style="color:#2c4964;">My Appointments</h4>
+        <p class="text-muted mb-0">View your appointments and prescription details.</p>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+          {{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+
+      <!-- Left: Appointment List -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm" style="border-radius:16px;">
+          <div class="card-header border-0 pb-0 pt-4 px-4" style="background:transparent;">
+            <h6 class="fw-bold mb-0" style="color:#2c4964;">
+              <i class="bi bi-calendar2-week me-2"></i>Appointments
+            </h6>
+          </div>
+          <div class="card-body px-2 pb-3">
+            <div class="list-group list-group-flush">
+              {% for appointment in page_obj %}
+                <a href="{% url 'my_appointment_detail' appointment.pk %}"
+                   class="list-group-item list-group-item-action {% if selected_appointment.pk == appointment.pk %}active{% endif %}">
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                      <div class="fw-semibold">{{ appointment.get_department_display }}</div>
+                      <small class="{% if selected_appointment.pk == appointment.pk %}text-white-50{% else %}text-muted{% endif %}">
+                        {{ appointment.date }} &middot; {{ appointment.get_time_slot_display }}
+                      </small>
+                    </div>
+                    {% if appointment.status == 'confirmed' %}
+                      <span class="badge bg-success">{{ appointment.get_status_display }}</span>
+                    {% elif appointment.status == 'cancelled' %}
+                      <span class="badge bg-danger">{{ appointment.get_status_display }}</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark">{{ appointment.get_status_display }}</span>
+                    {% endif %}
+                  </div>
+                </a>
+              {% empty %}
+                <p class="text-muted text-center py-4 mb-0">You have no appointments yet.</p>
+              {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+              <nav class="mt-3 px-3">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                  {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a></li>
+                  {% endif %}
+                  <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                  {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                  {% endif %}
+                </ul>
+              </nav>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Selected Appointment + Prescription -->
+      <div class="col-lg-8">
+        {% if selected_appointment %}
+
+          <!-- Appointment Details -->
+          <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
+            <div class="card-header border-0 pb-0 pt-4 px-4" style="background:transparent;">
+              <h6 class="fw-bold mb-0" style="color:#2c4964;">
+                <i class="bi bi-clipboard2-pulse me-2"></i>Appointment Details
+              </h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+              <table class="table table-borderless mb-0">
+                <tbody>
+                  <tr>
+                    <th class="text-muted small" style="width:160px;">Department</th>
+                    <td>{{ selected_appointment.get_department_display }}</td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted small">Doctor</th>
+                    <td>
+                      {% if selected_appointment.doctor %}
+                        Dr. {{ selected_appointment.doctor.get_full_name }}
+                      {% else %}
+                        <span class="text-muted">Not assigned yet</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% if selected_appointment.doctor %}
+                  <tr>
+                    <th class="text-muted small">Room</th>
+                    <td>{{ doctor_room|default:"Not assigned yet" }}</td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <th class="text-muted small">Date</th>
+                    <td>{{ selected_appointment.date }}</td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted small">Time</th>
+                    <td>{{ selected_appointment.get_time_slot_display }}</td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted small">Status</th>
+                    <td>
+                      {% if selected_appointment.status == 'confirmed' %}
+                        <span class="badge bg-success">{{ selected_appointment.get_status_display }}</span>
+                      {% elif selected_appointment.status == 'cancelled' %}
+                        <span class="badge bg-danger">{{ selected_appointment.get_status_display }}</span>
+                      {% else %}
+                        <span class="badge bg-warning text-dark">{{ selected_appointment.get_status_display }}</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted small">Note</th>
+                    <td>{{ selected_appointment.message|default:"—" }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Prescription -->
+          <div class="card border-0 shadow-sm" style="border-radius:16px;">
+            <div class="card-header border-0 pb-0 pt-4 px-4" style="background:transparent;">
+              <h6 class="fw-bold mb-0" style="color:#2c4964;">
+                <i class="bi bi-capsule me-2"></i>Prescription
+              </h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+              <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Medicine</th>
+                      <th>Dosage</th>
+                      <th>Quantity</th>
+                      <th>Instructions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in prescribed_items %}
+                      <tr>
+                        <td class="fw-semibold">{{ item.medicine.name }}</td>
+                        <td>{{ item.dosage }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.instructions|default:"—" }}</td>
+                      </tr>
+                    {% empty %}
+                      <tr>
+                        <td colspan="4" class="text-center text-muted py-4">No medicine prescribed for this appointment.</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Medicine Bill -->
+          {% if pharmacy_order %}
+          <div class="card border-0 shadow-sm mt-4" style="border-radius:16px;">
+            <div class="card-header border-0 pb-0 pt-4 px-4" style="background:transparent;">
+              <h6 class="fw-bold mb-0" style="color:#2c4964;">
+                <i class="bi bi-receipt me-2"></i>Medicine Bill
+              </h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+              <p class="mb-2">
+                Total: <strong>{{ medicine_total }}</strong>
+              </p>
+              <p class="mb-3">
+                {% if pharmacy_order.status == 'completed' %}
+                  <span class="badge bg-success">Paid &amp; Completed</span>
+                {% else %}
+                  {% if pharmacy_order.payment_status == 'paid' %}
+                    <span class="badge bg-success">Paid</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Payment Pending</span>
+                  {% endif %}
+                  {% if pharmacy_order.status == 'pending' %}
+                    <span class="badge bg-secondary">Waiting for pharmacist to prepare your medicine</span>
+                  {% elif pharmacy_order.status == 'dispensed' %}
+                    <span class="badge bg-info text-dark">Medicine Given</span>
+                  {% endif %}
+                {% endif %}
+              </p>
+
+              {% if pharmacy_order.status != 'completed' and pharmacy_order.payment_status == 'pending' %}
+                <button type="button" class="btn btn-sm" style="background:#2c4964;color:#fff;"
+                        data-bs-toggle="modal" data-bs-target="#payOnlineModal">
+                  <i class="bi bi-credit-card me-1"></i>Pay Online
+                </button>
+                <span class="text-muted small ms-2">or pay by cash to the pharmacist at the counter.</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Pay Online Modal -->
+          <div class="modal fade" id="payOnlineModal" tabindex="-1" aria-labelledby="payOnlineModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content" style="border-radius:16px;">
+                <form method="post" action="{% url 'pay_medicine_online' selected_appointment.pk %}">
+                  {% csrf_token %}
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="payOnlineModalLabel">Pay for Medicine</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p class="mb-3">Amount to pay: <strong>{{ medicine_total }}</strong></p>
+                    <div class="mb-3">
+                      <label class="form-label small text-muted">Card Number</label>
+                      <input type="text" name="card_number" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                    </div>
+                    <div class="row">
+                      <div class="col-6 mb-3">
+                        <label class="form-label small text-muted">Expiry Date</label>
+                        <input type="text" name="card_expiry" class="form-control" placeholder="MM/YY" maxlength="5" required>
+                      </div>
+                      <div class="col-6 mb-3">
+                        <label class="form-label small text-muted">CVV</label>
+                        <input type="text" name="card_cvv" class="form-control" placeholder="123" maxlength="3" required>
+                      </div>
+                    </div>
+                    <p class="text-muted small mb-0"><i class="bi bi-shield-lock me-1"></i>Demo payment form - no real card is charged.</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm" style="background:#2c4964;color:#fff;">Confirm Payment</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+        {% else %}
+          <div class="card border-0 shadow-sm text-center p-5" style="border-radius:16px;">
+            <i class="bi bi-calendar-x mb-2" style="font-size:2rem;color:#2c4964;"></i>
+            <p class="text-muted mb-0">You have no appointments yet.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  .appointments-section .card { transition: box-shadow .2s; }
+  .appointments-section .card:hover { box-shadow: 0 6px 24px rgba(44,73,100,.1) !important; }
+  .appointments-section .list-group-item.active {
+    background: #2c4964;
+    border-color: #2c4964;
+  }
+</style>
+{% endblock content %}

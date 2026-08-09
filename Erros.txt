@@ -24,3 +24,11 @@ Error eka :
 HTML file hadala connected but html file is empty (html ekedi mukuth nathi nisa)
 
 =================================================================================
+
+********************************************************************************
+from pprint import pprint 
+
+def my_view(request): 
+if request.method == 'POST': 
+# Prints neatly formatted dictionary to console 
+pprint(request.POST.dict())

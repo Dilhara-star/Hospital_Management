@@ -96,7 +96,8 @@ class Payment(models.Model):
 
     # each appointment has exactly one payment record
     appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE, related_name='payment')
-    amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # fee charged for this appointment
+    amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # total fee charged: department fee + doctor fee
+    doctor_fee_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # snapshot of just the doctor's own cut, for revenue reports
     method = models.CharField(max_length=10, choices=METHOD_CHOICES)  # how the patient is paying
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')  # has it been paid yet
     transaction_ref = models.CharField(max_length=50, blank=True)  # fake receipt/reference number
@@ -137,3 +138,47 @@ class PrescriptionItem(models.Model):
 
     def __str__(self):
         return f"{self.medicine.name} for {self.appointment}"
+
+
+class PharmacyOrder(models.Model):
+    # one row per appointment, tracks handing out the prescribed medicine and paying for it
+    STATUS_CHOICES = [
+        ('pending', 'Waiting for Pharmacist'),  # doctor prescribed medicine, pharmacist has not given it out yet
+        ('dispensed', 'Medicine Given - Awaiting Payment'),  # pharmacist gave the medicine, waiting on payment
+        ('completed', 'Completed'),  # medicine given and paid for, order is done
+    ]
+    METHOD_CHOICES = [
+        ('online', 'Online'),  # patient paid with the demo online payment button
+        ('cash', 'Cash to Pharmacist'),  # patient paid cash directly to the pharmacist
+    ]
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),  # money not received yet
+        ('paid', 'Paid'),  # money received
+    ]
+
+    # each appointment has exactly one pharmacy order
+    appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE, related_name='pharmacy_order')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')  # where the order is in the flow
+    total_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # total price of the prescribed medicine
+    payment_method = models.CharField(max_length=10, choices=METHOD_CHOICES, blank=True)  # how the patient paid
+    payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='pending')  # has it been paid yet
+    transaction_ref = models.CharField(max_length=50, blank=True)  # fake receipt/reference number
+    dispensed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='dispensed_orders',
+    )  # which pharmacist handed out the medicine
+    dispensed_at = models.DateTimeField(null=True, blank=True)  # when the medicine was handed out
+    paid_at = models.DateTimeField(null=True, blank=True)  # when the payment was marked as paid
+    completed_at = models.DateTimeField(null=True, blank=True)  # when the pharmacist marked the order complete
+    created_at = models.DateTimeField(auto_now_add=True)  # when this order row was first created
+
+    class Meta:
+        db_table = 'pharmacy_orders'
+        verbose_name = 'Pharmacy Order'
+        verbose_name_plural = 'Pharmacy Orders'
+
+    def __str__(self):
+        return f"Pharmacy order for {self.appointment} - {self.status}"

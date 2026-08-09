@@ -1,0 +1,56 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Reports</h1>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-money-bill-wave fa-2x text-primary mb-3"></i>
+                    <h5>Doctor Revenue</h5>
+                    <p class="text-muted small">
+                        {% if request.user.profile.role == 'admin' %}
+                        Total collected, hospital share, and take-home fee for any doctor.
+                        {% else %}
+                        Your appointments, total collected, and your take-home fee.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'doctor_revenue_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-2x text-primary mb-3"></i>
+                    <h5>Appointment Summary</h5>
+                    <p class="text-muted small">
+                        {% if request.user.profile.role == 'admin' %}
+                        A breakdown of any doctor's appointments by status.
+                        {% else %}
+                        A breakdown of your appointments by status.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'appointment_summary_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

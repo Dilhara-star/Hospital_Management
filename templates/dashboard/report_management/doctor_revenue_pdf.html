@@ -1,0 +1,74 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    table.totals { margin-top: 16px; width: 60%; }
+    table.totals td { border: none; padding: 4px 6px; }
+    table.totals td.label { color: #777; }
+    table.totals td.value { font-weight: bold; text-align: right; }
+</style>
+</head>
+<body>
+
+    <h1>Doctor Revenue Report</h1>
+    <p class="sub">
+        {{ doctor.get_full_name }}
+        {% if start_date or end_date %}&mdash; {{ start_date|default:"the start" }} to {{ end_date|default:"today" }}{% endif %}
+    </p>
+
+    <table class="totals">
+        <tr>
+            <td class="label">Total Collected</td>
+            <td class="value">${{ total_collected }}</td>
+        </tr>
+        <tr>
+            <td class="label">Doctor Take-Home</td>
+            <td class="value">${{ take_home }}</td>
+        </tr>
+        <tr>
+            <td class="label">Hospital Share</td>
+            <td class="value">${{ hospital_share }}</td>
+        </tr>
+        <tr>
+            <td class="label">Paid Appointments</td>
+            <td class="value">{{ paid_count }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Patient</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Doctor Fee</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+            <tr>
+                <td>{{ appointment.date }}</td>
+                <td>{{ appointment.patient.get_full_name }}</td>
+                <td>{{ appointment.get_department_display }}</td>
+                <td>{{ appointment.get_status_display }}</td>
+                <td>{% if appointment.payment %}{{ appointment.payment.get_status_display }}{% else %}-{% endif %}</td>
+                <td>{% if appointment.payment %}${{ appointment.payment.doctor_fee_amount }}{% else %}-{% endif %}</td>
+                <td>{% if appointment.payment %}${{ appointment.payment.amount }}{% else %}-{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7">No appointments found for this period.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

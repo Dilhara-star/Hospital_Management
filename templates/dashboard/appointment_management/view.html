@@ -59,6 +59,10 @@
                         <td>{{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</td>
                     </tr>
                     <tr>
+                        <th>Room</th>
+                        <td>{{ doctor_room|default:"Not assigned yet" }}</td>
+                    </tr>
+                    <tr>
                         <th>Preferred Date</th>
                         <td>{{ appointment.date }}</td>
                     </tr>
