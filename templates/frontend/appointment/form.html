@@ -5,8 +5,8 @@
     {% get_static_prefix as sp %}
 
     <style>
-      /* Mirrors .appointmnet .appointment-form .php-email-form styling from main.css,
-         scoped to .django-form since this form isn't handled by the theme's AJAX validate.js. */
+      /* Mirrors the old theme's ".php-email-form" input styling from main.css,
+         scoped to .django-form since this form is a plain Django POST, not AJAX. */
       .appointmnet .appointment-form .django-form input[type=date],
       .appointmnet .appointment-form .django-form select,
       .appointmnet .appointment-form .django-form textarea {

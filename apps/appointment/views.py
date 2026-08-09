@@ -8,7 +8,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string  # turns a template into an HTML string, used for PDFs
 from django.http import HttpResponse
 from django.utils import timezone  # used to stamp when a payment was paid
-from xhtml2pdf import pisa  # turns an HTML string into a PDF file
 from .models import Appointment, DepartmentFee, Payment, PrescriptionItem, PharmacyOrder
 from .forms import AppointmentForm, StaffAppointmentForm, PaymentForm
 from .notifications import send_appointment_confirmation_email  # emails the patient once an appointment is confirmed
@@ -627,6 +626,8 @@ def doctor_revenue_report_pdf(request):
     data['start_date'] = start_date
     data['end_date'] = end_date
 
+    from xhtml2pdf import pisa  # turns an HTML string into a PDF file, only loaded here so it does not need to work for the whole app
+
     html = render_to_string('dashboard/report_management/doctor_revenue_pdf.html', data)  # build the PDF's HTML
     response = HttpResponse(content_type='application/pdf')  # tell the browser this is a PDF file
     response['Content-Disposition'] = f'attachment; filename="doctor_revenue_{doctor.pk}.pdf"'  # forces a download
@@ -669,6 +670,8 @@ def appointment_summary_report_pdf(request):
     data = _appointment_summary_data(doctor, start_date, end_date)
     data['start_date'] = start_date
     data['end_date'] = end_date
+
+    from xhtml2pdf import pisa  # turns an HTML string into a PDF file, only loaded here so it does not need to work for the whole app
 
     html = render_to_string('dashboard/report_management/appointment_summary_pdf.html', data)
     response = HttpResponse(content_type='application/pdf')
