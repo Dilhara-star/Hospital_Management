@@ -32,3 +32,8 @@ def my_view(request):
 if request.method == 'POST': 
 # Prints neatly formatted dictionary to console 
 pprint(request.POST.dict())
+
+**********************************************************************************
+
+print("FORM IS INVALID")
+        print(form.errors)

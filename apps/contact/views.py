@@ -3,7 +3,7 @@ from django.contrib import messages  # shows a flash message after the form save
 from apps.contact.ContactForm import ContactForm
 from .models import Contact_us
 
-
+#frontend start 
 def contact_us_index(request):
     form = ContactForm()
     return render(request, "frontend/core/contact_us_index.html", {"form": form})
@@ -26,3 +26,17 @@ def add_contact(request):
     else:
         messages.error(request, "Please fix the errors below and try again.")
         return render(request, "frontend/core/contact_us_index.html", {"form": form})
+
+    
+
+#dash board start
+
+def view_inquiries(request):
+    inquiries = Contact_us.objects.all()
+    return render(request, "dashboard/contact_us/list_inquiries.html", {"inquiries": inquiries})
+
+def view_inquiry(request, id):
+    inquiry = Contact_us.objects.get(id=id)
+    return render(request, "dashboard/contact_us/view_inquiry.html", {"inquiry": inquiry})
+
+

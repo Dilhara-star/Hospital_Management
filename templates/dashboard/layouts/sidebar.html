@@ -57,6 +57,22 @@
     </li>
     {% endif %}
 
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseinquiry"
+            aria-expanded="true" aria-controls="collapseinquiry">
+            <i class="fas fa-fw fa-procedures"></i>
+            <span>Customer Inquiries</span>
+        </a>
+        <div id="collapseinquiry" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">View All Inquiries:</h6>
+                <a class="collapse-item" href="{% url 'view_inquiries' %}">All Inquiries</a>
+            </div>
+        </div>
+    </li>
+
+
+
     {% if request.user.profile.role != 'doctor' and request.user.profile.role != 'pharmacist' %}
     {# doctors do not manage staff, and pharmacists only need their own menus, so hide this for both #}
     <li class="nav-item">

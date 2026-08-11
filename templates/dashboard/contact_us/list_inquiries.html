@@ -1,0 +1,400 @@
+<!-- header labels for the medicine rows below -->
+{% extends 'dashboard/layouts/base.html' %}
+
+{% block content %}
+<style>
+  :root {
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --success: #10b981;
+    --success-bg: #ecfdf5;
+    --warning-bg: #fffbebfb;
+    --warning: #f59e0b;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-900: #111827;
+  }
+
+  .inquiry-wrapper {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--gray-900);
+    background-color: var(--gray-50);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  /* Header Bar */
+  .inquiry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .inquiry-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .inquiry-stats {
+    display: flex;
+    gap: 12px;
+  }
+
+  .stat-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    background: white;
+    border: 1px solid var(--gray-200);
+    color: var(--gray-600);
+  }
+
+  /* Filter Controls */
+  .inquiry-toolbar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    flex: 1;
+    min-width: 240px;
+    padding: 10px 14px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus {
+    border-color: var(--primary);
+  }
+
+  .filter-select {
+    padding: 10px 14px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: white;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* Inquiry List */
+  .inquiry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .inquiry-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 20px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .inquiry-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: var(--gray-300);
+  }
+
+  .inquiry-card.is-solved {
+    opacity: 0.8;
+    background-color: #fafafa;
+  }
+
+  .inquiry-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .sender-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e0e7ff;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .sender-name {
+    font-weight: 600;
+    font-size: 15px;
+    margin: 0 0 2px 0;
+  }
+
+  .sender-email {
+    font-size: 13px;
+    color: var(--gray-600);
+    margin: 0;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .badge-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  .badge-solved {
+    background-color: var(--success-bg);
+    color: #065f46;
+  }
+
+  .inquiry-body {
+    margin-bottom: 16px;
+  }
+
+  .inquiry-subject {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+    color: var(--gray-900);
+  }
+
+  .inquiry-text {
+    font-size: 14px;
+    color: var(--gray-700);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .inquiry-timestamp {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 8px;
+    display: block;
+  }
+
+  /* Actions Bar */
+  .inquiry-actions {
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid var(--gray-100);
+    padding-top: 14px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+  }
+
+  .btn-reply {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .btn-reply:hover {
+    background-color: var(--primary-hover);
+  }
+
+  .btn-solve {
+    background-color: white;
+    border: 1px solid var(--gray-300);
+    color: var(--gray-700);
+  }
+
+  .btn-solve:hover {
+    background-color: var(--gray-100);
+  }
+
+  .btn-solve.active {
+    background-color: var(--success-bg);
+    border-color: #a7f3d0;
+    color: #065f46;
+  }
+
+  /* Reply Box Accordion */
+  .reply-box {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--gray-200);
+  }
+
+  .reply-box.open {
+    display: block;
+  }
+
+  .reply-textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 10px;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    resize: vertical;
+  }
+
+  .reply-textarea:focus {
+    border-color: var(--primary);
+  }
+
+  .reply-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .btn-cancel {
+    background-color: transparent;
+    color: var(--gray-600);
+  }
+
+  .btn-cancel:hover {
+    background-color: var(--gray-100);
+  }
+</style>
+
+<div class="inquiry-wrapper">
+  <!-- Header -->
+  <div class="inquiry-header">
+    <h2 class="inquiry-title">Customer Inquiries</h2>
+    <div class="inquiry-stats">
+      <span class="stat-badge">Total: 3</span>
+      <span class="stat-badge" style="color: #92400e;">Pending: 2</span>
+      <span class="stat-badge" style="color: #065f46;">Solved: 1</span>
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="inquiry-toolbar">
+    <input type="text" class="search-input" placeholder="Search by sender, email, or message content..." />
+    <select class="filter-select">
+      <option value="all">All Statuses</option>
+      <option value="pending">Pending</option>
+      <option value="solved">Solved</option>
+    </select>
+  </div>
+
+  <!-- Inquiry List -->
+  <div class="inquiry-list">
+{% for inquiry in inquiries %} 
+    <!-- Card 1 (Pending) -->
+    <div class="inquiry-card" id="card-1">
+      <div class="inquiry-meta">
+        <div class="sender-info">
+          <div class="avatar">JD</div>
+          <div>
+            <p class="sender-name">{{ inquiry.name}}</p>
+            <p class="sender-email">{{ inquiry.email }}</p>
+          </div>
+        </div>
+        <span class="badge badge-pending" id="badge-1">Pending</span>
+      </div>
+      <div class="inquiry-body">
+        <h3 class="inquiry-subject">{{ inquiry.subject}}</h3>
+        <p class="inquiry-message">{{ inquiry.message}}</p>
+        <span class="inquiry-timestamp">Received {{inquiry.created_date}}</span>
+      </div>
+      <div class="inquiry-actions">
+        <button class="btn btn-solve" onclick="toggleSolve('card-1', 'badge-1', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Mark as Solved
+        </button>
+        <button class="btn btn-reply" onclick="toggleReply('reply-1')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          Reply
+        </button>
+      </div>
+
+      <!-- Inline Reply Box -->
+      <div class="reply-box" id="reply-1">
+        <textarea class="reply-textarea" placeholder="Write your response to John Doe..."></textarea>
+        <div class="reply-controls">
+          <button class="btn btn-cancel" onclick="toggleReply('reply-1')">Cancel</button>
+          <button class="btn btn-reply" onclick="sendReply('reply-1')">Send Email Reply</button>
+        </div>
+      </div>
+    </div>
+{% endfor %}
+   
+
+  </div>
+</div>
+
+<script>
+  function toggleReply(id) {
+    const box = document.getElementById(id);
+    box.classList.toggle('open');
+  }
+
+  function toggleSolve(cardId, badgeId, btn) {
+    const card = document.getElementById(cardId);
+    const badge = document.getElementById(badgeId);
+
+    if (badge.classList.contains('badge-pending')) {
+      badge.classList.remove('badge-pending');
+      badge.classList.add('badge-solved');
+      badge.innerText = 'Solved';
+      card.classList.add('is-solved');
+      btn.classList.add('active');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Solved`;
+    } else {
+      badge.classList.remove('badge-solved');
+      badge.classList.add('badge-pending');
+      badge.innerText = 'Pending';
+      card.classList.remove('is-solved');
+      btn.classList.remove('active');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Mark as Solved`;
+    }
+  }
+
+  function sendReply(id) {
+    alert('Reply sent successfully!');
+    toggleReply(id);
+  }
+</script>
+
+
+{% endblock %}
+
+
