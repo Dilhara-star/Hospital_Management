@@ -32,7 +32,7 @@ function call right after the appointment is saved as confirmed.
 - Sends to `appointment.patient.email` (the logged-in `User`'s email). If the
   patient has no email saved, the function just returns — nothing to send.
 - Room number comes from the same lookup used elsewhere
-  (`doctor.profile.staff_profile.room_number`), duplicated locally as
+  (`doctor.staff_profile.room_number`), duplicated locally as
   `_room_for()` so this file has no import back into `views.py`.
 - Wrapped in `try/except requests.RequestException` — if Brevo is unreachable
   or the API key is wrong, the error is only printed to the console. Sending

@@ -67,7 +67,7 @@
                         <tr>
                             <td>
                                 <span class="font-weight-bold text-primary">
-                                    {{ profile.staff_profile.employee_id|default:"—" }}
+                                    {{ profile.user.staff_profile.employee_id|default:"—" }}
                                 </span>
                             </td>
                             <td>
@@ -77,12 +77,12 @@
                             <td>
                                 <span class="badge badge-primary">{{ profile.get_role_display }}</span>
                             </td>
-                            <!-- <td>{{ profile.staff_profile.get_department_display|default:"—" }}</td> -->
-                            <td>{{ profile.staff_profile.specialization|default:"—" }}</td>
-                            <!-- <td>{{ profile.staff_profile.qualification|default:"—" }}</td> -->
+                            <!-- <td>{{ profile.user.staff_profile.get_department_display|default:"—" }}</td> -->
+                            <td>{{ profile.user.staff_profile.specialization|default:"—" }}</td>
+                            <!-- <td>{{ profile.user.staff_profile.qualification|default:"—" }}</td> -->
                             <td>{{ profile.phone|default:"—" }}</td>
                             <td>
-                                {% with et=profile.staff_profile.employment_type %}
+                                {% with et=profile.user.staff_profile.employment_type %}
                                 {% if et == 'full_time' %}
                                 <span class="badge badge-success">Full Time</span>
                                 {% elif et == 'part_time' %}
@@ -94,8 +94,8 @@
                                 {% endif %}
                                 {% endwith %}
                             </td>
-                            <td>{{ profile.staff_profile.get_shift_display|default:"—" }}</td>
-                            <td class="small">{{ profile.staff_profile.hire_date|default:"—" }}</td>
+                            <td>{{ profile.user.staff_profile.get_shift_display|default:"—" }}</td>
+                            <td class="small">{{ profile.user.staff_profile.hire_date|default:"—" }}</td>
                             <td>
                                 {% if profile.user.is_active %}
                                 <span class="badge badge-success">Active</span>

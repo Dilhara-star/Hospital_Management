@@ -187,7 +187,7 @@ def patient_delete(request, patient_id):
 @login_required
 def staff_user_list(request):
     # get every staff profile, plus their linked User and StaffProfile rows, in one query
-    profiles = UserProfile.objects.select_related('user', 'staff_profile').filter(role__in=STAFF_ROLES)
+    profiles = UserProfile.objects.select_related('user', 'user__staff_profile').filter(role__in=STAFF_ROLES)
     # show the list page
     return render(request, 'dashboard/staff_management/staff_list.html', {'profiles': profiles})
 
@@ -217,6 +217,9 @@ def staff_add(request):
                 gender=data.get('gender', ''),  # gender
                 role=data['role'],  # staff role (admin, doctor, nurse, etc)
             )
+            # step 3: create their employment record (department, shift, etc all start blank,
+            # the staff member fills these in later by editing their own record)
+            StaffProfile.objects.create(user=user)
             # show a success banner
             messages.success(request, f'Staff member "{user.get_full_name()}" added successfully.')
             # go back to the staff list page
@@ -236,7 +239,7 @@ def staff_edit(request, user_id):
     profile = user.profile
     # this user's employment details, if they already have one
     try:
-        staff_profile = profile.staff_profile
+        staff_profile = user.staff_profile
     except StaffProfile.DoesNotExist:
         staff_profile = None
 
@@ -261,8 +264,13 @@ def staff_edit(request, user_id):
             profile.role = data['role']  # staff role
             profile.save()  # write the changes to the database
 
+            # this person is now staff, so remove any old patient record they might still
+            # have (e.g. if they were first registered through "Register Patient" and are
+            # only now being made staff) - a person cannot be both at the same time
+            PatientProfile.objects.filter(user=user).delete()
+
             # get their employment record, or make a new one if they don't have one yet
-            staff_profile, _created = StaffProfile.objects.get_or_create(user_profile=profile)
+            staff_profile, _created = StaffProfile.objects.get_or_create(user=user)
             # update the employment fields
             staff_profile.department = data.get('department', '')  # department
             staff_profile.specialization = data.get('specialization', '')  # specialization
@@ -321,7 +329,7 @@ def staff_detail(request, user_id):
     profile = get_object_or_404(UserProfile, user=user)
     # find their employment details, if they have any
     try:
-        sp = profile.staff_profile
+        sp = user.staff_profile
     except StaffProfile.DoesNotExist:
         sp = None
     # show the staff detail page
@@ -365,7 +373,7 @@ def doctor_room_list(request):
         # go through every doctor and read the room number typed for them
         for doctor in doctors:
             room_number = request.POST.get(f'room_{doctor.pk}', '').strip()  # room typed in for this doctor's row
-            staff_profile, _created = StaffProfile.objects.get_or_create(user_profile=doctor.profile)
+            staff_profile, _created = StaffProfile.objects.get_or_create(user=doctor)
             staff_profile.room_number = room_number
             staff_profile.save()
         messages.success(request, 'Doctor room numbers have been updated.')
@@ -375,7 +383,7 @@ def doctor_room_list(request):
     doctor_rows = []
     for doctor in doctors:
         try:
-            room_number = doctor.profile.staff_profile.room_number
+            room_number = doctor.staff_profile.room_number
         except StaffProfile.DoesNotExist:
             room_number = ''
         doctor_rows.append({'doctor': doctor, 'room_number': room_number})

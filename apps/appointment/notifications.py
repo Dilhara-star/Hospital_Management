@@ -8,7 +8,7 @@ def _room_for(doctor):
     if not doctor or not hasattr(doctor, 'profile'):
         return 'Not assigned yet'  # no doctor picked yet, so there is no room
     try:
-        room = doctor.profile.staff_profile.room_number  # look up the room saved for this doctor
+        room = doctor.staff_profile.room_number  # look up the room saved for this doctor
         return room or 'Not assigned yet'  # room field can exist but be empty
     except StaffProfile.DoesNotExist:
         return 'Not assigned yet'  # this doctor has no staff profile row yet

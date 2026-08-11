@@ -158,8 +158,8 @@ class StaffProfile(models.Model):
         ('rotating', 'Rotating'),
     ]
 
-    # one staff record belongs to exactly one UserProfile; deleting the profile deletes this record too
-    user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='staff_profile')
+    # one staff record belongs to exactly one User; deleting the User deletes this record too
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='staff_profile')
     # employee id, auto-filled after saving, must be unique
     employee_id = models.CharField(max_length=20, unique=True, blank=True)
     # department, can be left blank
@@ -198,4 +198,4 @@ class StaffProfile(models.Model):
 
     def __str__(self):
         # text shown for this row in the admin site and dropdowns
-        return f"{self.user_profile.user.get_full_name()} ({self.employee_id})"
+        return f"{self.user.get_full_name()} ({self.employee_id})"

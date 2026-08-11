@@ -39,7 +39,7 @@ def _doctor_room(doctor):
     if not doctor or not hasattr(doctor, 'profile'):
         return ''
     try:
-        return doctor.profile.staff_profile.room_number
+        return doctor.staff_profile.room_number
     except StaffProfile.DoesNotExist:
         return ''
 
@@ -49,7 +49,7 @@ def _doctor_fee(doctor):
     if not doctor or not hasattr(doctor, 'profile'):
         return 0
     try:
-        return doctor.profile.staff_profile.hourly_fee
+        return doctor.staff_profile.hourly_fee
     except StaffProfile.DoesNotExist:
         return 0
 

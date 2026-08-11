@@ -40,8 +40,8 @@ class PatientProfileAdmin(admin.ModelAdmin):
 @admin.register(StaffProfile)
 class StaffProfileAdmin(admin.ModelAdmin):
     # columns shown on the StaffProfile list page
-    list_display = ('user_profile', 'employee_id', 'department', 'employment_type', 'shift')
+    list_display = ('user', 'employee_id', 'department', 'employment_type', 'shift')
     # filter box on the side of the list page
     list_filter = ('department', 'employment_type', 'shift')
     # search box on the list page
-    search_fields = ('user_profile__user__username', 'user_profile__user__first_name', 'user_profile__user__last_name', 'employee_id')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'employee_id')

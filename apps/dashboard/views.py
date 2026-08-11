@@ -114,7 +114,7 @@ def dashboard_profile(request):
 
     # doctors have a staff profile holding their hourly fee; other roles may not have one yet
     try:
-        sp = profile.staff_profile
+        sp = staff_user.staff_profile
     except StaffProfile.DoesNotExist:
         sp = None
 
