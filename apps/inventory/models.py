@@ -18,6 +18,9 @@ class Supplier(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')  # active or inactive
     created_date = models.DateField(auto_now_add=True)  # date this supplier was added
 
+    class Meta:
+        db_table = 'suppliers'  # name of this model's table in the database
+
     # show the supplier name when printed
     def __str__(self):
         return self.name
@@ -63,6 +66,9 @@ class Medicine(models.Model):
     def is_low_stock(self):
         return self.total_quantity <= self.reorder_level
 
+    class Meta:
+        db_table = 'medicines'  # name of this model's table in the database
+
     # show the medicine name when printed
     def __str__(self):
         return self.name
@@ -90,6 +96,7 @@ class MedicineStock(models.Model):
         return today <= self.expiry_date <= today + timedelta(days=30)  # check if expiry is within 30 days
 
     class Meta:
+        db_table = 'medicine_stocks'  # name of this model's table in the database
         ordering = ['expiry_date']  # show batches that expire soonest first
 
     # show the medicine name and batch number when printed

@@ -17,6 +17,8 @@ class Contact_us(models.Model):
     created_date = models.DateField(auto_now_add=True)  # date this supplier was added
     message = models.TextField(blank=True)  # any additional notes about the supplier
 
+    class Meta:
+        db_table = 'contact_messages'  # name of this model's table in the database
 
     # show the supplier name when printed
     def __str__(self):

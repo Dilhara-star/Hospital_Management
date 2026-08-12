@@ -35,6 +35,9 @@ class UserProfile(models.Model):
     # profile picture upload, can be left empty
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
 
+    class Meta:
+        db_table = 'user_profiles'  # name of this model's table in the database
+
     def __str__(self):
         # text shown for this row in the admin site and dropdowns
         return f"{self.user.get_full_name()} - {self.get_role_display()}"
@@ -94,6 +97,9 @@ class PatientProfile(models.Model):
     registered_date = models.DateField(auto_now_add=True)
     # patient status, defaults to active
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+
+    class Meta:
+        db_table = 'patient_profiles'  # name of this model's table in the database
 
     def save(self, *args, **kwargs):
         # check if this is a brand new row (no id yet)
@@ -184,6 +190,9 @@ class StaffProfile(models.Model):
     emergency_contact_phone = models.CharField(max_length=20, blank=True)
     # doctor's own consultation fee, added on top of the department fee (only meaningful for doctors)
     hourly_fee = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+
+    class Meta:
+        db_table = 'staff_profiles'  # name of this model's table in the database
 
     def save(self, *args, **kwargs):
         # check if this is a brand new row (no id yet)
