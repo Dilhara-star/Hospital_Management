@@ -1,0 +1,8 @@
+<p>Dear {{ user.get_full_name }},</p>
+<p>An account has been created for you at {{ sender_name }}.</p>
+<ul>
+    <li><strong>Username:</strong> {{ user.username }}</li>
+    <li><strong>Role:</strong> {{ role }}</li>
+</ul>
+<p>Please use the password given to you by the admin to log in.</p>
+<p>Thank you,<br>{{ sender_name }}</p>
