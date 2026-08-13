@@ -165,18 +165,28 @@ class PatientEditForm(forms.Form):
         return username
 
     def clean_email(self):
-        # pull the cleaned email value out of the form
+    # Django form එකේ email field එක පරීක්ෂා (validate) කිරීම සඳහා වන විශේෂිත function එක අර්ථ දැක්වීම
+
         email = self.cleaned_data['email']
-        # find any user that already has this email
+        # Form එකෙන් පරිශීලකයා (user) ඇතුළත් කළ email අගය ලබා ගැනීම
+
         query = User.objects.filter(email=email)
-        # do not count the user we are editing against themselves
+        # මෙම email එක දැනටමත් database එකේ වෙනත් user කෙනෙකු සතුදැයි සෙවීම
+
         if self.current_user:
+            # දැනට පද්ධතියට ලොග් වී සිටින/වෙනස්කම් කරන user කෙනෙක් සිටීදැයි පරීක්ෂා කිරීම
+
             query = query.exclude(pk=self.current_user.pk)
-        # stop if someone else already has this email
+            # එම user ගේම තොරතුරු සෙවුමෙන් ඉවත් කිරීම (තමන්ගේම email එක නිසා error එකක් ඒම වැළැක්වීමට)
+
         if query.exists():
+            # වෙනත් කිසිවෙකු හෝ මෙම email එක භාවිතා කර ඇත්දැයි පරීක්ෂා කිරීම
+
             raise forms.ValidationError('Email address already in use.')
-        # email is free to use
+            # වෙනත් කෙනෙකු භාවිතා කරන්නේ නම් validation error එකක් නිකුත් කිරීම
+
         return email
+        # කිසිදු ගැටලුවක් නැත්නම් පරීක්ෂා කළ email අගය ආපසු ලබා දීම (return කිරීම)
 
 
 # ── Staff Forms ───────────────────────────────────────────────────────────────
