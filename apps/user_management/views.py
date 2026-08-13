@@ -4,7 +4,10 @@ from django.contrib.auth.decorators import login_required  # blocks a view unles
 from django.contrib.auth.models import User  # built-in user model (login, username, password)
 from .forms import PatientCreateForm, PatientEditForm, StaffCreateForm, StaffEditForm  # our forms
 from .models import UserProfile, PatientProfile, StaffProfile  # our own profile models
-from .notifications import send_staff_welcome_email  # emails a new staff member their username
+from .notifications import send_staff_welcome_email 
+from .notifications import send_patient_welcome_email 
+from pprint import pprint 
+ # emails a new staff member their username
 
 # role codes that count as "staff" (not a patient, not a plain "user")
 STAFF_ROLES = ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'lab_technician']
@@ -69,6 +72,7 @@ def patient_add(request):
                 insurance_expiry=data.get('insurance_expiry'),  # insurance expiry date
                 status=data.get('status', 'active'),  # patient status
             )
+            send_patient_welcome_email(user)
             # show a success banner with their auto-generated MRN
             messages.success(request, f'Patient "{patient.user.get_full_name()}" (MRN: {patient.mrn}) registered successfully.')
             # go back to the patient list page
@@ -221,7 +225,9 @@ def staff_add(request):
             # step 3: create their employment record (department, shift, etc all start blank,
             # the staff member fills these in later by editing their own record)
             StaffProfile.objects.create(user=user)
-            send_staff_welcome_email(user, data['role'])  # email the new staff member their username
+            print("ABOVE THE MAIL")
+            send_staff_welcome_email(user, data['role']) 
+            print("BELOW THE MAIL") # email the new staff member their username
             # show a success banner
             messages.success(request, f'Staff member "{user.get_full_name()}" added successfully.')
             # go back to the staff list page
