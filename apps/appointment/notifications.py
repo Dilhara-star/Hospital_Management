@@ -1,5 +1,6 @@
 import requests  # used to call the Brevo email api
 from django.conf import settings  # holds the brevo api key and sender details
+from django.template.loader import render_to_string  # turns the email template into an HTML string
 from apps.user_management.models import StaffProfile  # holds the room number for a doctor
 
 
@@ -29,21 +30,14 @@ def send_appointment_confirmation_email(appointment):
 
     subject = f'Appointment Confirmed - {appointment_number}'  # email subject line
 
-    # the email body, with the appointment number, time and room number the user asked for
-    html_content = f"""
-    <p>Dear {appointment.patient_name},</p>
-    <p>Your appointment has been <strong>confirmed</strong>. Here are the details:</p>
-    <ul>
-        <li><strong>Appointment Number:</strong> {appointment_number}</li>
-        <li><strong>Date:</strong> {appointment.date.strftime('%d %b %Y')}</li>
-        <li><strong>Time:</strong> {appointment.get_time_slot_display()}</li>
-        <li><strong>Doctor:</strong> {doctor_name}</li>
-        <li><strong>Room Number:</strong> {room_number}</li>
-        <li><strong>Department:</strong> {appointment.get_department_display()}</li>
-    </ul>
-    <p>Please arrive 10 minutes before your appointment time.</p>
-    <p>Thank you,<br>{settings.BREVO_SENDER_NAME}</p>
-    """
+    # build the email body from the template file, filling in the appointment details
+    html_content = render_to_string('emails/appointment/confirmation.html', {
+        'appointment': appointment,
+        'appointment_number': appointment_number,
+        'doctor_name': doctor_name,
+        'room_number': room_number,
+        'sender_name': settings.BREVO_SENDER_NAME,
+    })
 
     # the data brevo's transactional email api expects
     payload = {
