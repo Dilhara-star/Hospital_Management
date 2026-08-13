@@ -678,3 +678,22 @@ def appointment_summary_report_pdf(request):
     response['Content-Disposition'] = f'attachment; filename="appointment_summary_{doctor.pk}.pdf"'
     pisa.CreatePDF(html, dest=response)
     return response
+
+
+# front end edit function
+
+def edit_appointment(request, pk):
+    appointment = Appointment.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = StaffAppointmentForm(request.POST, instance=appointment)
+        if form.is_valid():
+            form.save()
+
+            messages.success(request, 'Appointment has been updated.')
+            return redirect('appointment_view', pk=appointment.pk)
+    else:
+        form = StaffAppointmentForm(instance=appointment)
+
+    return render(request, 'frontend/appointment/my_appointments.html', {
+        'form': form,'appointment': appointment,
+    })
