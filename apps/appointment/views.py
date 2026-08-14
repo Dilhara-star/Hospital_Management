@@ -697,12 +697,6 @@ def edit_appointment(request, pk):
         messages.success(request, 'Appointment updated successfully.')
         return redirect('my_appointment_detail', pk=appointment.pk)
 
-    # build the list of time slots to show in the dropdown, skipping the blank "Select Time Slot" choice
-    time_slot_choices = []
-    for value, label in Appointment.TIME_SLOT_CHOICES:
-        if value:
-            time_slot_choices.append((value, label))
-
     return render(request, 'frontend/appointment/edit_appointment.html', {
-        'form': form, 'appointment': appointment, 'time_slot_choices': time_slot_choices,
+        'form': form, 'appointment': appointment,
     })

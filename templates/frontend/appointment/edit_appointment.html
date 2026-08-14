@@ -69,8 +69,10 @@
               <div class="mb-4">
                 <label for="time_slot" class="form-label fw-semibold">Time Slot</label>
                 <select id="time_slot" name="time_slot" class="form-select">
-                  {% for value, label in time_slot_choices %}
-                    <option value="{{ value }}" {% if value == appointment.time_slot %}selected{% endif %}>{{ label }}</option>
+                  {% for value, label in appointment.TIME_SLOT_CHOICES %}
+                    {% if value %}
+                      <option value="{{ value }}" {% if value == appointment.time_slot %}selected{% endif %}>{{ label }}</option>
+                    {% endif %}
                   {% endfor %}
                 </select>
                 {% if form.time_slot.errors %}
