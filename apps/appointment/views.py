@@ -693,7 +693,4 @@ def edit_appointment(request, pk):
             return redirect('appointment_view', pk=appointment.pk)
     else:
         form = StaffAppointmentForm(instance=appointment)
-
-    return render(request, 'frontend/appointment/my_appointments.html', {
-        'form': form,'appointment': appointment,
-    })
+        return render(request, 'frontend/appointment/my_appointment_edit.html', {'form': form,'appointment': appointment,})

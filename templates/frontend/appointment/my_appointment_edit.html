@@ -1,0 +1,73 @@
+{% extends 'frontend/layouts/base.html' %}
+
+{% block content %}
+<section class="appointments-section py-5" style="background:#f4f6fb; min-height:80vh;">
+  <div class="container">
+
+    <!-- Page Title -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h4 class="fw-bold" style="color:#2c4964;">My Appointments</h4>
+        <p class="text-muted mb-0">View your appointments and prescription details.</p>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+          {{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+
+
+
+      <!-- Right: Selected Appointment + Prescription -->
+      <div class="col-lg-12">
+        {% if selected_appointment %}
+
+          <!-- Appointment Details -->
+          <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
+            <div class="card-header border-0 pb-0 pt-4 px-4" style="background:transparent;">
+              <h6 class="fw-bold mb-0" style="color:#2c4964;">
+                <i class="bi bi-clipboard2-pulse me-2"></i>Appointment Detailss
+              </h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+<p>test</p>
+              
+            </div>
+          </div>
+
+          
+           
+          </div>
+
+        
+        
+
+        {% else %}
+          <div class="card border-0 shadow-sm text-center p-5" style="border-radius:16px;">
+            <i class="bi bi-calendar-x mb-2" style="font-size:2rem;color:#2c4964;"></i>
+            <p class="text-muted mb-0">You have no appointments yet.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  .appointments-section .card { transition: box-shadow .2s; }
+  .appointments-section .card:hover { box-shadow: 0 6px 24px rgba(44,73,100,.1) !important; }
+  .appointments-section .list-group-item.active {
+    background: #2c4964;
+    border-color: #2c4964;
+  }
+</style>
+{% endblock content %}
