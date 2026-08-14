@@ -94,3 +94,15 @@ class PaymentForm(forms.ModelForm):
             'method': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
         }
+
+
+# frontend appointment edit
+
+class Appointment_edit_Form (forms.ModelForm):
+    class Meta:
+        model = Appointment
+        fields = ['date', 'time_slot']
+        widgets = {
+            'date': forms.TextInput(attrs={'class': 'form-control'}),
+            'time_slot': forms.TextInput(attrs={'class': 'form-control'}),
+        }

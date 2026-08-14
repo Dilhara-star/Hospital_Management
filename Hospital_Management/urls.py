@@ -24,7 +24,7 @@ urlpatterns = [
     path('dashboard/', include('apps.dashboard.urls')),
     path('', include('apps.frontend.urls')),
     path('Users/', include('apps.user_management.urls')),
-    path('Appointments/', include('apps.appointment.urls')),
+    path('Appointment/', include('apps.appointment.urls')),
     path('inventory/', include('apps.inventory.urls')),
     path('core/', include('apps.core.urls')),
     path('contact/', include('apps.contact.urls')),

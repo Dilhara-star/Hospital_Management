@@ -1,0 +1,61 @@
+{% extends 'frontend/layouts/base.html' %}
+
+{% block content %}
+<section class="appointments-section py-5" style="background:#f4f6fb; min-height:80vh;">
+  <div class="container">
+
+    <!-- Page Title -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h4 class="fw-bold" style="color:#2c4964;">My Appointments</h4>
+        <p class="text-muted mb-0">View your appointments and prescription details.</p>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+          {{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+
+      
+
+      <!-- Right: Selected Appointment + Prescription -->
+      <div class="col-lg-8">
+        
+                      
+          
+          <div class="card border-0 shadow-sm text-center p-5" style="border-radius:16px;">
+            <form method="post" action="{% url 'edit_appointment' appointment.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label class="form-label "></label>
+            <input type="date"  name="date" value="{{ appointment.date }}>
+
+            <label class="form-label></label>
+            <input type="time_slot" name="time_slot"  value="{{ appointment.time_slot }}">
+            <button type="submit" class="btn btn-success">Save Changes</button>
+            </form>
+          
+          </div>
+        
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  .appointments-section .card { transition: box-shadow .2s; }
+  .appointments-section .card:hover { box-shadow: 0 6px 24px rgba(44,73,100,.1) !important; }
+  .appointments-section .list-group-item.active {
+    background: #2c4964;
+    border-color: #2c4964;
+  }
+</style>
+{% endblock content %}

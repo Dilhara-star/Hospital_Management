@@ -12,7 +12,12 @@ from .models import Appointment, DepartmentFee, Payment, PrescriptionItem, Pharm
 from .forms import AppointmentForm, StaffAppointmentForm, PaymentForm
 from .notifications import send_appointment_confirmation_email  # emails the patient once an appointment is confirmed
 from apps.inventory.models import Medicine, MedicineStock  # the pharmacy catalog the doctor picks medicine from
-from apps.user_management.models import StaffProfile  # holds the room number and hourly fee for a doctor
+from apps.user_management.models import StaffProfile  
+from. forms import Appointment_edit_Form
+
+
+
+# holds the room number and hourly fee for a doctor
 
 # roles allowed to manage fees and confirm cash payments
 PAYMENT_STAFF_ROLES = ('admin', 'receptionist')
@@ -683,17 +688,15 @@ def appointment_summary_report_pdf(request):
 # front end edit function
 
 def edit_appointment(request, pk):
-    appointment = Appointment.objects.get(pk=pk)
-    if request.method == 'POST':
-        form = StaffAppointmentForm(request.POST, instance=appointment)
+    appointment = Appointment.objects.get(id=pk)
+    if request.method =="POST":
+        form = Appointment_edit_Form(request.POST, instance=appointment)
         if form.is_valid():
-            form.save()
-
-            messages.success(request, 'Appointment has been updated.')
-            return redirect('appointment_view', pk=appointment.pk)
+            appointment.date = request.POST.get("date", "")
+            appointment.time_slot = request.POST.get("time_slot", "")
+            appointment.save()
+            return redirect("my_appointments")
     else:
-        form = StaffAppointmentForm(instance=appointment)
+        form = Appointment_edit_Form(instance=appointment)
+        return render(request, "frontend/appointment/edit_appointment.html", {"form": form, "appointment": appointment })
 
-    return render(request, 'frontend/appointment/my_appointments.html', {
-        'form': form,'appointment': appointment,
-    })
