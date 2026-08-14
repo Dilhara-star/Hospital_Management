@@ -97,21 +97,25 @@
 
                   <div class="col-md-6">
                     <input type="text" class="form-control" name="name" id="name" placeholder="Your Name" required="">
+                    {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
                   </div>
 
                   <div class="col-md-6">
                     <input type="email" class="form-control" name="email" id="email" placeholder="Your Email"
                       required="">
+                    {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
                   </div>
 
                   <div class="col-12">
                     <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject"
                       required="">
+                    {% if form.subject.errors %}<div class="text-danger small mt-1">{{ form.subject.errors.0 }}</div>{% endif %}
                   </div>
 
                   <div class="col-12">
                     <textarea class="form-control" name="message" id="message" placeholder="Your Message" rows="6"
                       required=""></textarea>
+                    {% if form.message.errors %}<div class="text-danger small mt-1">{{ form.message.errors.0 }}</div>{% endif %}
                   </div>
 
                   <div class="col-12">

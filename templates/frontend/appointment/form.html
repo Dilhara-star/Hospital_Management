@@ -204,7 +204,7 @@
                 </div>
                 {% endif %}
 
-                <form method="post" class="django-form" id="appointmentForm">
+                <form method="post" action="{% url 'appointment_form' %}" class="django-form" id="appointmentForm">
                   {% csrf_token %}
 
                   <!-- Step 1: appointment details (department, doctor, date, time slot) -->
@@ -212,28 +212,41 @@
                     <div class="step-heading">Appointment Details</div>
                     <div class="row gy-4">
                       <div class="col-12">
-                        <label for="{{ form.department.id_for_label }}" class="form-label fw-semibold">Department</label>
-                        {{ form.department }}
+                        <label for="department" class="form-label fw-semibold">Department</label>
+                        <select id="department" name="department" class="form-select">
+                          {% for value, label in appointment.DEPARTMENT_CHOICES %}
+                          <option value="{{ value }}" {% if value == appointment.department %}selected{% endif %}>{{ label }}</option>
+                          {% endfor %}
+                        </select>
                         {% for error in form.department.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
                       </div>
                       <div class="col-md-6">
-                        <label for="{{ form.doctor.id_for_label }}" class="form-label fw-semibold">Doctor</label>
-                        {{ form.doctor }}
+                        <label for="doctor" class="form-label fw-semibold">Doctor</label>
+                        <select id="doctor" name="doctor" class="form-select">
+                          <option value="">Select Doctor</option>
+                          {% for doctor in doctors %}
+                          <option value="{{ doctor.pk }}" {% if doctor.pk == appointment.doctor_id %}selected{% endif %}>{{ doctor.get_full_name }}</option>
+                          {% endfor %}
+                        </select>
                         {% for error in form.doctor.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
                       </div>
                       <div class="col-md-6">
-                        <label for="{{ form.date.id_for_label }}" class="form-label fw-semibold">Preferred Date</label>
-                        {{ form.date }}
+                        <label for="date" class="form-label fw-semibold">Preferred Date</label>
+                        <input type="date" id="date" name="date" class="form-control" value="{{ appointment.date|date:'Y-m-d' }}">
                         {% for error in form.date.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
                       </div>
                       <div class="col-md-6">
-                        <label for="{{ form.time_slot.id_for_label }}" class="form-label fw-semibold">Preferred Time Slot</label>
-                        {{ form.time_slot }}
+                        <label for="time_slot" class="form-label fw-semibold">Preferred Time Slot</label>
+                        <select id="time_slot" name="time_slot" class="form-select">
+                          {% for value, label in appointment.TIME_SLOT_CHOICES %}
+                          <option value="{{ value }}" {% if value == appointment.time_slot %}selected{% endif %}>{{ label }}</option>
+                          {% endfor %}
+                        </select>
                         {% for error in form.time_slot.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
                       </div>
                       <div class="col-12">
-                        <label for="{{ form.message.id_for_label }}" class="form-label fw-semibold">Notes (optional)</label>
-                        {{ form.message }}
+                        <label for="message" class="form-label fw-semibold">Notes (optional)</label>
+                        <textarea id="message" name="message" class="form-control" rows="4" placeholder="Additional notes or symptoms (optional)">{{ appointment.message }}</textarea>
                       </div>
                       <div class="col-12">
                         <!-- updates live as soon as a department + doctor are picked, well before the payment step -->
@@ -252,28 +265,28 @@
                     <div class="step-heading">Patient Details</div>
                     <div class="row gy-4">
                       <div class="col-md-6">
-                        <label for="{{ form.patient_name.id_for_label }}" class="form-label fw-semibold">Name</label>
-                        {{ form.patient_name }}
+                        <label for="patient_name" class="form-label fw-semibold">Name</label>
+                        <input type="text" id="patient_name" name="patient_name" class="form-control" placeholder="Full name" value="{{ appointment.patient_name }}">
                         {% for error in form.patient_name.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
                       </div>
                       <div class="col-md-6">
-                        <label for="{{ form.patient_contact.id_for_label }}" class="form-label fw-semibold">Contact</label>
-                        {{ form.patient_contact }}
+                        <label for="patient_contact" class="form-label fw-semibold">Contact</label>
+                        <input type="text" id="patient_contact" name="patient_contact" class="form-control" placeholder="Phone number" value="{{ appointment.patient_contact }}">
                         {% for error in form.patient_contact.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
                       </div>
                       <div class="col-md-6">
-                        <label for="{{ form.patient_age.id_for_label }}" class="form-label fw-semibold">Age</label>
-                        {{ form.patient_age }}
+                        <label for="patient_age" class="form-label fw-semibold">Age</label>
+                        <input type="number" id="patient_age" name="patient_age" class="form-control" min="0" value="{{ appointment.patient_age|default_if_none:'' }}">
                         {% for error in form.patient_age.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
                       </div>
                       <div class="col-md-6">
-                        <label for="{{ form.patient_nic.id_for_label }}" class="form-label fw-semibold">NIC</label>
-                        {{ form.patient_nic }}
+                        <label for="patient_nic" class="form-label fw-semibold">NIC</label>
+                        <input type="text" id="patient_nic" name="patient_nic" class="form-control" placeholder="NIC number" value="{{ appointment.patient_nic }}">
                         {% for error in form.patient_nic.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
                       </div>
                       <div class="col-12">
-                        <label for="{{ form.patient_address.id_for_label }}" class="form-label fw-semibold">Address</label>
-                        {{ form.patient_address }}
+                        <label for="patient_address" class="form-label fw-semibold">Address</label>
+                        <input type="text" id="patient_address" name="patient_address" class="form-control" placeholder="Home address" value="{{ appointment.patient_address }}">
                         {% for error in form.patient_address.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
                       </div>
                       <div class="col-12 d-flex justify-content-between">
@@ -386,8 +399,8 @@
         var backBtn2 = document.getElementById('backBtn2');  // Back button on step 3
         var loginLink = document.getElementById('gotoLogin');  // Log In link on step 2
         var signupLink = document.getElementById('gotoSignup');  // Sign Up link on step 2
-        var departmentField = document.getElementById('id_department');  // department dropdown on step 1
-        var doctorField = document.getElementById('id_doctor');  // doctor dropdown on step 1
+        var departmentField = document.getElementById('department');  // department dropdown on step 1
+        var doctorField = document.getElementById('doctor');  // doctor dropdown on step 1
         var feeAmounts = document.querySelectorAll('.fee-amount-value');  // fee text shown on step 1 AND step 3
         var cardFields = document.getElementById('cardFields');  // demo card fields on step 3
         var payOnline = document.getElementById('payOnline');  // "pay online" radio button
@@ -416,8 +429,8 @@
 
         // ids of every field in the booking form, used to save and restore a draft
         var fieldIds = [
-          'id_department', 'id_doctor', 'id_date', 'id_time_slot', 'id_message',
-          'id_patient_name', 'id_patient_contact', 'id_patient_age', 'id_patient_address', 'id_patient_nic'
+          'department', 'doctor', 'date', 'time_slot', 'message',
+          'patient_name', 'patient_contact', 'patient_age', 'patient_address', 'patient_nic'
         ];
 
         // save whatever the user has typed so far, before we send them off to log in

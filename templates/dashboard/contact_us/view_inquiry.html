@@ -3,57 +3,50 @@
 <div class="container-fluid">
 
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Patient Details</h1>
-        <div>
-            <a href="{% url 'patient_edit' patient.pk %}" class="btn btn-sm btn-primary shadow-sm mr-2">
-                <i class="fas fa-edit fa-sm"></i> Edit Patient
-            </a>
-            <a href="{% url 'patient_user_list' %}" class="btn btn-sm btn-secondary shadow-sm">
-                <i class="fas fa-arrow-left fa-sm"></i> Back to Patients
-            </a>
-        </div>
+        <h1 class="h3 mb-0 text-gray-800">Inquiry Details</h1>
+        <a href="{% url 'view_inquiries' %}" class="btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm"></i> Back to Inquiries
+        </a>
     </div>
 
     <div class="row">
 
-       
-
-       
-
-            <!-- Medical Information -->
+        <!-- Left: Sender Summary -->
+        <div class="col-lg-4">
             <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-heartbeat mr-1"></i> Customer Inquiry</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">kkkla</div>
-                            
-                        </div>
-                        <div class="col-md-9 mb-3">
-                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Address</div>
-                            <div>{{ patient.address|default:"Not provided"|linebreaksbr }}</div>
-                        </div>
+                <div class="card-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-envelope-open-text fa-4x text-primary"></i>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Known Allergies</div>
-                            <div>{{ patient.allergies|default:"None recorded" }}</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Chronic Conditions</div>
-                            <div>{{ patient.chronic_conditions|default:"None recorded" }}</div>
-                        </div>
+                    <h5 class="font-weight-bold">{{ inquiry.name }}</h5>
+                    <p class="mb-2">
+                        {% if inquiry.status == 'solved' %}
+                        <span class="badge badge-success badge-pill px-3 py-2">Solved</span>
+                        {% else %}
+                        <span class="badge badge-warning badge-pill px-3 py-2">Pending</span>
+                        {% endif %}
+                    </p>
+                    <hr>
+                    <div class="text-left">
+                        <p class="mb-1"><strong>Email:</strong> {{ inquiry.email|default:"—" }}</p>
+                        <p class="mb-0"><strong>Received:</strong> {{ inquiry.created_date }}</p>
                     </div>
                 </div>
             </div>
-
-          
-
-            
-
         </div>
+
+        <!-- Right: Message -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-comment-dots mr-1"></i> {{ inquiry.subject|default:"No Subject" }}</h6>
+                </div>
+                <div class="card-body">
+                    <div>{{ inquiry.message|default:"No message provided"|linebreaksbr }}</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 </div>

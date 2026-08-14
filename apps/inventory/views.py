@@ -18,29 +18,43 @@ def supplier_list(request):
 # add a new supplier
 @login_required
 def supplier_add(request):
-    if request.method == 'POST':
-        form = SupplierForm(request.POST)  # build the form from submitted data
-        if form.is_valid():
-            supplier = form.save()  # save the new supplier
-            messages.success(request, f'Supplier "{supplier.name}" added successfully.')
-            return redirect('supplier_list')
-    else:
-        form = SupplierForm()  # show a blank form
-    return render(request, 'dashboard/supplier_management/supplier_add.html', {'form': form})
+    supplier = Supplier()  # a blank supplier, only used so the template can show its default field values
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = SupplierForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        # fill the blank supplier in field by field from the posted data
+        supplier.name = request.POST.get('name', '')  # supplier company name
+        supplier.contact_person = request.POST.get('contact_person', '')  # main contact person
+        supplier.phone = request.POST.get('phone', '')  # phone number
+        supplier.email = request.POST.get('email', '')  # email address
+        supplier.address = request.POST.get('address', '')  # postal address
+        supplier.status = request.POST.get('status', 'active')  # active or inactive
+        supplier.save()  # write the new supplier to the database
+        messages.success(request, f'Supplier "{supplier.name}" added successfully.')
+        return redirect('supplier_list')
+
+    return render(request, 'dashboard/supplier_management/supplier_add.html', {'form': form, 'supplier': supplier})
 
 
 # edit an existing supplier
 @login_required
 def supplier_edit(request, pk):
     supplier = get_object_or_404(Supplier, pk=pk)  # find the supplier or show a 404 page
-    if request.method == 'POST':
-        form = SupplierForm(request.POST, instance=supplier)  # fill the form with submitted data
-        if form.is_valid():
-            form.save()  # save the changes
-            messages.success(request, f'Supplier "{supplier.name}" updated successfully.')
-            return redirect('supplier_list')
-    else:
-        form = SupplierForm(instance=supplier)  # fill the form with current supplier data
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = SupplierForm(request.POST or None, instance=supplier)
+
+    if request.method == 'POST' and form.is_valid():
+        supplier.name = request.POST.get('name', '')  # supplier company name
+        supplier.contact_person = request.POST.get('contact_person', '')  # main contact person
+        supplier.phone = request.POST.get('phone', '')  # phone number
+        supplier.email = request.POST.get('email', '')  # email address
+        supplier.address = request.POST.get('address', '')  # postal address
+        supplier.status = request.POST.get('status', 'active')  # active or inactive
+        supplier.save()  # write the changes to the database
+        messages.success(request, f'Supplier "{supplier.name}" updated successfully.')
+        return redirect('supplier_list')
+
     return render(request, 'dashboard/supplier_management/supplier_edit.html', {'form': form, 'supplier': supplier})
 
 
@@ -75,29 +89,42 @@ def medicine_list(request):
 # add a new medicine to the catalog
 @login_required
 def medicine_add(request):
-    if request.method == 'POST':
-        form = MedicineForm(request.POST)  # build the form from submitted data
-        if form.is_valid():
-            medicine = form.save()  # save the new medicine
-            messages.success(request, f'Medicine "{medicine.name}" added successfully.')
-            return redirect('medicine_list')
-    else:
-        form = MedicineForm()  # show a blank form
-    return render(request, 'dashboard/medicine_inventory/medicine_add.html', {'form': form})
+    medicine = Medicine()  # a blank medicine, only used so the template can show its default field values
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = MedicineForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        medicine.name = request.POST.get('name', '')  # medicine name
+        medicine.category = request.POST.get('category', '')  # tablet, syrup, etc
+        medicine.unit = request.POST.get('unit', '')  # how the medicine is counted
+        medicine.manufacturer = request.POST.get('manufacturer', '')  # company that makes it
+        medicine.reorder_level = request.POST.get('reorder_level') or 10  # minimum quantity before reorder
+        medicine.description = request.POST.get('description', '')  # extra notes
+        medicine.save()  # write the new medicine to the database
+        messages.success(request, f'Medicine "{medicine.name}" added successfully.')
+        return redirect('medicine_list')
+
+    return render(request, 'dashboard/medicine_inventory/medicine_add.html', {'form': form, 'medicine': medicine})
 
 
 # edit an existing medicine
 @login_required
 def medicine_edit(request, pk):
     medicine = get_object_or_404(Medicine, pk=pk)  # find the medicine or show a 404 page
-    if request.method == 'POST':
-        form = MedicineForm(request.POST, instance=medicine)  # fill the form with submitted data
-        if form.is_valid():
-            form.save()  # save the changes
-            messages.success(request, f'Medicine "{medicine.name}" updated successfully.')
-            return redirect('medicine_list')
-    else:
-        form = MedicineForm(instance=medicine)  # fill the form with current medicine data
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = MedicineForm(request.POST or None, instance=medicine)
+
+    if request.method == 'POST' and form.is_valid():
+        medicine.name = request.POST.get('name', '')  # medicine name
+        medicine.category = request.POST.get('category', '')  # tablet, syrup, etc
+        medicine.unit = request.POST.get('unit', '')  # how the medicine is counted
+        medicine.manufacturer = request.POST.get('manufacturer', '')  # company that makes it
+        medicine.reorder_level = request.POST.get('reorder_level') or 10  # minimum quantity before reorder
+        medicine.description = request.POST.get('description', '')  # extra notes
+        medicine.save()  # write the changes to the database
+        messages.success(request, f'Medicine "{medicine.name}" updated successfully.')
+        return redirect('medicine_list')
+
     return render(request, 'dashboard/medicine_inventory/medicine_edit.html', {'form': form, 'medicine': medicine})
 
 
@@ -133,30 +160,53 @@ def stock_list(request):
 # add a new stock batch
 @login_required
 def stock_add(request):
-    if request.method == 'POST':
-        form = MedicineStockForm(request.POST)  # build the form from submitted data
-        if form.is_valid():
-            batch = form.save()  # save the new stock batch
-            messages.success(request, f'Stock batch "{batch.batch_number}" added successfully.')
-            return redirect('stock_list')
-    else:
-        form = MedicineStockForm()  # show a blank form
-    return render(request, 'dashboard/medicine_inventory/stock_add.html', {'form': form})
+    batch = MedicineStock()  # a blank batch, only used so the template can show its default field values
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = MedicineStockForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        batch.medicine_id = request.POST.get('medicine') or None  # which medicine this batch is for
+        batch.supplier_id = request.POST.get('supplier') or None  # which supplier delivered this batch
+        batch.batch_number = request.POST.get('batch_number', '')  # batch code on the packaging
+        batch.quantity = request.POST.get('quantity') or 0  # how many units are in this batch
+        batch.purchase_price = request.POST.get('purchase_price') or None  # price paid for this batch
+        batch.expiry_date = request.POST.get('expiry_date') or None  # date this batch expires
+        batch.save()  # write the new stock batch to the database
+        messages.success(request, f'Stock batch "{batch.batch_number}" added successfully.')
+        return redirect('stock_list')
+
+    # every medicine and supplier, so the page can build the dropdown lists
+    medicines = Medicine.objects.all().order_by('name')
+    suppliers = Supplier.objects.all().order_by('name')
+    return render(request, 'dashboard/medicine_inventory/stock_add.html', {
+        'form': form, 'batch': batch, 'medicines': medicines, 'suppliers': suppliers,
+    })
 
 
 # edit an existing stock batch
 @login_required
 def stock_edit(request, pk):
     batch = get_object_or_404(MedicineStock, pk=pk)  # find the batch or show a 404 page
-    if request.method == 'POST':
-        form = MedicineStockForm(request.POST, instance=batch)  # fill the form with submitted data
-        if form.is_valid():
-            form.save()  # save the changes
-            messages.success(request, f'Stock batch "{batch.batch_number}" updated successfully.')
-            return redirect('stock_list')
-    else:
-        form = MedicineStockForm(instance=batch)  # fill the form with current batch data
-    return render(request, 'dashboard/medicine_inventory/stock_edit.html', {'form': form, 'batch': batch})
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = MedicineStockForm(request.POST or None, instance=batch)
+
+    if request.method == 'POST' and form.is_valid():
+        batch.medicine_id = request.POST.get('medicine') or None  # which medicine this batch is for
+        batch.supplier_id = request.POST.get('supplier') or None  # which supplier delivered this batch
+        batch.batch_number = request.POST.get('batch_number', '')  # batch code on the packaging
+        batch.quantity = request.POST.get('quantity') or 0  # how many units are in this batch
+        batch.purchase_price = request.POST.get('purchase_price') or None  # price paid for this batch
+        batch.expiry_date = request.POST.get('expiry_date') or None  # date this batch expires
+        batch.save()  # write the changes to the database
+        messages.success(request, f'Stock batch "{batch.batch_number}" updated successfully.')
+        return redirect('stock_list')
+
+    # every medicine and supplier, so the page can build the dropdown lists
+    medicines = Medicine.objects.all().order_by('name')
+    suppliers = Supplier.objects.all().order_by('name')
+    return render(request, 'dashboard/medicine_inventory/stock_edit.html', {
+        'form': form, 'batch': batch, 'medicines': medicines, 'suppliers': suppliers,
+    })
 
 
 # show the details of one stock batch

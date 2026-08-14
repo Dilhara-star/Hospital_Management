@@ -34,7 +34,7 @@
         <div class="card-body">
 
             <!-- filter row, GET so the page can be bookmarked / shared -->
-            <form method="get" class="form-row align-items-end mb-4">
+            <form method="get" action="{% url 'doctor_revenue_report' %}" class="form-row align-items-end mb-4">
                 {% if request.user.profile.role == 'admin' %}
                 {# only admins may filter by doctor - a doctor can only ever see their own report #}
                 <div class="form-group col-md-3">

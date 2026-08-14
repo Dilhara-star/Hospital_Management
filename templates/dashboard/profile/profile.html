@@ -47,11 +47,11 @@
                     {% endif %}
 
                     <!-- upload picture form, posts back to this same page -->
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post" action="{% url 'dashboard_profile' %}" enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="update_picture">
                         <div class="form-group text-left">
-                            {{ picture_form.profile_picture }}
+                            <input type="file" name="profile_picture" class="form-control-file" accept="image/*">
                             {% if picture_form.profile_picture.errors %}
                             <div class="text-danger small mt-1">{{ picture_form.profile_picture.errors.0 }}</div>
                             {% endif %}
@@ -72,40 +72,45 @@
                     <h6 class="m-0 font-weight-bold text-primary">Personal Information</h6>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" action="{% url 'dashboard_profile' %}">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="update_details">
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label>First Name</label>
-                                {{ details_form.first_name }}
+                                <input type="text" name="first_name" class="form-control" value="{{ request.user.first_name }}">
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Last Name</label>
-                                {{ details_form.last_name }}
+                                <input type="text" name="last_name" class="form-control" value="{{ request.user.last_name }}">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label>Email Address</label>
-                                {{ details_form.email }}
+                                <input type="email" name="email" class="form-control" value="{{ request.user.email }}">
                                 {% if details_form.email.errors %}
                                 <div class="text-danger small">{{ details_form.email.errors.0 }}</div>
                                 {% endif %}
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Phone Number</label>
-                                {{ details_form.phone }}
+                                <input type="text" name="phone" class="form-control" value="{{ profile.phone }}">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label>Date of Birth</label>
-                                {{ details_form.date_of_birth }}
+                                <input type="date" name="date_of_birth" class="form-control" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Gender</label>
-                                {{ details_form.gender }}
+                                <select name="gender" class="form-control">
+                                    <option value="">---------</option>
+                                    {% for value, label in profile.GENDER_CHOICES %}
+                                    <option value="{{ value }}" {% if value == profile.gender %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         <div class="d-flex justify-content-end">
@@ -122,12 +127,12 @@
                     <h6 class="m-0 font-weight-bold text-primary">Change Password</h6>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" action="{% url 'dashboard_profile' %}">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="change_password">
                         <div class="form-group">
                             <label>Current Password</label>
-                            {{ password_form.current_password }}
+                            <input type="password" name="current_password" class="form-control">
                             {% if password_form.current_password.errors %}
                             <div class="text-danger small">{{ password_form.current_password.errors.0 }}</div>
                             {% endif %}
@@ -135,14 +140,14 @@
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label>New Password</label>
-                                {{ password_form.new_password }}
+                                <input type="password" name="new_password" class="form-control">
                                 {% if password_form.new_password.errors %}
                                 <div class="text-danger small">{{ password_form.new_password.errors.0 }}</div>
                                 {% endif %}
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Confirm New Password</label>
-                                {{ password_form.confirm_password }}
+                                <input type="password" name="confirm_password" class="form-control">
                                 {% if password_form.confirm_password.errors %}
                                 <div class="text-danger small">{{ password_form.confirm_password.errors.0 }}</div>
                                 {% endif %}

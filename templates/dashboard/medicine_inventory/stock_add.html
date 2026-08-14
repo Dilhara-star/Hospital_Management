@@ -33,32 +33,48 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Medicine <span class="text-danger">*</span></label>
-                                {{ form.medicine }}
+                                <label for="medicine">Medicine <span class="text-danger">*</span></label>
+                                <select id="medicine" name="medicine" class="form-control">
+                                    <option value="">---------</option>
+                                    {% for item in medicines %}
+                                    <option value="{{ item.pk }}" {% if item.pk == batch.medicine_id %}selected{% endif %}>{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.medicine.errors %}<div class="text-danger small mt-1">{{ form.medicine.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Supplier</label>
-                                {{ form.supplier }}
+                                <label for="supplier">Supplier</label>
+                                <select id="supplier" name="supplier" class="form-control">
+                                    <option value="">---------</option>
+                                    {% for item in suppliers %}
+                                    <option value="{{ item.pk }}" {% if item.pk == batch.supplier_id %}selected{% endif %}>{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.supplier.errors %}<div class="text-danger small mt-1">{{ form.supplier.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Batch Number <span class="text-danger">*</span></label>
-                                {{ form.batch_number }}
+                                <label for="batch_number">Batch Number <span class="text-danger">*</span></label>
+                                <input type="text" id="batch_number" name="batch_number" class="form-control" value="{{ batch.batch_number }}">
+                                {% if form.batch_number.errors %}<div class="text-danger small mt-1">{{ form.batch_number.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Quantity <span class="text-danger">*</span></label>
-                                {{ form.quantity }}
+                                <label for="quantity">Quantity <span class="text-danger">*</span></label>
+                                <input type="number" id="quantity" name="quantity" class="form-control" min="0" value="{{ batch.quantity }}">
+                                {% if form.quantity.errors %}<div class="text-danger small mt-1">{{ form.quantity.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Purchase Price</label>
-                                {{ form.purchase_price }}
+                                <label for="purchase_price">Purchase Price</label>
+                                <input type="number" id="purchase_price" name="purchase_price" class="form-control" step="0.01" min="0" value="{{ batch.purchase_price|default_if_none:'' }}">
+                                {% if form.purchase_price.errors %}<div class="text-danger small mt-1">{{ form.purchase_price.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Expiry Date <span class="text-danger">*</span></label>
-                                {{ form.expiry_date }}
+                                <label for="expiry_date">Expiry Date <span class="text-danger">*</span></label>
+                                <input type="date" id="expiry_date" name="expiry_date" class="form-control" value="{{ batch.expiry_date|date:'Y-m-d' }}">
+                                {% if form.expiry_date.errors %}<div class="text-danger small mt-1">{{ form.expiry_date.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                     </div>

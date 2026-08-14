@@ -48,28 +48,32 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>First Name <span class="text-danger">*</span></label>
-                                {{ form.first_name }}
+                                <label for="first_name">First Name <span class="text-danger">*</span></label>
+                                <input type="text" id="first_name" name="first_name" class="form-control" value="{{ staff_user.first_name }}">
+                                {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Last Name <span class="text-danger">*</span></label>
-                                {{ form.last_name }}
+                                <label for="last_name">Last Name <span class="text-danger">*</span></label>
+                                <input type="text" id="last_name" name="last_name" class="form-control" value="{{ staff_user.last_name }}">
+                                {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Email Address <span class="text-danger">*</span></label>
-                                {{ form.email }}
+                                <label for="email">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" id="email" name="email" class="form-control" value="{{ staff_user.email }}">
+                                {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Username <span class="text-danger">*</span></label>
-                                {{ form.username }}
+                                <label for="username">Username <span class="text-danger">*</span></label>
+                                <input type="text" id="username" name="username" class="form-control" value="{{ staff_user.username }}">
+                                {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input" id="is_active" name="is_active"
-                                    {% if form.is_active.value %}checked{% endif %}>
+                                    {% if staff_user.is_active %}checked{% endif %}>
                                 <label class="custom-control-label" for="is_active">Active Account</label>
                             </div>
                         </div>
@@ -84,22 +88,32 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group col-md-4">
-                                <label>Phone Number</label>
-                                {{ form.phone }}
+                                <label for="phone">Phone Number</label>
+                                <input type="text" id="phone" name="phone" class="form-control" value="{{ profile.phone }}">
                             </div>
                             <div class="form-group col-md-4">
-                                <label>Date of Birth</label>
-                                {{ form.date_of_birth }}
+                                <label for="date_of_birth">Date of Birth</label>
+                                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
                             </div>
                             <div class="form-group col-md-4">
-                                <label>Gender</label>
-                                {{ form.gender }}
+                                <label for="gender">Gender</label>
+                                <select id="gender" name="gender" class="form-control">
+                                    <option value="">---------</option>
+                                    {% for value, label in profile.GENDER_CHOICES %}
+                                    <option value="{{ value }}" {% if value == profile.gender %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Role <span class="text-danger">*</span></label>
-                                {{ form.role }}
+                                <label for="role">Role <span class="text-danger">*</span></label>
+                                <select id="role" name="role" class="form-control">
+                                    {% for value, label in role_choices %}
+                                    <option value="{{ value }}" {% if value == profile.role %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.role.errors %}<div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                     </div>
@@ -113,44 +127,56 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Department</label>
-                                {{ form.department }}
+                                <label for="department">Department</label>
+                                <select id="department" name="department" class="form-control">
+                                    {% for value, label in staff_profile.DEPARTMENT_CHOICES %}
+                                    <option value="{{ value }}" {% if value == staff_profile.department %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Specialization</label>
-                                {{ form.specialization }}
+                                <label for="specialization">Specialization</label>
+                                <input type="text" id="specialization" name="specialization" class="form-control" value="{{ staff_profile.specialization }}">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Qualification</label>
-                                {{ form.qualification }}
+                                <label for="qualification">Qualification</label>
+                                <input type="text" id="qualification" name="qualification" class="form-control" value="{{ staff_profile.qualification }}">
                             </div>
                             <div class="form-group col-md-6">
-                                <label>License / Registration No.</label>
-                                {{ form.license_number }}
+                                <label for="license_number">License / Registration No.</label>
+                                <input type="text" id="license_number" name="license_number" class="form-control" value="{{ staff_profile.license_number }}">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-4">
-                                <label>Hire Date</label>
-                                {{ form.hire_date }}
+                                <label for="hire_date">Hire Date</label>
+                                <input type="date" id="hire_date" name="hire_date" class="form-control" value="{{ staff_profile.hire_date|date:'Y-m-d' }}">
                             </div>
                             <div class="form-group col-md-4">
-                                <label>Employment Type</label>
-                                {{ form.employment_type }}
+                                <label for="employment_type">Employment Type</label>
+                                <select id="employment_type" name="employment_type" class="form-control">
+                                    {% for value, label in staff_profile.EMPLOYMENT_TYPE_CHOICES %}
+                                    <option value="{{ value }}" {% if value == staff_profile.employment_type %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="form-group col-md-4">
-                                <label>Shift</label>
-                                {{ form.shift }}
+                                <label for="shift">Shift</label>
+                                <select id="shift" name="shift" class="form-control">
+                                    {% for value, label in staff_profile.SHIFT_CHOICES %}
+                                    <option value="{{ value }}" {% if value == staff_profile.shift %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
-                        {% if staff_user.profile.role == 'doctor' %}
+                        {% if profile.role == 'doctor' %}
                         {# only doctors charge a personal consultation fee, so only show this field for them #}
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Hourly Fee <span class="text-muted">(Doctors only)</span></label>
-                                {{ form.hourly_fee }}
+                                <label for="hourly_fee">Hourly Fee <span class="text-muted">(Doctors only)</span></label>
+                                <input type="number" id="hourly_fee" name="hourly_fee" class="form-control" step="0.01" min="0" value="{{ staff_profile.hourly_fee }}">
                             </div>
                         </div>
                         {% endif %}
@@ -169,12 +195,12 @@
                     </div>
                     <div class="card-body">
                         <div class="form-group">
-                            <label>Contact Name</label>
-                            {{ form.emergency_contact_name }}
+                            <label for="emergency_contact_name">Contact Name</label>
+                            <input type="text" id="emergency_contact_name" name="emergency_contact_name" class="form-control" value="{{ staff_profile.emergency_contact_name }}">
                         </div>
                         <div class="form-group">
-                            <label>Contact Phone</label>
-                            {{ form.emergency_contact_phone }}
+                            <label for="emergency_contact_phone">Contact Phone</label>
+                            <input type="text" id="emergency_contact_phone" name="emergency_contact_phone" class="form-control" value="{{ staff_profile.emergency_contact_phone }}">
                         </div>
                     </div>
                 </div>

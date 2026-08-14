@@ -49,11 +49,11 @@
           </div>
 
           <!-- Upload Picture Form -->
-          <form method="post" enctype="multipart/form-data" class="mt-4">
+          <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data" class="mt-4">
             {% csrf_token %}
             <input type="hidden" name="action" value="update_picture">
             <div class="mb-2">
-              {{ picture_form.profile_picture }}
+              <input type="file" name="profile_picture" class="form-control" accept="image/*">
               {% if picture_form.profile_picture.errors %}
                 <div class="text-danger small mt-1">{{ picture_form.profile_picture.errors.0 }}</div>
               {% endif %}
@@ -77,42 +77,47 @@
             </h6>
           </div>
           <div class="card-body px-4 pb-4">
-            <form method="post">
+            <form method="post" action="{% url 'profile' %}">
               {% csrf_token %}
               <input type="hidden" name="action" value="update_details">
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold text-muted">First Name</label>
-                  {{ details_form.first_name }}
+                  <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
                   {% if details_form.first_name.errors %}
                     <div class="text-danger small">{{ details_form.first_name.errors.0 }}</div>
                   {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold text-muted">Last Name</label>
-                  {{ details_form.last_name }}
+                  <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
                   {% if details_form.last_name.errors %}
                     <div class="text-danger small">{{ details_form.last_name.errors.0 }}</div>
                   {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold text-muted">Email Address</label>
-                  {{ details_form.email }}
+                  <input type="email" name="email" class="form-control" value="{{ user.email }}">
                   {% if details_form.email.errors %}
                     <div class="text-danger small">{{ details_form.email.errors.0 }}</div>
                   {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold text-muted">Phone Number</label>
-                  {{ details_form.phone }}
+                  <input type="text" name="phone" class="form-control" value="{{ profile.phone }}">
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold text-muted">Date of Birth</label>
-                  {{ details_form.date_of_birth }}
+                  <input type="date" name="date_of_birth" class="form-control" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold text-muted">Gender</label>
-                  {{ details_form.gender }}
+                  <select name="gender" class="form-control">
+                    <option value="">---------</option>
+                    {% for value, label in profile.GENDER_CHOICES %}
+                    <option value="{{ value }}" {% if value == profile.gender %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
                 </div>
                 <div class="col-12 text-end">
                   <button type="submit" class="btn px-4"
@@ -133,27 +138,27 @@
             </h6>
           </div>
           <div class="card-body px-4 pb-4">
-            <form method="post">
+            <form method="post" action="{% url 'profile' %}">
               {% csrf_token %}
               <input type="hidden" name="action" value="change_password">
               <div class="row g-3">
                 <div class="col-md-12">
                   <label class="form-label small fw-semibold text-muted">Current Password</label>
-                  {{ password_form.current_password }}
+                  <input type="password" name="current_password" class="form-control">
                   {% if password_form.current_password.errors %}
                     <div class="text-danger small">{{ password_form.current_password.errors.0 }}</div>
                   {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold text-muted">New Password</label>
-                  {{ password_form.new_password }}
+                  <input type="password" name="new_password" class="form-control">
                   {% if password_form.new_password.errors %}
                     <div class="text-danger small">{{ password_form.new_password.errors.0 }}</div>
                   {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold text-muted">Confirm New Password</label>
-                  {{ password_form.confirm_password }}
+                  <input type="password" name="confirm_password" class="form-control">
                   {% if password_form.confirm_password.errors %}
                     <div class="text-danger small">{{ password_form.confirm_password.errors.0 }}</div>
                   {% endif %}

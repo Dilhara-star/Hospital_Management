@@ -2,12 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404  # helpers for 
 from django.contrib import messages  # lets us show "success"/"error" banners after an action
 from django.contrib.auth.decorators import login_required  # blocks a view unless the user is logged in
 from django.contrib.auth.models import User  # built-in user model (login, username, password)
-from .forms import PatientCreateForm, PatientEditForm, StaffCreateForm, StaffEditForm  # our forms
+from .forms import PatientCreateForm, PatientEditForm, StaffCreateForm, StaffEditForm, STAFF_ROLE_CHOICES  # our forms
 from .models import UserProfile, PatientProfile, StaffProfile  # our own profile models
-from .notifications import send_staff_welcome_email 
-from .notifications import send_patient_welcome_email 
-from pprint import pprint 
- # emails a new staff member their username
+from .notifications import send_staff_welcome_email  # emails a new staff member their username
+from .notifications import send_patient_welcome_email  # emails a new patient their username
 
 # role codes that count as "staff" (not a patient, not a plain "user")
 STAFF_ROLES = ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'lab_technician']
@@ -34,54 +32,55 @@ def patient_user_list(request):
 
 @login_required
 def patient_add(request):
-    if request.method == 'POST':
-        # user submitted the form, so check the data they typed
-        form = PatientCreateForm(request.POST)
-        if form.is_valid():
-            # data passed all checks, pull it out of the form
-            data = form.cleaned_data
-            # step 1: create the login account (User model)
-            user = User.objects.create_user(
-                username=data['username'],  # login name
-                email=data['email'],  # email address
-                password=data['password'],  # password (Django hashes this for us)
-                first_name=data['first_name'],  # first name
-                last_name=data['last_name'],  # last name
-                is_active=data.get('is_active', True),  # can they log in
-            )
-            # step 2: create their profile row, always with role "patient"
-            UserProfile.objects.create(
-                user=user,  # link back to the User we just made
-                phone=data.get('phone', ''),  # phone number
-                date_of_birth=data.get('date_of_birth'),  # date of birth
-                gender=data.get('gender', ''),  # gender
-                role='patient',  # this form always makes patients
-            )
-            # step 3: create the patient's medical/insurance record
-            patient = PatientProfile.objects.create(
-                user=user,  # link back to the User we just made
-                blood_type=data.get('blood_type', ''),  # blood type
-                allergies=data.get('allergies', ''),  # known allergies
-                chronic_conditions=data.get('chronic_conditions', ''),  # chronic conditions
-                address=data.get('address', ''),  # home address
-                emergency_contact_name=data.get('emergency_contact_name', ''),  # emergency contact name
-                emergency_contact_phone=data.get('emergency_contact_phone', ''),  # emergency contact phone
-                emergency_contact_relationship=data.get('emergency_contact_relationship', ''),  # relationship
-                insurance_provider=data.get('insurance_provider', ''),  # insurance provider
-                insurance_number=data.get('insurance_number', ''),  # insurance policy number
-                insurance_expiry=data.get('insurance_expiry'),  # insurance expiry date
-                status=data.get('status', 'active'),  # patient status
-            )
-            send_patient_welcome_email(user)
-            # show a success banner with their auto-generated MRN
-            messages.success(request, f'Patient "{patient.user.get_full_name()}" (MRN: {patient.mrn}) registered successfully.')
-            # go back to the patient list page
-            return redirect('patient_user_list')
-    else:
-        # first time opening the page, show a blank form
-        form = PatientCreateForm()
+    patient_user = User()  # a blank user, only used so the template can show default field values
+    profile = UserProfile(role='patient')  # a blank profile
+    patient = PatientProfile(status='active')  # a blank patient record
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = PatientCreateForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        # step 1: create the login account (User model)
+        patient_user = User.objects.create_user(
+            username=request.POST.get('username', ''),  # login name
+            email=request.POST.get('email', ''),  # email address
+            password=request.POST.get('password', ''),  # password (Django hashes this for us)
+            first_name=request.POST.get('first_name', ''),  # first name
+            last_name=request.POST.get('last_name', ''),  # last name
+            is_active=request.POST.get('is_active') == 'on',  # can they log in
+        )
+        # step 2: create their profile row, always with role "patient"
+        UserProfile.objects.create(
+            user=patient_user,  # link back to the User we just made
+            phone=request.POST.get('phone', ''),  # phone number
+            date_of_birth=request.POST.get('date_of_birth') or None,  # date of birth
+            gender=request.POST.get('gender', ''),  # gender
+            role='patient',  # this form always makes patients
+        )
+        # step 3: create the patient's medical/insurance record
+        patient = PatientProfile.objects.create(
+            user=patient_user,  # link back to the User we just made
+            blood_type=request.POST.get('blood_type', ''),  # blood type
+            allergies=request.POST.get('allergies', ''),  # known allergies
+            chronic_conditions=request.POST.get('chronic_conditions', ''),  # chronic conditions
+            address=request.POST.get('address', ''),  # home address
+            emergency_contact_name=request.POST.get('emergency_contact_name', ''),  # emergency contact name
+            emergency_contact_phone=request.POST.get('emergency_contact_phone', ''),  # emergency contact phone
+            emergency_contact_relationship=request.POST.get('emergency_contact_relationship', ''),  # relationship
+            insurance_provider=request.POST.get('insurance_provider', ''),  # insurance provider
+            insurance_number=request.POST.get('insurance_number', ''),  # insurance policy number
+            insurance_expiry=request.POST.get('insurance_expiry') or None,  # insurance expiry date
+            status=request.POST.get('status', 'active'),  # patient status
+        )
+        send_patient_welcome_email(patient_user)
+        # show a success banner with their auto-generated MRN
+        messages.success(request, f'Patient "{patient.user.get_full_name()}" (MRN: {patient.mrn}) registered successfully.')
+        # go back to the patient list page
+        return redirect('patient_user_list')
+
     # show the add patient page
-    return render(request, 'dashboard/patient_management/patient_add.html', {'form': form})
+    return render(request, 'dashboard/patient_management/patient_add.html', {
+        'form': form, 'patient_user': patient_user, 'profile': profile, 'patient': patient,
+    })
 
 
 @login_required
@@ -89,75 +88,51 @@ def patient_edit(request, patient_id):
     # find the patient we want to edit, or show a 404 page if they don't exist
     patient = get_object_or_404(PatientProfile, pk=patient_id)
     # the patient's login account
-    user = patient.user
+    patient_user = patient.user
     # the patient's basic profile (phone, gender, etc)
-    profile = user.profile
+    profile = patient_user.profile
 
-    if request.method == 'POST':
-        # user submitted the form, so check the new data
-        form = PatientEditForm(request.POST, current_user=user)
-        if form.is_valid():
-            # data passed all checks, pull it out of the form
-            data = form.cleaned_data
-            # update the login account fields
-            user.first_name = data['first_name']  # first name
-            user.last_name = data['last_name']  # last name
-            user.email = data['email']  # email address
-            user.username = data['username']  # login name
-            user.is_active = data.get('is_active', False)  # can they log in
-            user.save()  # write the changes to the database
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = PatientEditForm(request.POST or None, current_user=patient_user)
 
-            # update the basic profile fields
-            profile.phone = data.get('phone', '')  # phone number
-            profile.date_of_birth = data.get('date_of_birth')  # date of birth
-            profile.gender = data.get('gender', '')  # gender
-            profile.save()  # write the changes to the database
+    if request.method == 'POST' and form.is_valid():
+        # update the login account fields
+        patient_user.first_name = request.POST.get('first_name', '')  # first name
+        patient_user.last_name = request.POST.get('last_name', '')  # last name
+        patient_user.email = request.POST.get('email', '')  # email address
+        patient_user.username = request.POST.get('username', '')  # login name
+        patient_user.is_active = request.POST.get('is_active') == 'on'  # can they log in
+        patient_user.save()  # write the changes to the database
 
-            # update the patient's medical/insurance record
-            patient.blood_type = data.get('blood_type', '')  # blood type
-            patient.allergies = data.get('allergies', '')  # known allergies
-            patient.chronic_conditions = data.get('chronic_conditions', '')  # chronic conditions
-            patient.address = data.get('address', '')  # home address
-            patient.emergency_contact_name = data.get('emergency_contact_name', '')  # emergency contact name
-            patient.emergency_contact_phone = data.get('emergency_contact_phone', '')  # emergency contact phone
-            patient.emergency_contact_relationship = data.get('emergency_contact_relationship', '')  # relationship
-            patient.insurance_provider = data.get('insurance_provider', '')  # insurance provider
-            patient.insurance_number = data.get('insurance_number', '')  # insurance policy number
-            patient.insurance_expiry = data.get('insurance_expiry')  # insurance expiry date
-            patient.status = data.get('status', 'active')  # patient status
-            patient.save()  # write the changes to the database
+        # update the basic profile fields
+        profile.phone = request.POST.get('phone', '')  # phone number
+        profile.date_of_birth = request.POST.get('date_of_birth') or None  # date of birth
+        profile.gender = request.POST.get('gender', '')  # gender
+        profile.save()  # write the changes to the database
 
-            # show a success banner
-            messages.success(request, f'Patient "{patient.user.get_full_name()}" updated successfully.')
-            # go back to the patient list page
-            return redirect('patient_user_list')
-    else:
-        # first time opening the page, fill the form with the current values
-        initial_data = {
-            'first_name': user.first_name,  # first name
-            'last_name': user.last_name,  # last name
-            'email': user.email,  # email address
-            'username': user.username,  # login name
-            'is_active': user.is_active,  # can they log in
-            'phone': profile.phone,  # phone number
-            'date_of_birth': profile.date_of_birth,  # date of birth
-            'gender': profile.gender,  # gender
-            'address': patient.address,  # home address
-            'blood_type': patient.blood_type,  # blood type
-            'allergies': patient.allergies,  # known allergies
-            'chronic_conditions': patient.chronic_conditions,  # chronic conditions
-            'emergency_contact_name': patient.emergency_contact_name,  # emergency contact name
-            'emergency_contact_phone': patient.emergency_contact_phone,  # emergency contact phone
-            'emergency_contact_relationship': patient.emergency_contact_relationship,  # relationship
-            'insurance_provider': patient.insurance_provider,  # insurance provider
-            'insurance_number': patient.insurance_number,  # insurance policy number
-            'insurance_expiry': patient.insurance_expiry,  # insurance expiry date
-            'status': patient.status,  # patient status
-        }
-        form = PatientEditForm(initial=initial_data, current_user=user)
+        # update the patient's medical/insurance record
+        patient.blood_type = request.POST.get('blood_type', '')  # blood type
+        patient.allergies = request.POST.get('allergies', '')  # known allergies
+        patient.chronic_conditions = request.POST.get('chronic_conditions', '')  # chronic conditions
+        patient.address = request.POST.get('address', '')  # home address
+        patient.emergency_contact_name = request.POST.get('emergency_contact_name', '')  # emergency contact name
+        patient.emergency_contact_phone = request.POST.get('emergency_contact_phone', '')  # emergency contact phone
+        patient.emergency_contact_relationship = request.POST.get('emergency_contact_relationship', '')  # relationship
+        patient.insurance_provider = request.POST.get('insurance_provider', '')  # insurance provider
+        patient.insurance_number = request.POST.get('insurance_number', '')  # insurance policy number
+        patient.insurance_expiry = request.POST.get('insurance_expiry') or None  # insurance expiry date
+        patient.status = request.POST.get('status', 'active')  # patient status
+        patient.save()  # write the changes to the database
+
+        # show a success banner
+        messages.success(request, f'Patient "{patient.user.get_full_name()}" updated successfully.')
+        # go back to the patient list page
+        return redirect('patient_user_list')
 
     # show the edit patient page
-    return render(request, 'dashboard/patient_management/patient_edit.html', {'form': form, 'patient': patient})
+    return render(request, 'dashboard/patient_management/patient_edit.html', {
+        'form': form, 'patient_user': patient_user, 'profile': profile, 'patient': patient,
+    })
 
 
 @login_required
@@ -199,150 +174,118 @@ def staff_user_list(request):
 
 @login_required
 def staff_add(request):
-    if request.method == 'POST':
-        # user submitted the form, so check the data they typed
-        form = StaffCreateForm(request.POST)
-        if form.is_valid():
-            # data passed all checks, pull it out of the form
-            data = form.cleaned_data
-            # step 1: create the login account (User model)
-            user = User.objects.create_user(
-                username=data['username'],  # login name
-                email=data['email'],  # email address
-                password=data['password'],  # password (Django hashes this for us)
-                first_name=data['first_name'],  # first name
-                last_name=data['last_name'],  # last name
-                is_active=data.get('is_active', True),  # can they log in
-            )
-            # step 2: create their profile row with the staff role they picked
-            UserProfile.objects.create(
-                user=user,  # link back to the User we just made
-                phone=data.get('phone', ''),  # phone number
-                date_of_birth=data.get('date_of_birth'),  # date of birth
-                gender=data.get('gender', ''),  # gender
-                role=data['role'],  # staff role (admin, doctor, nurse, etc)
-            )
-            # step 3: create their employment record (department, shift, etc all start blank,
-            # the staff member fills these in later by editing their own record)
-            StaffProfile.objects.create(user=user)
-            print("ABOVE THE MAIL")
-            send_staff_welcome_email(user, data['role']) 
-            print("BELOW THE MAIL") # email the new staff member their username
-            # show a success banner
-            messages.success(request, f'Staff member "{user.get_full_name()}" added successfully.')
-            # go back to the staff list page
-            return redirect('staff_user_list')
-    else:
-        # first time opening the page, show a blank form
-        form = StaffCreateForm()
+    staff_user = User()  # a blank user, only used so the template can show default field values
+    profile = UserProfile()  # a blank profile, only used so the template can show default field values
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = StaffCreateForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        # step 1: create the login account (User model)
+        staff_user = User.objects.create_user(
+            username=request.POST.get('username', ''),  # login name
+            email=request.POST.get('email', ''),  # email address
+            password=request.POST.get('password', ''),  # password (Django hashes this for us)
+            first_name=request.POST.get('first_name', ''),  # first name
+            last_name=request.POST.get('last_name', ''),  # last name
+            is_active=request.POST.get('is_active') == 'on',  # can they log in
+        )
+        # step 2: create their profile row with the staff role they picked
+        UserProfile.objects.create(
+            user=staff_user,  # link back to the User we just made
+            phone=request.POST.get('phone', ''),  # phone number
+            date_of_birth=request.POST.get('date_of_birth') or None,  # date of birth
+            gender=request.POST.get('gender', ''),  # gender
+            role=request.POST.get('role', ''),  # staff role (admin, doctor, nurse, etc)
+        )
+        # step 3: create their employment record (department, shift, etc all start blank,
+        # the staff member fills these in later by editing their own record)
+        StaffProfile.objects.create(user=staff_user)
+        send_staff_welcome_email(staff_user, request.POST.get('role', ''))  # email the new staff member their username
+        # show a success banner
+        messages.success(request, f'Staff member "{staff_user.get_full_name()}" added successfully.')
+        # go back to the staff list page
+        return redirect('staff_user_list')
+
     # show the add staff page
-    return render(request, 'dashboard/staff_management/staff_add.html', {'form': form})
+    return render(request, 'dashboard/staff_management/staff_add.html', {
+        'form': form, 'staff_user': staff_user, 'profile': profile, 'role_choices': STAFF_ROLE_CHOICES,
+    })
 
 
 @login_required
 def staff_edit(request, user_id):
     # find the staff member we want to edit, or show a 404 page if they don't exist
-    user = get_object_or_404(User, pk=user_id)
+    staff_user = get_object_or_404(User, pk=user_id)
     # this user's basic profile (phone, role, etc)
-    profile = user.profile
+    profile = staff_user.profile
     # this user's employment details, if they already have one
-    try:
-        staff_profile = user.staff_profile
-    except StaffProfile.DoesNotExist:
-        staff_profile = None
+    staff_profile = getattr(staff_user, 'staff_profile', None) or StaffProfile()
 
-    if request.method == 'POST':
-        # user submitted the form, so check the new data
-        form = StaffEditForm(request.POST, current_user=user)
-        if form.is_valid():
-            # data passed all checks, pull it out of the form
-            data = form.cleaned_data
-            # update the login account fields
-            user.first_name = data['first_name']  # first name
-            user.last_name = data['last_name']  # last name
-            user.email = data['email']  # email address
-            user.username = data['username']  # login name
-            user.is_active = data.get('is_active', False)  # can they log in
-            user.save()  # write the changes to the database
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = StaffEditForm(request.POST or None, current_user=staff_user)
 
-            # update the basic profile fields
-            profile.phone = data.get('phone', '')  # phone number
-            profile.date_of_birth = data.get('date_of_birth')  # date of birth
-            profile.gender = data.get('gender', '')  # gender
-            profile.role = data['role']  # staff role
-            profile.save()  # write the changes to the database
+    if request.method == 'POST' and form.is_valid():
+        # update the login account fields
+        staff_user.first_name = request.POST.get('first_name', '')  # first name
+        staff_user.last_name = request.POST.get('last_name', '')  # last name
+        staff_user.email = request.POST.get('email', '')  # email address
+        staff_user.username = request.POST.get('username', '')  # login name
+        staff_user.is_active = request.POST.get('is_active') == 'on'  # can they log in
+        staff_user.save()  # write the changes to the database
 
-            # this person is now staff, so remove any old patient record they might still
-            # have (e.g. if they were first registered through "Register Patient" and are
-            # only now being made staff) - a person cannot be both at the same time
-            PatientProfile.objects.filter(user=user).delete()
+        # update the basic profile fields
+        profile.phone = request.POST.get('phone', '')  # phone number
+        profile.date_of_birth = request.POST.get('date_of_birth') or None  # date of birth
+        profile.gender = request.POST.get('gender', '')  # gender
+        profile.role = request.POST.get('role', '')  # staff role
+        profile.save()  # write the changes to the database
 
-            # get their employment record, or make a new one if they don't have one yet
-            staff_profile, _created = StaffProfile.objects.get_or_create(user=user)
-            # update the employment fields
-            staff_profile.department = data.get('department', '')  # department
-            staff_profile.specialization = data.get('specialization', '')  # specialization
-            staff_profile.qualification = data.get('qualification', '')  # qualification
-            staff_profile.license_number = data.get('license_number', '')  # license number
-            staff_profile.hire_date = data.get('hire_date')  # hire date
-            staff_profile.employment_type = data.get('employment_type', '')  # employment type
-            staff_profile.shift = data.get('shift', '')  # shift
-            staff_profile.hourly_fee = data.get('hourly_fee') or 0  # consultation fee (doctors only)
-            staff_profile.emergency_contact_name = data.get('emergency_contact_name', '')  # emergency contact name
-            staff_profile.emergency_contact_phone = data.get('emergency_contact_phone', '')  # emergency contact phone
-            staff_profile.save()  # write the changes to the database
+        # this person is now staff, so remove any old patient record they might still
+        # have (e.g. if they were first registered through "Register Patient" and are
+        # only now being made staff) - a person cannot be both at the same time
+        PatientProfile.objects.filter(user=staff_user).delete()
 
-            # show a success banner
-            messages.success(request, f'Staff "{user.get_full_name()}" updated successfully.')
-            # go back to the staff list page
-            return redirect('staff_user_list')
-    else:
-        # first time opening the page, fill the form with the current values
-        initial_data = {
-            'first_name': user.first_name,  # first name
-            'last_name': user.last_name,  # last name
-            'email': user.email,  # email address
-            'username': user.username,  # login name
-            'is_active': user.is_active,  # can they log in
-            'phone': profile.phone,  # phone number
-            'date_of_birth': profile.date_of_birth,  # date of birth
-            'gender': profile.gender,  # gender
-            'role': profile.role,  # staff role
-        }
-        if staff_profile:
-            # they already have employment details, so pre-fill those fields too
-            initial_data.update({
-                'department': staff_profile.department,  # department
-                'specialization': staff_profile.specialization,  # specialization
-                'qualification': staff_profile.qualification,  # qualification
-                'license_number': staff_profile.license_number,  # license number
-                'hire_date': staff_profile.hire_date,  # hire date
-                'employment_type': staff_profile.employment_type,  # employment type
-                'shift': staff_profile.shift,  # shift
-                'hourly_fee': staff_profile.hourly_fee,  # consultation fee (doctors only)
-                'emergency_contact_name': staff_profile.emergency_contact_name,  # emergency contact name
-                'emergency_contact_phone': staff_profile.emergency_contact_phone,  # emergency contact phone
-            })
-        form = StaffEditForm(initial=initial_data, current_user=user)
+        # get their employment record, or make a new one if they don't have one yet
+        staff_profile, _created = StaffProfile.objects.get_or_create(user=staff_user)
+        # update the employment fields
+        staff_profile.department = request.POST.get('department', '')  # department
+        staff_profile.specialization = request.POST.get('specialization', '')  # specialization
+        staff_profile.qualification = request.POST.get('qualification', '')  # qualification
+        staff_profile.license_number = request.POST.get('license_number', '')  # license number
+        staff_profile.hire_date = request.POST.get('hire_date') or None  # hire date
+        staff_profile.employment_type = request.POST.get('employment_type', '')  # employment type
+        staff_profile.shift = request.POST.get('shift', '')  # shift
+        staff_profile.hourly_fee = request.POST.get('hourly_fee') or 0  # consultation fee (doctors only)
+        staff_profile.emergency_contact_name = request.POST.get('emergency_contact_name', '')  # emergency contact name
+        staff_profile.emergency_contact_phone = request.POST.get('emergency_contact_phone', '')  # emergency contact phone
+        staff_profile.save()  # write the changes to the database
+
+        # show a success banner
+        messages.success(request, f'Staff "{staff_user.get_full_name()}" updated successfully.')
+        # go back to the staff list page
+        return redirect('staff_user_list')
 
     # show the edit staff page
-    return render(request, 'dashboard/staff_management/staff_edit.html', {'form': form, 'staff_user': user})
+    return render(request, 'dashboard/staff_management/staff_edit.html', {
+        'form': form, 'staff_user': staff_user, 'profile': profile, 'staff_profile': staff_profile,
+        'role_choices': STAFF_ROLE_CHOICES,
+    })
 
 
 @login_required
 def staff_detail(request, user_id):
     # find the staff member, or show a 404 page if they don't exist
-    user = get_object_or_404(User, pk=user_id)
+    staff_user = get_object_or_404(User, pk=user_id)
     # find their profile, or show a 404 page if it's missing
-    profile = get_object_or_404(UserProfile, user=user)
+    profile = get_object_or_404(UserProfile, user=staff_user)
     # find their employment details, if they have any
     try:
-        sp = user.staff_profile
+        sp = staff_user.staff_profile
     except StaffProfile.DoesNotExist:
         sp = None
     # show the staff detail page
     return render(request, 'dashboard/staff_management/staff_detail.html', {
-        'staff_user': user,
+        'staff_user': staff_user,
         'profile': profile,
         'sp': sp,
     })
@@ -351,12 +294,12 @@ def staff_detail(request, user_id):
 @login_required
 def staff_delete(request, user_id):
     # find the staff member we want to delete, or show a 404 page if they don't exist
-    user = get_object_or_404(User, pk=user_id)
+    staff_user = get_object_or_404(User, pk=user_id)
     if request.method == 'POST':
         # remember their name before we delete the row
-        name = user.get_full_name()
+        name = staff_user.get_full_name()
         # delete the login account (this also deletes their profile because of on_delete=CASCADE)
-        user.delete()
+        staff_user.delete()
         # show a success banner
         messages.success(request, f'Staff member "{name}" deleted successfully.')
         # go back to the staff list page

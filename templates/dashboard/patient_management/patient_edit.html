@@ -56,28 +56,32 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>First Name <span class="text-danger">*</span></label>
-                                {{ form.first_name }}
+                                <label for="first_name">First Name <span class="text-danger">*</span></label>
+                                <input type="text" id="first_name" name="first_name" class="form-control" value="{{ patient_user.first_name }}">
+                                {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Last Name <span class="text-danger">*</span></label>
-                                {{ form.last_name }}
+                                <label for="last_name">Last Name <span class="text-danger">*</span></label>
+                                <input type="text" id="last_name" name="last_name" class="form-control" value="{{ patient_user.last_name }}">
+                                {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Email Address <span class="text-danger">*</span></label>
-                                {{ form.email }}
+                                <label for="email">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" id="email" name="email" class="form-control" value="{{ patient_user.email }}">
+                                {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Username <span class="text-danger">*</span></label>
-                                {{ form.username }}
+                                <label for="username">Username <span class="text-danger">*</span></label>
+                                <input type="text" id="username" name="username" class="form-control" value="{{ patient_user.username }}">
+                                {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input" id="is_active" name="is_active"
-                                    {% if form.is_active.value %}checked{% endif %}>
+                                    {% if patient_user.is_active %}checked{% endif %}>
                                 <label class="custom-control-label" for="is_active">Active Account</label>
                             </div>
                         </div>
@@ -92,21 +96,26 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group col-md-4">
-                                <label>Phone Number</label>
-                                {{ form.phone }}
+                                <label for="phone">Phone Number</label>
+                                <input type="text" id="phone" name="phone" class="form-control" value="{{ profile.phone }}">
                             </div>
                             <div class="form-group col-md-4">
-                                <label>Date of Birth</label>
-                                {{ form.date_of_birth }}
+                                <label for="date_of_birth">Date of Birth</label>
+                                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
                             </div>
                             <div class="form-group col-md-4">
-                                <label>Gender</label>
-                                {{ form.gender }}
+                                <label for="gender">Gender</label>
+                                <select id="gender" name="gender" class="form-control">
+                                    <option value="">---------</option>
+                                    {% for value, label in profile.GENDER_CHOICES %}
+                                    <option value="{{ value }}" {% if value == profile.gender %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Address</label>
-                            {{ form.address }}
+                            <label for="address">Address</label>
+                            <textarea id="address" name="address" class="form-control" rows="3">{{ patient.address }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -119,22 +128,30 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group col-md-4">
-                                <label>Blood Type</label>
-                                {{ form.blood_type }}
+                                <label for="blood_type">Blood Type</label>
+                                <select id="blood_type" name="blood_type" class="form-control">
+                                    {% for value, label in patient.BLOOD_TYPE_CHOICES %}
+                                    <option value="{{ value }}" {% if value == patient.blood_type %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="form-group col-md-4">
-                                <label>Patient Status</label>
-                                {{ form.status }}
+                                <label for="status">Patient Status</label>
+                                <select id="status" name="status" class="form-control">
+                                    {% for value, label in patient.STATUS_CHOICES %}
+                                    <option value="{{ value }}" {% if value == patient.status %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Known Allergies</label>
-                                {{ form.allergies }}
+                                <label for="allergies">Known Allergies</label>
+                                <textarea id="allergies" name="allergies" class="form-control" rows="3">{{ patient.allergies }}</textarea>
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Chronic Conditions</label>
-                                {{ form.chronic_conditions }}
+                                <label for="chronic_conditions">Chronic Conditions</label>
+                                <textarea id="chronic_conditions" name="chronic_conditions" class="form-control" rows="3">{{ patient.chronic_conditions }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -152,16 +169,20 @@
                     </div>
                     <div class="card-body">
                         <div class="form-group">
-                            <label>Contact Name</label>
-                            {{ form.emergency_contact_name }}
+                            <label for="emergency_contact_name">Contact Name</label>
+                            <input type="text" id="emergency_contact_name" name="emergency_contact_name" class="form-control" value="{{ patient.emergency_contact_name }}">
                         </div>
                         <div class="form-group">
-                            <label>Contact Phone</label>
-                            {{ form.emergency_contact_phone }}
+                            <label for="emergency_contact_phone">Contact Phone</label>
+                            <input type="text" id="emergency_contact_phone" name="emergency_contact_phone" class="form-control" value="{{ patient.emergency_contact_phone }}">
                         </div>
                         <div class="form-group">
-                            <label>Relationship</label>
-                            {{ form.emergency_contact_relationship }}
+                            <label for="emergency_contact_relationship">Relationship</label>
+                            <select id="emergency_contact_relationship" name="emergency_contact_relationship" class="form-control">
+                                {% for value, label in patient.RELATIONSHIP_CHOICES %}
+                                <option value="{{ value }}" {% if value == patient.emergency_contact_relationship %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -173,16 +194,16 @@
                     </div>
                     <div class="card-body">
                         <div class="form-group">
-                            <label>Insurance Provider</label>
-                            {{ form.insurance_provider }}
+                            <label for="insurance_provider">Insurance Provider</label>
+                            <input type="text" id="insurance_provider" name="insurance_provider" class="form-control" value="{{ patient.insurance_provider }}">
                         </div>
                         <div class="form-group">
-                            <label>Policy / Member Number</label>
-                            {{ form.insurance_number }}
+                            <label for="insurance_number">Policy / Member Number</label>
+                            <input type="text" id="insurance_number" name="insurance_number" class="form-control" value="{{ patient.insurance_number }}">
                         </div>
                         <div class="form-group">
-                            <label>Policy Expiry Date</label>
-                            {{ form.insurance_expiry }}
+                            <label for="insurance_expiry">Policy Expiry Date</label>
+                            <input type="date" id="insurance_expiry" name="insurance_expiry" class="form-control" value="{{ patient.insurance_expiry|date:'Y-m-d' }}">
                         </div>
                     </div>
                 </div>

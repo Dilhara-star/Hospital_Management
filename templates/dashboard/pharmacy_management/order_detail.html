@@ -128,7 +128,7 @@
 
             {% if order.status == 'pending' %}
             <!-- step 1: hand the medicine to the patient, this also removes it from stock -->
-            <form method="post">
+            <form method="post" action="{% url 'pharmacy_order_detail' appointment.pk %}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="dispense">
                 <button type="submit" class="btn btn-primary">
@@ -139,7 +139,7 @@
 
             {% if order.status != 'completed' and order.payment_status == 'pending' %}
             <!-- step 2: record how the patient paid for the medicine, can happen before or after dispensing -->
-            <form method="post" class="form-inline mt-3">
+            <form method="post" action="{% url 'pharmacy_order_detail' appointment.pk %}" class="form-inline mt-3">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="record_payment">
                 <label class="mr-2">Payment Method</label>
@@ -156,7 +156,7 @@
 
             {% if order.status == 'dispensed' and order.payment_status == 'paid' %}
             <!-- step 3: close out the order once the medicine is given and paid for -->
-            <form method="post" class="mt-3">
+            <form method="post" action="{% url 'pharmacy_order_detail' appointment.pk %}" class="mt-3">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="complete">
                 <button type="submit" class="btn btn-dark">

@@ -33,31 +33,45 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Medicine Name <span class="text-danger">*</span></label>
-                                {{ form.name }}
+                                <label for="name">Medicine Name <span class="text-danger">*</span></label>
+                                <input type="text" id="name" name="name" class="form-control" value="{{ medicine.name }}">
+                                {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Manufacturer</label>
-                                {{ form.manufacturer }}
+                                <label for="manufacturer">Manufacturer</label>
+                                <input type="text" id="manufacturer" name="manufacturer" class="form-control" value="{{ medicine.manufacturer }}">
+                                {% if form.manufacturer.errors %}<div class="text-danger small mt-1">{{ form.manufacturer.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-4">
-                                <label>Category</label>
-                                {{ form.category }}
+                                <label for="category">Category</label>
+                                <select id="category" name="category" class="form-control">
+                                    {% for value, label in medicine.CATEGORY_CHOICES %}
+                                    <option value="{{ value }}" {% if value == medicine.category %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-4">
-                                <label>Unit</label>
-                                {{ form.unit }}
+                                <label for="unit">Unit</label>
+                                <select id="unit" name="unit" class="form-control">
+                                    {% for value, label in medicine.UNIT_CHOICES %}
+                                    <option value="{{ value }}" {% if value == medicine.unit %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.unit.errors %}<div class="text-danger small mt-1">{{ form.unit.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-4">
-                                <label>Reorder Level <span class="text-danger">*</span></label>
-                                {{ form.reorder_level }}
+                                <label for="reorder_level">Reorder Level <span class="text-danger">*</span></label>
+                                <input type="number" id="reorder_level" name="reorder_level" class="form-control" min="0" value="{{ medicine.reorder_level }}">
+                                {% if form.reorder_level.errors %}<div class="text-danger small mt-1">{{ form.reorder_level.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Description</label>
-                            {{ form.description }}
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" class="form-control" rows="3">{{ medicine.description }}</textarea>
+                            {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
                         </div>
                     </div>
                 </div>

@@ -5,66 +5,38 @@ from .models import UserProfile, PatientProfile, StaffProfile  # our own profile
 # role codes that count as "staff" (not a patient, not a plain "user")
 STAFF_ROLES = ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'lab_technician']
 
-# css class used on every text/number/date input box
-fc = {'class': 'form-control'}
-# css class + html type used on date input boxes
-fc_date = {'class': 'form-control', 'type': 'date'}
-# css class used on multi-line text boxes, 3 rows tall
-fc_ta = {'class': 'form-control', 'rows': '3'}
-
 
 # ── Patient Forms ─────────────────────────────────────────────────────────────
 
 class PatientCreateForm(forms.Form):
-    """Fields for registering a brand new patient. Saving happens in the view."""
+    """Fields checked when registering a brand new patient. Saving happens in the view."""
     # Account
-    # first name text box
-    first_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
-    # last name text box
-    last_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
-    # email text box
-    email = forms.EmailField(widget=forms.EmailInput(attrs=fc))
-    # username text box
-    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
-    # password text box (hidden characters)
-    password = forms.CharField(widget=forms.PasswordInput(attrs=fc))
-    # confirm password text box (hidden characters)
-    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs=fc))
-    # checkbox for whether the account can log in, ticked by default
-    is_active = forms.BooleanField(required=False, initial=True)
+    first_name = forms.CharField(max_length=150)  # first name text box
+    last_name = forms.CharField(max_length=150)  # last name text box
+    email = forms.EmailField()  # email text box
+    username = forms.CharField(max_length=150)  # username text box
+    password = forms.CharField(widget=forms.PasswordInput)  # password text box (hidden characters)
+    confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm password text box (hidden characters)
+    is_active = forms.BooleanField(required=False, initial=True)  # checkbox for whether the account can log in
     # Personal
-    # phone number text box, not required
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
-    # date of birth picker, not required
-    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
-    # gender drop-down, not required
-    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs=fc))
-    # home address multi-line box, not required
-    address = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
+    phone = forms.CharField(max_length=20, required=False)  # phone number text box, not required
+    date_of_birth = forms.DateField(required=False)  # date of birth picker, not required
+    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False)  # gender drop-down
+    address = forms.CharField(required=False, widget=forms.Textarea)  # home address multi-line box, not required
     # Medical
-    # blood type drop-down, not required
-    blood_type = forms.ChoiceField(choices=PatientProfile.BLOOD_TYPE_CHOICES, required=False, widget=forms.Select(attrs=fc))
-    # known allergies multi-line box, not required
-    allergies = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
-    # chronic conditions multi-line box, not required
-    chronic_conditions = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
+    blood_type = forms.ChoiceField(choices=PatientProfile.BLOOD_TYPE_CHOICES, required=False)  # blood type drop-down
+    allergies = forms.CharField(required=False, widget=forms.Textarea)  # known allergies multi-line box, not required
+    chronic_conditions = forms.CharField(required=False, widget=forms.Textarea)  # chronic conditions multi-line box, not required
     # Emergency contact
-    # emergency contact name text box, not required
-    emergency_contact_name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
-    # emergency contact phone text box, not required
-    emergency_contact_phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
-    # emergency contact relationship drop-down, not required
-    emergency_contact_relationship = forms.ChoiceField(choices=PatientProfile.RELATIONSHIP_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    emergency_contact_name = forms.CharField(max_length=100, required=False)  # emergency contact name text box
+    emergency_contact_phone = forms.CharField(max_length=20, required=False)  # emergency contact phone text box
+    emergency_contact_relationship = forms.ChoiceField(choices=PatientProfile.RELATIONSHIP_CHOICES, required=False)  # relationship drop-down
     # Insurance
-    # insurance provider name text box, not required
-    insurance_provider = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
-    # insurance policy number text box, not required
-    insurance_number = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs=fc))
-    # insurance expiry date picker, not required
-    insurance_expiry = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
+    insurance_provider = forms.CharField(max_length=100, required=False)  # insurance provider name text box
+    insurance_number = forms.CharField(max_length=50, required=False)  # insurance policy number text box
+    insurance_expiry = forms.DateField(required=False)  # insurance expiry date picker, not required
     # Status
-    # patient status drop-down (active, inactive, discharged)
-    status = forms.ChoiceField(choices=PatientProfile.STATUS_CHOICES, widget=forms.Select(attrs=fc))
+    status = forms.ChoiceField(choices=PatientProfile.STATUS_CHOICES)  # patient status drop-down (active, inactive, discharged)
 
     def clean_username(self):
         # pull the cleaned username value out of the form
@@ -98,51 +70,32 @@ class PatientCreateForm(forms.Form):
 
 
 class PatientEditForm(forms.Form):
-    """Fields for editing an existing patient. Saving happens in the view."""
+    """Fields checked when editing an existing patient. Saving happens in the view."""
     # Account
-    # first name text box
-    first_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
-    # last name text box
-    last_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
-    # email text box
-    email = forms.EmailField(widget=forms.EmailInput(attrs=fc))
-    # username text box
-    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
-    # checkbox for whether the account can log in
-    is_active = forms.BooleanField(required=False)
+    first_name = forms.CharField(max_length=150)  # first name text box
+    last_name = forms.CharField(max_length=150)  # last name text box
+    email = forms.EmailField()  # email text box
+    username = forms.CharField(max_length=150)  # username text box
+    is_active = forms.BooleanField(required=False)  # checkbox for whether the account can log in
     # Personal
-    # phone number text box, not required
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
-    # date of birth picker, not required
-    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
-    # gender drop-down, not required
-    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs=fc))
-    # home address multi-line box, not required
-    address = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
+    phone = forms.CharField(max_length=20, required=False)  # phone number text box, not required
+    date_of_birth = forms.DateField(required=False)  # date of birth picker, not required
+    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False)  # gender drop-down
+    address = forms.CharField(required=False, widget=forms.Textarea)  # home address multi-line box, not required
     # Medical
-    # blood type drop-down, not required
-    blood_type = forms.ChoiceField(choices=PatientProfile.BLOOD_TYPE_CHOICES, required=False, widget=forms.Select(attrs=fc))
-    # known allergies multi-line box, not required
-    allergies = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
-    # chronic conditions multi-line box, not required
-    chronic_conditions = forms.CharField(required=False, widget=forms.Textarea(attrs=fc_ta))
+    blood_type = forms.ChoiceField(choices=PatientProfile.BLOOD_TYPE_CHOICES, required=False)  # blood type drop-down
+    allergies = forms.CharField(required=False, widget=forms.Textarea)  # known allergies multi-line box, not required
+    chronic_conditions = forms.CharField(required=False, widget=forms.Textarea)  # chronic conditions multi-line box, not required
     # Emergency contact
-    # emergency contact name text box, not required
-    emergency_contact_name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
-    # emergency contact phone text box, not required
-    emergency_contact_phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
-    # emergency contact relationship drop-down, not required
-    emergency_contact_relationship = forms.ChoiceField(choices=PatientProfile.RELATIONSHIP_CHOICES, required=False, widget=forms.Select(attrs=fc))
+    emergency_contact_name = forms.CharField(max_length=100, required=False)  # emergency contact name text box
+    emergency_contact_phone = forms.CharField(max_length=20, required=False)  # emergency contact phone text box
+    emergency_contact_relationship = forms.ChoiceField(choices=PatientProfile.RELATIONSHIP_CHOICES, required=False)  # relationship drop-down
     # Insurance
-    # insurance provider name text box, not required
-    insurance_provider = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
-    # insurance policy number text box, not required
-    insurance_number = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs=fc))
-    # insurance expiry date picker, not required
-    insurance_expiry = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
+    insurance_provider = forms.CharField(max_length=100, required=False)  # insurance provider name text box
+    insurance_number = forms.CharField(max_length=50, required=False)  # insurance policy number text box
+    insurance_expiry = forms.DateField(required=False)  # insurance expiry date picker, not required
     # Status
-    # patient status drop-down (active, inactive, discharged)
-    status = forms.ChoiceField(choices=PatientProfile.STATUS_CHOICES, widget=forms.Select(attrs=fc))
+    status = forms.ChoiceField(choices=PatientProfile.STATUS_CHOICES)  # patient status drop-down (active, inactive, discharged)
 
     def __init__(self, *args, current_user=None, **kwargs):
         # remember which user is being edited, so we can allow them to keep their own username/email
@@ -165,28 +118,18 @@ class PatientEditForm(forms.Form):
         return username
 
     def clean_email(self):
-    # Django form එකේ email field එක පරීක්ෂා (validate) කිරීම සඳහා වන විශේෂිත function එක අර්ථ දැක්වීම
-
+        # pull the cleaned email value out of the form
         email = self.cleaned_data['email']
-        # Form එකෙන් පරිශීලකයා (user) ඇතුළත් කළ email අගය ලබා ගැනීම
-
+        # find any user that already has this email
         query = User.objects.filter(email=email)
-        # මෙම email එක දැනටමත් database එකේ වෙනත් user කෙනෙකු සතුදැයි සෙවීම
-
+        # do not count the user we are editing against themselves
         if self.current_user:
-            # දැනට පද්ධතියට ලොග් වී සිටින/වෙනස්කම් කරන user කෙනෙක් සිටීදැයි පරීක්ෂා කිරීම
-
             query = query.exclude(pk=self.current_user.pk)
-            # එම user ගේම තොරතුරු සෙවුමෙන් ඉවත් කිරීම (තමන්ගේම email එක නිසා error එකක් ඒම වැළැක්වීමට)
-
+        # stop if someone else already has this email
         if query.exists():
-            # වෙනත් කිසිවෙකු හෝ මෙම email එක භාවිතා කර ඇත්දැයි පරීක්ෂා කිරීම
-
             raise forms.ValidationError('Email address already in use.')
-            # වෙනත් කෙනෙකු භාවිතා කරන්නේ නම් validation error එකක් නිකුත් කිරීම
-
+        # email is free to use
         return email
-        # කිසිදු ගැටලුවක් නැත්නම් පරීක්ෂා කළ email අගය ආපසු ලබා දීම (return කිරීම)
 
 
 # ── Staff Forms ───────────────────────────────────────────────────────────────
@@ -201,29 +144,18 @@ for role_code, role_label in UserProfile.ROLE_CHOICES:
 
 
 class StaffCreateForm(forms.Form):
-    """Fields for adding a brand new staff member. Saving happens in the view."""
-    # first name text box
-    first_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs=fc))
-    # last name text box
-    last_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs=fc))
-    # email text box
-    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs=fc))
-    # username text box
-    username = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs=fc))
-    # phone number text box, not required
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
-    # date of birth picker, not required
-    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
-    # gender drop-down, not required
-    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs=fc))
-    # staff role drop-down, required (admin, doctor, nurse, receptionist, pharmacist, lab technician)
-    role = forms.ChoiceField(choices=STAFF_ROLE_CHOICES, required=True, widget=forms.Select(attrs=fc))
-    # password text box (hidden characters)
-    password = forms.CharField(widget=forms.PasswordInput(attrs=fc))
-    # confirm password text box (hidden characters)
-    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs=fc))
-    # checkbox for whether the account can log in, ticked by default
-    is_active = forms.BooleanField(required=False, initial=True)
+    """Fields checked when adding a brand new staff member. Saving happens in the view."""
+    first_name = forms.CharField(max_length=150, required=True)  # first name text box
+    last_name = forms.CharField(max_length=150, required=True)  # last name text box
+    email = forms.EmailField(required=True)  # email text box
+    username = forms.CharField(max_length=150, required=True)  # username text box
+    phone = forms.CharField(max_length=20, required=False)  # phone number text box, not required
+    date_of_birth = forms.DateField(required=False)  # date of birth picker, not required
+    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False)  # gender drop-down
+    role = forms.ChoiceField(choices=STAFF_ROLE_CHOICES, required=True)  # staff role drop-down, required
+    password = forms.CharField(widget=forms.PasswordInput)  # password text box (hidden characters)
+    confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm password text box (hidden characters)
+    is_active = forms.BooleanField(required=False, initial=True)  # checkbox for whether the account can log in
 
     def clean_username(self):
         # pull the cleaned username value out of the form
@@ -257,49 +189,30 @@ class StaffCreateForm(forms.Form):
 
 
 class StaffEditForm(forms.Form):
-    """Fields for editing an existing staff member. Saving happens in the view."""
+    """Fields checked when editing an existing staff member. Saving happens in the view."""
     # Account
-    # first name text box
-    first_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
-    # last name text box
-    last_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
-    # email text box
-    email = forms.EmailField(widget=forms.EmailInput(attrs=fc))
-    # username text box
-    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs=fc))
-    # checkbox for whether the account can log in
-    is_active = forms.BooleanField(required=False)
+    first_name = forms.CharField(max_length=150)  # first name text box
+    last_name = forms.CharField(max_length=150)  # last name text box
+    email = forms.EmailField()  # email text box
+    username = forms.CharField(max_length=150)  # username text box
+    is_active = forms.BooleanField(required=False)  # checkbox for whether the account can log in
     # Personal
-    # phone number text box, not required
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
-    # date of birth picker, not required
-    date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
-    # gender drop-down, not required
-    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False, widget=forms.Select(attrs=fc))
-    # staff role drop-down, required
-    role = forms.ChoiceField(choices=STAFF_ROLE_CHOICES, required=True, widget=forms.Select(attrs=fc))
+    phone = forms.CharField(max_length=20, required=False)  # phone number text box, not required
+    date_of_birth = forms.DateField(required=False)  # date of birth picker, not required
+    gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False)  # gender drop-down
+    role = forms.ChoiceField(choices=STAFF_ROLE_CHOICES, required=True)  # staff role drop-down, required
     # Employment
-    # department drop-down, not required
-    department = forms.ChoiceField(choices=StaffProfile.DEPARTMENT_CHOICES, required=False, widget=forms.Select(attrs=fc))
-    # specialization text box, not required
-    specialization = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
-    # qualification text box, not required
-    qualification = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
-    # license number text box, not required
-    license_number = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs=fc))
-    # hire date picker, not required
-    hire_date = forms.DateField(required=False, widget=forms.DateInput(attrs=fc_date))
-    # employment type drop-down, not required
-    employment_type = forms.ChoiceField(choices=StaffProfile.EMPLOYMENT_TYPE_CHOICES, required=False, widget=forms.Select(attrs=fc))
-    # shift drop-down, not required
-    shift = forms.ChoiceField(choices=StaffProfile.SHIFT_CHOICES, required=False, widget=forms.Select(attrs=fc))
-    # doctor's own consultation fee, added on top of the department fee (doctors only)
-    hourly_fee = forms.DecimalField(required=False, min_value=0, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': 0}))
+    department = forms.ChoiceField(choices=StaffProfile.DEPARTMENT_CHOICES, required=False)  # department drop-down
+    specialization = forms.CharField(max_length=100, required=False)  # specialization text box, not required
+    qualification = forms.CharField(max_length=100, required=False)  # qualification text box, not required
+    license_number = forms.CharField(max_length=50, required=False)  # license number text box, not required
+    hire_date = forms.DateField(required=False)  # hire date picker, not required
+    employment_type = forms.ChoiceField(choices=StaffProfile.EMPLOYMENT_TYPE_CHOICES, required=False)  # employment type drop-down
+    shift = forms.ChoiceField(choices=StaffProfile.SHIFT_CHOICES, required=False)  # shift drop-down
+    hourly_fee = forms.DecimalField(required=False, min_value=0)  # doctor's own consultation fee (doctors only)
     # Emergency contact
-    # emergency contact name text box, not required
-    emergency_contact_name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs=fc))
-    # emergency contact phone text box, not required
-    emergency_contact_phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs=fc))
+    emergency_contact_name = forms.CharField(max_length=100, required=False)  # emergency contact name text box
+    emergency_contact_phone = forms.CharField(max_length=20, required=False)  # emergency contact phone text box
 
     def __init__(self, *args, current_user=None, **kwargs):
         # remember which user is being edited, so we can allow them to keep their own username/email

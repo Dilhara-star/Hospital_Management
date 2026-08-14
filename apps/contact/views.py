@@ -1,42 +1,41 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404  # helpers to render pages and redirect
 from django.contrib import messages  # shows a flash message after the form saves
-from apps.contact.ContactForm import ContactForm
-from .models import Contact_us
+from .forms import ContactForm  # our form
+from .models import Contact_us  # our model
 
-#frontend start 
+
+# ── Frontend ───────────────────────────────────────────────────────────────
+
 def contact_us_index(request):
-    form = ContactForm()
-    return render(request, "frontend/core/contact_us_index.html", {"form": form})
+    form = ContactForm()  # blank form, used only to check the data typed on this page
+    return render(request, 'frontend/core/contact_us_index.html', {'form': form})
 
 
 def add_contact(request):
+    # form is only used to check the typed data is valid; the actual save is done by hand below
     form = ContactForm(request.POST)
 
     if form.is_valid():
-        Contact_us.objects.create(
-            name=request.POST.get("name", ""),
-            email=request.POST.get("email", ""),
-            subject=request.POST.get("subject", ""),
-            message=request.POST.get("message", ""),
-            created_date=request.POST.get("created_date", None)
-        )
-        messages.success(request, "Your message has been sent. Thank you!")
-        return redirect("contact_us_index")
+        inquiry = Contact_us()  # a blank inquiry
+        inquiry.name = request.POST.get('name', '')  # name of the sender
+        inquiry.email = request.POST.get('email', '')  # email to reply to
+        inquiry.subject = request.POST.get('subject', '')  # subject line
+        inquiry.message = request.POST.get('message', '')  # the message itself
+        inquiry.save()  # write the new inquiry to the database
+        messages.success(request, 'Your message has been sent. Thank you!')
+        return redirect('contact_us_index')
 
-    else:
-        messages.error(request, "Please fix the errors below and try again.")
-        return render(request, "frontend/core/contact_us_index.html", {"form": form})
+    messages.error(request, 'Please fix the errors below and try again.')
+    return render(request, 'frontend/core/contact_us_index.html', {'form': form})
 
-    
 
-#dash board start
+# ── Dashboard ────────────────────────────────────────────────────────────────
 
 def view_inquiries(request):
-    inquiries = Contact_us.objects.all()
-    return render(request, "dashboard/contact_us/list_inquiries.html", {"inquiries": inquiries})
+    inquiries = Contact_us.objects.all()  # every message sent through the contact form
+    return render(request, 'dashboard/contact_us/list_inquiries.html', {'inquiries': inquiries})
+
 
 def view_inquiry(request, id):
-    inquiry = Contact_us.objects.get(id=id)
-    return render(request, "dashboard/contact_us/view_inquiry.html", {"inquiry": inquiry})
-
-
+    inquiry = get_object_or_404(Contact_us, id=id)  # find the message or show a 404 page
+    return render(request, 'dashboard/contact_us/view_inquiry.html', {'inquiry': inquiry})

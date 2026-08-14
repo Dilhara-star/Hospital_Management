@@ -69,38 +69,33 @@ def register_view(request):
     if request.user.is_authenticated:
         return _redirect_by_role(request.user)
 
-    if request.method == 'POST':
-        # visitor submitted the sign up form, so check the data they typed
-        form = PatientSignupForm(request.POST)
-        if form.is_valid():
-            # data passed all checks, pull it out of the form
-            data = form.cleaned_data
-            # step 1: create the login account (User model)
-            patient_account = User.objects.create_user(
-                username=data['username'],  # login name
-                email=data['email'],  # email address
-                password=data['password'],  # password (Django hashes this for us)
-                first_name=data['first_name'],  # first name
-                last_name=data['last_name'],  # last name
-            )
-            # step 2: create their basic profile, always with role "patient"
-            UserProfile.objects.create(
-                user=patient_account,  # link back to the account we just made
-                phone=data.get('phone', ''),  # phone number
-                role='patient',  # self sign up always makes patients
-            )
-            # step 3: create their (empty for now) medical record
-            PatientProfile.objects.create(user=patient_account)
-            # log the new patient in right away
-            login(request, patient_account)
-            # if they were sent here from another page, go back there after signing up
-            next_url = request.GET.get('next')
-            if next_url:
-                return redirect(next_url)
-            return _redirect_by_role(patient_account)
-    else:
-        # first time opening the page, show a blank form
-        form = PatientSignupForm()
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = PatientSignupForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        # step 1: create the login account (User model)
+        patient_account = User.objects.create_user(
+            username=request.POST.get('username', ''),  # login name
+            email=request.POST.get('email', ''),  # email address
+            password=request.POST.get('password', ''),  # password (Django hashes this for us)
+            first_name=request.POST.get('first_name', ''),  # first name
+            last_name=request.POST.get('last_name', ''),  # last name
+        )
+        # step 2: create their basic profile, always with role "patient"
+        UserProfile.objects.create(
+            user=patient_account,  # link back to the account we just made
+            phone=request.POST.get('phone', ''),  # phone number
+            role='patient',  # self sign up always makes patients
+        )
+        # step 3: create their (empty for now) medical record
+        PatientProfile.objects.create(user=patient_account)
+        # log the new patient in right away
+        login(request, patient_account)
+        # if they were sent here from another page, go back there after signing up
+        next_url = request.GET.get('next')
+        if next_url:
+            return redirect(next_url)
+        return _redirect_by_role(patient_account)
 
     return render(request, 'dashboard/auth/register.html', {'form': form})
 
@@ -118,38 +113,43 @@ def dashboard_profile(request):
     except StaffProfile.DoesNotExist:
         sp = None
 
-    # build the 3 forms on the page, pre-filled with the current values
-    details_form = ProfileDetailsForm(user=staff_user)
-    picture_form = ProfilePictureForm()
-    password_form = ChangePasswordForm()
+    # forms are only used to check the typed data is valid; the actual save is done by hand below
+    details_form = ProfileDetailsForm(request.POST or None, user=staff_user)
+    picture_form = ProfilePictureForm(request.POST or None, request.FILES or None)
+    password_form = ChangePasswordForm(request.POST or None)
 
     if request.method == 'POST':
         action = request.POST.get('action')  # which form on the page was submitted
 
-        if action == 'update_details':
-            details_form = ProfileDetailsForm(request.POST, user=staff_user)  # refill with submitted data
-            if details_form.is_valid():
-                details_form.save()  # save name/email/phone/dob/gender
-                messages.success(request, 'Profile details updated successfully.')
-                return redirect('dashboard_profile')  # reload the page fresh
+        if action == 'update_details' and details_form.is_valid():
+            staff_user.first_name = request.POST.get('first_name', '')  # first name
+            staff_user.last_name = request.POST.get('last_name', '')  # last name
+            staff_user.email = request.POST.get('email', '')  # email address
+            staff_user.save()  # write the changes to the database
 
-        elif action == 'update_picture':
-            picture_form = ProfilePictureForm(request.POST, request.FILES)  # files need request.FILES
-            if picture_form.is_valid():
-                picture_form.save(profile)  # save the uploaded picture on the profile
-                messages.success(request, 'Profile picture updated.')
+            profile.phone = request.POST.get('phone', '')  # phone number
+            profile.date_of_birth = request.POST.get('date_of_birth') or None  # date of birth
+            profile.gender = request.POST.get('gender', '')  # gender
+            profile.save()  # write the changes to the database
+
+            messages.success(request, 'Profile details updated successfully.')
+            return redirect('dashboard_profile')  # reload the page fresh
+
+        elif action == 'update_picture' and picture_form.is_valid():
+            profile.profile_picture = request.FILES.get('profile_picture')  # save the uploaded picture
+            profile.save()
+            messages.success(request, 'Profile picture updated.')
+            return redirect('dashboard_profile')
+
+        elif action == 'change_password' and password_form.is_valid():
+            if not password_form.validate_current_password(staff_user):  # check old password matches
+                password_form.add_error('current_password', 'Current password is incorrect.')
+            else:
+                staff_user.set_password(request.POST.get('new_password', ''))  # set the new password
+                staff_user.save()
+                update_session_auth_hash(request, staff_user)  # keep the account logged in after password change
+                messages.success(request, 'Password changed successfully.')
                 return redirect('dashboard_profile')
-
-        elif action == 'change_password':
-            password_form = ChangePasswordForm(request.POST)
-            if password_form.is_valid():
-                if not password_form.validate_current_password(staff_user):  # check old password matches
-                    password_form.add_error('current_password', 'Current password is incorrect.')
-                else:
-                    password_form.save(staff_user)  # set the new password
-                    update_session_auth_hash(request, staff_user)  # keep the account logged in after password change
-                    messages.success(request, 'Password changed successfully.')
-                    return redirect('dashboard_profile')
 
     # show the dashboard-styled profile page with all 3 forms
     return render(request, 'dashboard/profile/profile.html', {

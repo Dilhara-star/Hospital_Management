@@ -95,43 +95,55 @@ def appointment_index(request):
     return render(request, 'dashboard/appointment_management/index.html', {'appointments': appointments})
 
 
-
 def appointment_form(request):
     # anyone can view and fill this page, no login needed
-    if request.method == 'POST':
-        form = AppointmentForm(request.POST)
-        if form.is_valid():
-            if not request.user.is_authenticated:
-                # we cannot save a booking without a logged in user, so ask them to log in
-                messages.error(request, 'Please log in or sign up to complete your booking.')
+    appointment = Appointment()  # a blank appointment, only used so the template can show default field values
+    if request.user.is_authenticated:
+        # fill the name field with the logged in user's name, to save typing
+        appointment.patient_name = request.user.get_full_name()
+
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = AppointmentForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        if not request.user.is_authenticated:
+            # we cannot save a booking without a logged in user, so ask them to log in
+            messages.error(request, 'Please log in or sign up to complete your booking.')
+        else:
+            # 'online' or 'cash', chosen on the payment step of the form
+            payment_method = request.POST.get('payment_method', 'cash')
+
+            appointment.patient = request.user  # attach the logged in user as the patient
+            appointment.department = request.POST.get('department', '')
+            appointment.date = request.POST.get('date', '')
+            appointment.time_slot = request.POST.get('time_slot', '')
+            appointment.doctor_id = request.POST.get('doctor') or None
+            appointment.message = request.POST.get('message', '')
+            appointment.patient_name = request.POST.get('patient_name', '')
+            appointment.patient_contact = request.POST.get('patient_contact', '')
+            appointment.patient_age = request.POST.get('patient_age') or 0
+            appointment.patient_address = request.POST.get('patient_address', '')
+            appointment.patient_nic = request.POST.get('patient_nic', '')
+            appointment.save()  # save the appointment so it has an id
+
+            _record_payment(appointment, payment_method)
+
+            if payment_method == 'online':
+                messages.success(request, 'Payment received. Your appointment is confirmed!')
             else:
-                # 'online' or 'cash', chosen on the payment step of the form
-                payment_method = request.POST.get('payment_method', 'cash')
-
-                appointment = form.save(commit=False)  # build the appointment but don't save yet
-                appointment.patient = request.user  # attach the logged in user as the patient
-                appointment.save()  # save the appointment so it has an id
-
-                _record_payment(appointment, payment_method)
-
-                if payment_method == 'online':
-                    messages.success(request, 'Payment received. Your appointment is confirmed!')
-                else:
-                    messages.success(request, 'Appointment booked. Please pay at the hospital reception to confirm it.')
-                return redirect('appointment_form')
-    else:
-        initial = {}
-        if request.user.is_authenticated:
-            # fill the name field with the logged in user's name, to save typing
-            initial['patient_name'] = request.user.get_full_name()
-        form = AppointmentForm(initial=initial)
+                messages.success(request, 'Appointment booked. Please pay at the hospital reception to confirm it.')
+            return redirect('appointment_form')
 
     # fee for every department, shown on the payment step of the form
     fees = {row.department: str(row.fee) for row in DepartmentFee.objects.all()}
+    # every active doctor, so the page can build the doctor dropdown
+    doctors = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')
     # each doctor's own hourly fee, added on top of the department fee on the payment step
-    doctors = User.objects.filter(profile__role='doctor', is_active=True)
     doctor_fees = {str(doctor.pk): str(_doctor_fee(doctor)) for doctor in doctors}
-    return render(request, 'frontend/appointment/form.html', {'form': form, 'fees': fees, 'doctor_fees': doctor_fees})
+    return render(request, 'frontend/appointment/form.html', {
+        'form': form, 'appointment': appointment, 'fees': fees, 'doctors': doctors, 'doctor_fees': doctor_fees,
+    })
+
 
 @login_required
 def my_appointments(request, pk=None):
@@ -175,7 +187,7 @@ def my_appointments(request, pk=None):
 
 
 def appointment_view(request, pk):
-    appointment = Appointment.objects.get(pk=pk)
+    appointment = get_object_or_404(Appointment, pk=pk)  # find the appointment or show a 404 page
     doctor_room = _doctor_room(appointment.doctor)  # room number, shown alongside the doctor's name
     return render(request, 'dashboard/appointment_management/view.html', {
         'appointment': appointment,
@@ -186,19 +198,39 @@ def appointment_view(request, pk):
 @login_required
 def appointment_add(request):
     # lets staff register an appointment on a patient's behalf (e.g. phone or walk-in booking)
-    if request.method == 'POST':
-        form = StaffAppointmentForm(request.POST)
-        if form.is_valid():
-            # appointments registered from the dashboard are always paid in cash at the hospital;
-            # this checkbox just says whether the cash was already handed over
-            cash_received = request.POST.get('cash_received') == 'yes'
-            appointment = form.save()  # patient, status, etc. all come from the form
-            _record_payment(appointment, 'cash', paid_now=cash_received)
-            messages.success(request, 'Appointment has been registered.')
-            return redirect('appointment_index')
-    else:
-        form = StaffAppointmentForm(initial={'status': 'pending'})
-    return render(request, 'dashboard/appointment_management/add.html', {'form': form})
+    appointment = Appointment(status='pending')  # a blank appointment, only used so the template can show default field values
+    # form is only used to check the typed data is valid; the actual save is done by hand below
+    form = StaffAppointmentForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        # appointments registered from the dashboard are always paid in cash at the hospital;
+        # this checkbox just says whether the cash was already handed over
+        cash_received = request.POST.get('cash_received') == 'yes'
+
+        appointment.patient_id = request.POST.get('patient') or None
+        appointment.department = request.POST.get('department', '')
+        appointment.date = request.POST.get('date', '')
+        appointment.time_slot = request.POST.get('time_slot', '')
+        appointment.doctor_id = request.POST.get('doctor') or None
+        appointment.message = request.POST.get('message', '')
+        appointment.status = request.POST.get('status', 'pending')
+        appointment.patient_name = request.POST.get('patient_name', '')
+        appointment.patient_contact = request.POST.get('patient_contact', '')
+        appointment.patient_age = request.POST.get('patient_age') or 0
+        appointment.patient_address = request.POST.get('patient_address', '')
+        appointment.patient_nic = request.POST.get('patient_nic', '')
+        appointment.save()
+
+        _record_payment(appointment, 'cash', paid_now=cash_received)
+        messages.success(request, 'Appointment has been registered.')
+        return redirect('appointment_index')
+
+    # every active patient/doctor, so the page can build the patient and doctor dropdowns
+    patients = User.objects.filter(profile__role='patient', is_active=True).order_by('first_name', 'last_name')
+    doctors = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')
+    return render(request, 'dashboard/appointment_management/add.html', {
+        'form': form, 'appointment': appointment, 'patients': patients, 'doctors': doctors,
+    })
 
 
 @login_required
@@ -206,34 +238,51 @@ def appointment_edit(request, pk):
     # the doctor assigned to this appointment gets a read-only details view plus
     # a pharmacy section to prescribe medicine. everyone else (reception/admin)
     # gets the full edit form, unchanged.
-    appointment = Appointment.objects.get(pk=pk)
+    appointment = get_object_or_404(Appointment, pk=pk)
 
     if appointment.doctor == request.user:
         return _prescribe_medicine(request, appointment)
 
-    payment = getattr(appointment, 'payment', None)  # may be missing for old appointments
+    # the Payment linked to this appointment; build a blank one if it doesn't have one yet (old appointments)
+    payment = getattr(appointment, 'payment', None) or Payment(appointment=appointment)
 
-    # a prefix keeps this form's "status" field from clashing with the appointment form's own "status" field
-    if request.method == 'POST':
-        form = StaffAppointmentForm(request.POST, instance=appointment)
-        payment_form = PaymentForm(request.POST, instance=payment, prefix='payment')
-        if form.is_valid() and payment_form.is_valid():
-            form.save()
+    # a prefix keeps this form's "status" field from clashing with the appointment form's own "status" field.
+    # both forms are only used to check the typed data is valid; the actual save is done by hand below
+    form = StaffAppointmentForm(request.POST or None, instance=appointment)
+    payment_form = PaymentForm(request.POST or None, instance=payment, prefix='payment')
 
-            new_payment = payment_form.save(commit=False)
-            new_payment.appointment = appointment  # needed the first time, if there was no payment yet
-            if new_payment.status == 'paid' and not new_payment.paid_at:
-                new_payment.paid_at = timezone.now()  # stamp the first time it's marked paid
-            new_payment.save()
+    if request.method == 'POST' and form.is_valid() and payment_form.is_valid():
+        appointment.patient_id = request.POST.get('patient') or None
+        appointment.department = request.POST.get('department', '')
+        appointment.date = request.POST.get('date', '')
+        appointment.time_slot = request.POST.get('time_slot', '')
+        appointment.doctor_id = request.POST.get('doctor') or None
+        appointment.message = request.POST.get('message', '')
+        appointment.status = request.POST.get('status', 'pending')
+        appointment.patient_name = request.POST.get('patient_name', '')
+        appointment.patient_contact = request.POST.get('patient_contact', '')
+        appointment.patient_age = request.POST.get('patient_age') or 0
+        appointment.patient_address = request.POST.get('patient_address', '')
+        appointment.patient_nic = request.POST.get('patient_nic', '')
+        appointment.save()
 
-            messages.success(request, 'Appointment has been updated.')
-            return redirect('appointment_view', pk=appointment.pk)
-    else:
-        form = StaffAppointmentForm(instance=appointment)
-        payment_form = PaymentForm(instance=payment, prefix='payment')
+        payment.appointment = appointment  # needed the first time, if there was no payment yet
+        payment.amount = request.POST.get('payment-amount') or 0
+        payment.method = request.POST.get('payment-method', 'cash')
+        payment.status = request.POST.get('payment-status', 'pending')
+        if payment.status == 'paid' and not payment.paid_at:
+            payment.paid_at = timezone.now()  # stamp the first time it's marked paid
+        payment.save()
 
+        messages.success(request, 'Appointment has been updated.')
+        return redirect('appointment_view', pk=appointment.pk)
+
+    # every active patient/doctor, so the page can build the patient and doctor dropdowns
+    patients = User.objects.filter(profile__role='patient', is_active=True).order_by('first_name', 'last_name')
+    doctors = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')
     return render(request, 'dashboard/appointment_management/edit.html', {
-        'form': form, 'payment_form': payment_form, 'appointment': appointment, 'is_doctor_view': False,
+        'form': form, 'payment_form': payment_form, 'appointment': appointment, 'payment': payment,
+        'patients': patients, 'doctors': doctors, 'is_doctor_view': False,
     })
 
 
@@ -273,7 +322,7 @@ def _search_medicines(request):
 def _prescribe_medicine(request, appointment):
     # doctor-only branch of the edit page: no appointment/payment form, just the pharmacy section
     if request.method == 'POST':
-        medicine = Medicine.objects.get(pk=request.POST.get('medicine_id'))  # the medicine the doctor picked
+        medicine = get_object_or_404(Medicine, pk=request.POST.get('medicine_id'))  # the medicine the doctor picked
         PrescriptionItem.objects.create(
             appointment=appointment,
             medicine=medicine,
@@ -307,7 +356,7 @@ def _prescribe_medicine(request, appointment):
 def appointment_pharmacy_search(request, pk):
     # ajax endpoint for the pharmacy section's live search box.
     # it renders just the medicine list, not the whole page, so the page never reloads.
-    appointment = Appointment.objects.get(pk=pk)  # which appointment the doctor is prescribing for
+    appointment = get_object_or_404(Appointment, pk=pk)  # which appointment the doctor is prescribing for
     medicines_page, search_query, category = _search_medicines(request)  # same filtering as the full page
     return render(request, 'dashboard/appointment_management/_pharmacy_list.html', {
         'appointment': appointment,
@@ -318,7 +367,7 @@ def appointment_pharmacy_search(request, pk):
 
 
 def appointment_delete(request, pk):
-    appointment = Appointment.objects.get(pk=pk)
+    appointment = get_object_or_404(Appointment, pk=pk)  # find the appointment or show a 404 page
     appointment.delete()
     messages.success(request, 'Your appointment has been deleted.')
     return redirect('appointment_index')
@@ -327,14 +376,14 @@ def appointment_delete(request, pk):
 @login_required
 def prescription_item_delete(request, pk, item_pk):
     # lets the assigned doctor remove a medicine they added to this prescription by mistake
-    appointment = Appointment.objects.get(pk=pk)
+    appointment = get_object_or_404(Appointment, pk=pk)
 
     if appointment.doctor != request.user:
         messages.error(request, 'You do not have permission to edit this prescription.')
         return redirect('appointment_index')
 
     if request.method == 'POST':
-        item = PrescriptionItem.objects.get(pk=item_pk, appointment=appointment)  # must belong to this appointment
+        item = get_object_or_404(PrescriptionItem, pk=item_pk, appointment=appointment)  # must belong to this appointment
         item.delete()
         if _is_ajax(request):
             return _prescribed_items_response(request, appointment)  # just refresh the table, no page reload
@@ -350,7 +399,7 @@ def confirm_cash_payment(request, pk):
         messages.error(request, 'You do not have permission to confirm payments.')
         return redirect('appointment_index')
 
-    appointment = Appointment.objects.get(pk=pk)
+    appointment = get_object_or_404(Appointment, pk=pk)  # find the appointment or show a 404 page
     payment = getattr(appointment, 'payment', None)  # the Payment linked to this appointment, if any
 
     if payment and payment.method == 'cash' and payment.status == 'pending':

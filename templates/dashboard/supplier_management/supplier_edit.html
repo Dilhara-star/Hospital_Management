@@ -44,31 +44,41 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Supplier Name <span class="text-danger">*</span></label>
-                                {{ form.name }}
+                                <label for="name">Supplier Name <span class="text-danger">*</span></label>
+                                <input type="text" id="name" name="name" class="form-control" value="{{ supplier.name }}">
+                                {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Contact Person</label>
-                                {{ form.contact_person }}
+                                <label for="contact_person">Contact Person</label>
+                                <input type="text" id="contact_person" name="contact_person" class="form-control" value="{{ supplier.contact_person }}">
+                                {% if form.contact_person.errors %}<div class="text-danger small mt-1">{{ form.contact_person.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Phone Number</label>
-                                {{ form.phone }}
+                                <label for="phone">Phone Number</label>
+                                <input type="text" id="phone" name="phone" class="form-control" value="{{ supplier.phone }}">
+                                {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Email Address</label>
-                                {{ form.email }}
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" class="form-control" value="{{ supplier.email }}">
+                                {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Address</label>
-                            {{ form.address }}
+                            <label for="address">Address</label>
+                            <textarea id="address" name="address" class="form-control" rows="3">{{ supplier.address }}</textarea>
+                            {% if form.address.errors %}<div class="text-danger small mt-1">{{ form.address.errors.0 }}</div>{% endif %}
                         </div>
                         <div class="form-group">
-                            <label>Status</label>
-                            {{ form.status }}
+                            <label for="status">Status</label>
+                            <select id="status" name="status" class="form-control">
+                                {% for value, label in supplier.STATUS_CHOICES %}
+                                <option value="{{ value }}" {% if value == supplier.status %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.status.errors %}<div class="text-danger small mt-1">{{ form.status.errors.0 }}</div>{% endif %}
                         </div>
                     </div>
                 </div>

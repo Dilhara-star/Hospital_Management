@@ -1,26 +1,16 @@
 from django import forms  # django's form tools
 from django.contrib.auth.models import User  # built-in user model (login, username, password)
 
-# css class used on every input box, matches the login page style
-fc = {'class': 'form-control form-control-user'}
-
 
 class PatientSignupForm(forms.Form):
-    """Fields for a visitor to create their own patient account. Only checks the data here - saving happens in the view."""
-    # first name text box
-    first_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={'class': 'form-control form-control-user', 'placeholder': 'First Name'}))
-    # last name text box
-    last_name = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={'class': 'form-control form-control-user', 'placeholder': 'Last Name'}))
-    # email text box
-    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control form-control-user', 'placeholder': 'Email Address'}))
-    # username text box
-    username = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={'class': 'form-control form-control-user', 'placeholder': 'Username'}))
-    # phone number text box, not required
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-control form-control-user', 'placeholder': 'Phone Number (optional)'}))
-    # password text box (hidden characters)
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control form-control-user', 'placeholder': 'Password'}))
-    # confirm password text box (hidden characters)
-    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control form-control-user', 'placeholder': 'Confirm Password'}))
+    """Fields checked when a visitor creates their own patient account. Saving happens in the view."""
+    first_name = forms.CharField(max_length=150, required=True)  # first name text box
+    last_name = forms.CharField(max_length=150, required=True)  # last name text box
+    email = forms.EmailField(required=True)  # email text box
+    username = forms.CharField(max_length=150, required=True)  # username text box
+    phone = forms.CharField(max_length=20, required=False)  # phone number text box, not required
+    password = forms.CharField(widget=forms.PasswordInput)  # password text box (hidden characters)
+    confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm password text box (hidden characters)
 
     def clean_username(self):
         # pull the cleaned username value out of the form

@@ -55,7 +55,7 @@
             <!-- The actual edit form, only the date and time slot can be changed.
                  These are plain html inputs, not Django form widgets, and the view
                  reads them straight out of request.POST by their name= attribute. -->
-            <form method="post">
+            <form method="post" action="{% url 'edit_appointment' appointment.pk %}">
               {% csrf_token %}
 
               <div class="mb-3">
