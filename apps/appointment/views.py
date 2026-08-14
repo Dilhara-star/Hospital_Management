@@ -9,15 +9,10 @@ from django.template.loader import render_to_string  # turns a template into an 
 from django.http import HttpResponse
 from django.utils import timezone  # used to stamp when a payment was paid
 from .models import Appointment, DepartmentFee, Payment, PrescriptionItem, PharmacyOrder
-from .forms import AppointmentForm, StaffAppointmentForm, PaymentForm
+from .forms import AppointmentForm, StaffAppointmentForm, PaymentForm, AppointmentEditForm
 from .notifications import send_appointment_confirmation_email  # emails the patient once an appointment is confirmed
 from apps.inventory.models import Medicine, MedicineStock  # the pharmacy catalog the doctor picks medicine from
-from apps.user_management.models import StaffProfile  
-from. forms import Appointment_edit_Form
-
-
-
-# holds the room number and hourly fee for a doctor
+from apps.user_management.models import StaffProfile  # holds the room number and hourly fee for a doctor
 
 # roles allowed to manage fees and confirm cash payments
 PAYMENT_STAFF_ROLES = ('admin', 'receptionist')
@@ -685,17 +680,29 @@ def appointment_summary_report_pdf(request):
     return response
 
 
-# front end edit function
-
+# lets a patient reschedule the date and time of their own appointment
+@login_required
 def edit_appointment(request, pk):
-    appointment = Appointment.objects.get(id=pk)
-    if request.method =="POST":
-        form = Appointment_edit_Form(request.POST, instance=appointment)
-        if form.is_valid():
-            appointment.date = request.POST.get("date", "")
-            appointment.time_slot = request.POST.get("time_slot", "")
-            appointment.save()
-            return redirect("my_appointments")
-    else:
-        form = Appointment_edit_Form(instance=appointment)
-        return render(request, "frontend/appointment/edit_appointment.html", {"form": form, "appointment": appointment })
+    # only the logged in patient who owns this appointment may edit it; 404 if it is not theirs
+    appointment = get_object_or_404(Appointment, pk=pk, patient=request.user)
+    # form is only used to check the new date/time slot are valid; the actual save is done by hand below
+    form = AppointmentEditForm(request.POST or None, instance=appointment)
+
+    # if the form is invalid, this whole block is skipped and we fall through to the render
+    # below, which shows the page again with the error messages
+    if request.method == 'POST' and form.is_valid():
+        appointment.date = request.POST.get('date', '')
+        appointment.time_slot = request.POST.get('time_slot', '')
+        appointment.save()
+        messages.success(request, 'Appointment updated successfully.')
+        return redirect('my_appointment_detail', pk=appointment.pk)
+
+    # build the list of time slots to show in the dropdown, skipping the blank "Select Time Slot" choice
+    time_slot_choices = []
+    for value, label in Appointment.TIME_SLOT_CHOICES:
+        if value:
+            time_slot_choices.append((value, label))
+
+    return render(request, 'frontend/appointment/edit_appointment.html', {
+        'form': form, 'appointment': appointment, 'time_slot_choices': time_slot_choices,
+    })

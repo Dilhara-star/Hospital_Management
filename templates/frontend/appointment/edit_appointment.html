@@ -7,8 +7,8 @@
     <!-- Page Title -->
     <div class="row mb-4">
       <div class="col-12">
-        <h4 class="fw-bold" style="color:#2c4964;">My Appointments</h4>
-        <p class="text-muted mb-0">View your appointments and prescription details.</p>
+        <h4 class="fw-bold" style="color:#2c4964;">Reschedule Appointment</h4>
+        <p class="text-muted mb-0">Change the date or time of your appointment.</p>
       </div>
     </div>
 
@@ -23,39 +23,70 @@
     {% endif %}
 
     <div class="row g-4">
-
-      
-
-      <!-- Right: Selected Appointment + Prescription -->
       <div class="col-lg-8">
-        
-                      
-          
-          <div class="card border-0 shadow-sm text-center p-5" style="border-radius:16px;">
-            <form method="post" action="{% url 'edit_appointment' appointment.id %}" enctype="multipart/form-data">
-            {% csrf_token %}
-            <label class="form-label "></label>
-            <input type="date"  name="date" value="{{ appointment.date }}>
-
-            <label class="form-label></label>
-            <input type="time_slot" name="time_slot"  value="{{ appointment.time_slot }}">
-            <button type="submit" class="btn btn-success">Save Changes</button>
-            </form>
-          
+        <div class="card border-0 shadow-sm" style="border-radius:16px;">
+          <div class="card-header border-0 pb-0 pt-4 px-4" style="background:transparent;">
+            <h6 class="fw-bold mb-0" style="color:#2c4964;">
+              <i class="bi bi-clipboard2-pulse me-2"></i>Appointment Details
+            </h6>
           </div>
-        
-      </div>
+          <div class="card-body px-4 pb-4">
 
+            <!-- Read-only summary, so the patient can see which appointment this is -->
+            <table class="table table-borderless mb-4">
+              <tbody>
+                <tr>
+                  <th class="text-muted small" style="width:160px;">Department</th>
+                  <td>{{ appointment.get_department_display }}</td>
+                </tr>
+                <tr>
+                  <th class="text-muted small">Doctor</th>
+                  <td>
+                    {% if appointment.doctor %}
+                      Dr. {{ appointment.doctor.get_full_name }}
+                    {% else %}
+                      <span class="text-muted">Not assigned yet</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- The actual edit form, only the date and time slot can be changed.
+                 These are plain html inputs, not Django form widgets, and the view
+                 reads them straight out of request.POST by their name= attribute. -->
+            <form method="post">
+              {% csrf_token %}
+
+              <div class="mb-3">
+                <label for="date" class="form-label fw-semibold">Date</label>
+                <input type="date" id="date" name="date" class="form-control" value="{{ appointment.date|date:'Y-m-d' }}">
+                {% if form.date.errors %}
+                  <div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+              <div class="mb-4">
+                <label for="time_slot" class="form-label fw-semibold">Time Slot</label>
+                <select id="time_slot" name="time_slot" class="form-select">
+                  {% for value, label in time_slot_choices %}
+                    <option value="{{ value }}" {% if value == appointment.time_slot %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                {% if form.time_slot.errors %}
+                  <div class="text-danger small mt-1">{{ form.time_slot.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+              <button type="submit" class="btn btn-success">Save Changes</button>
+              <a href="{% url 'my_appointment_detail' appointment.pk %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+            </form>
+
+          </div>
+        </div>
+      </div>
     </div>
+
   </div>
 </section>
-
-<style>
-  .appointments-section .card { transition: box-shadow .2s; }
-  .appointments-section .card:hover { box-shadow: 0 6px 24px rgba(44,73,100,.1) !important; }
-  .appointments-section .list-group-item.active {
-    background: #2c4964;
-    border-color: #2c4964;
-  }
-</style>
 {% endblock content %}

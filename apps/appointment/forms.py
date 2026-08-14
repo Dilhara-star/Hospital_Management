@@ -96,13 +96,16 @@ class PaymentForm(forms.ModelForm):
         }
 
 
-# frontend appointment edit
-
-class Appointment_edit_Form (forms.ModelForm):
+# used on the patient's "My Appointments" page, only to check the new date/time slot are
+# valid before the view saves them by hand; the html page draws its own plain input boxes
+class AppointmentEditForm(forms.ModelForm):
     class Meta:
         model = Appointment
         fields = ['date', 'time_slot']
-        widgets = {
-            'date': forms.TextInput(attrs={'class': 'form-control'}),
-            'time_slot': forms.TextInput(attrs={'class': 'form-control'}),
-        }
+
+    def clean_date(self):
+        # stop the patient from rescheduling into the past
+        new_date = self.cleaned_data['date']
+        if new_date < date.today():
+            raise forms.ValidationError('Appointment date cannot be in the past.')
+        return new_date
