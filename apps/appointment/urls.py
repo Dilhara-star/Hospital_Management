@@ -19,7 +19,7 @@ urlpatterns = [
     path('pharmacy/', views.pharmacy_queue, name='pharmacy_queue'),
     path('pharmacy/<int:pk>/', views.pharmacy_order_detail, name='pharmacy_order_detail'),
     path('my/<int:pk>/pay-medicine/', views.pay_medicine_online, name='pay_medicine_online'),
-    path('my/edit/<int:pk>/', views.edit_appointment, name='edit_appointment'),
+    path('edit_appointment/<int:pk>/', views.edit_appointment, name='edit_appointment'),
 
     # Reports
     path('reports/', views.reports_index, name='reports_index'),
