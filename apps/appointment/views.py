@@ -12,6 +12,8 @@ from .notifications import send_appointment_confirmation_email  # emails the pat
 from apps.inventory.models import Medicine, MedicineStock  # the pharmacy catalog the doctor picks medicine from
 from apps.user_management.models import StaffProfile  # holds the room number and hourly fee for a doctor
 from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
+from pprint import pprint 
+
 
 
 def _doctor_room(doctor):
@@ -62,6 +64,7 @@ def _record_payment(appointment, payment_method, paid_now=False):
     )
 
     if paid_now:
+        pprint("line 67")
         send_appointment_confirmation_email(appointment)  # let the patient know their appointment is confirmed
 
 
@@ -223,6 +226,11 @@ def appointment_edit(request, pk):
     if appointment.doctor == request.user:
         return _prescribe_medicine(request, appointment)
 
+    # remember this here, before the form below touches the appointment object.
+    # form.is_valid() fills appointment.status with the posted value as a side
+    # effect, so checking status after that point would always see the new value
+    was_confirmed = appointment.status == 'confirmed'
+
     # the Payment linked to this appointment; build a blank one if it doesn't have one yet (old appointments)
     payment = getattr(appointment, 'payment', None) or Payment(appointment=appointment)
 
@@ -253,6 +261,10 @@ def appointment_edit(request, pk):
         if payment.status == 'paid' and not payment.paid_at:
             payment.paid_at = timezone.now()  # stamp the first time it's marked paid
         payment.save()
+
+        if appointment.status == 'confirmed' and not was_confirmed:
+            # status just changed to confirmed here, so let the patient know by email
+            send_appointment_confirmation_email(appointment)
 
         messages.success(request, 'Appointment has been updated.')
         return redirect('appointment_view', pk=appointment.pk)
@@ -386,6 +398,7 @@ def confirm_cash_payment(request, pk):
 
         appointment.status = 'confirmed'  # cash is in, so confirm the appointment
         appointment.save()
+        print("line 389")
         send_appointment_confirmation_email(appointment)  # let the patient know their appointment is confirmed
         messages.success(request, 'Cash payment confirmed. The appointment is now confirmed.')
 

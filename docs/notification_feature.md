@@ -19,9 +19,14 @@ transactional email API.
   is sent right after the `Payment` row is created.
 - `confirm_cash_payment()` — reception/admin only. Confirms a pending cash
   payment, sets `appointment.status = 'confirmed'`, then sends the email.
+- `appointment_edit()` — reception/admin's general edit form (the one with the
+  raw Status / Payment Status dropdowns). Remembers whether the appointment
+  was already `confirmed` before applying the form, and sends the email only
+  if the save just changed it to `confirmed` — so re-saving an already
+  confirmed appointment does not email the patient again.
 
-Both call the one function below — there is no signal, no queue, just a plain
-function call right after the appointment is saved as confirmed.
+All three call the one function below — there is no signal, no queue, just a
+plain function call right after the appointment is saved as confirmed.
 
 ## The email itself (`apps/appointment/notifications.py`)
 
