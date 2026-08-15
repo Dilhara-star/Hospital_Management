@@ -154,3 +154,6 @@ STATICFILES_DIRS = [
 LOGIN_URL = '/dashboard/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/dashboard/login/'
+
+
+ADMIN_NOTIFY_EMAIL = os.getenv('ADMIN_NOTIFY_EMAIL', '')  # where staff notification emails go

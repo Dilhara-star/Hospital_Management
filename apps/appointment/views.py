@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone  # used to stamp when a payment was paid
 from .models import Appointment, DepartmentFee, Payment, PrescriptionItem, PharmacyOrder
 from .forms import AppointmentForm, StaffAppointmentForm, PaymentForm, AppointmentEditForm
-from .notifications import send_appointment_confirmation_email  # emails the patient once an appointment is confirmed
+from .notifications import send_appointment_confirmation_email, send_appointment_confirmation_email_admin, send_email_appointment_without_payment  # emails the patient once an appointment is confirmed
 from apps.inventory.models import Medicine, MedicineStock  # the pharmacy catalog the doctor picks medicine from
 from apps.user_management.models import StaffProfile  # holds the room number and hourly fee for a doctor
 from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
@@ -66,6 +66,7 @@ def _record_payment(appointment, payment_method, paid_now=False):
     if paid_now:
         pprint("line 67")
         send_appointment_confirmation_email(appointment)  # let the patient know their appointment is confirmed
+        send_appointment_confirmation_email_admin(appointment)  # let the staff know a new appointment has been booked
 
 
 @login_required
@@ -114,6 +115,8 @@ def appointment_form(request):
             if payment_method == 'online':
                 messages.success(request, 'Payment received. Your appointment is confirmed!')
             else:
+                pprint("line 118")
+                send_email_appointment_without_payment(appointment) 
                 messages.success(request, 'Appointment booked. Please pay at the hospital reception to confirm it.')
             return redirect('appointment_form')
 
@@ -177,7 +180,7 @@ def appointment_view(request, pk):
         'doctor_room': doctor_room,
     })
 
-
+#Dashboard Side Appoinment add.
 @login_required
 def appointment_add(request):
     # lets staff register an appointment on a patient's behalf (e.g. phone or walk-in booking)
@@ -203,8 +206,10 @@ def appointment_add(request):
         appointment.patient_address = request.POST.get('patient_address', '')
         appointment.patient_nic = request.POST.get('patient_nic', '')
         appointment.save()
-
+        pprint("_record_payment")
         _record_payment(appointment, 'cash', paid_now=cash_received)
+        pprint("before send_appointment_confirmation_email_admin")
+         # let the staff know a new appointment has been booked, even if cash is not yet received
         messages.success(request, 'Appointment has been registered.')
         return redirect('appointment_index')
 
