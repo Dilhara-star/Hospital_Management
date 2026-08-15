@@ -5,24 +5,13 @@ from django.core.paginator import Paginator  # splits a long medicine list into 
 from django.db import transaction  # keeps stock updates safe when two requests happen at the same time
 from django.db.models import F  # lets us update a number based on its own current value in the database
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string  # turns a template into an HTML string, used for PDFs
-from django.http import HttpResponse
 from django.utils import timezone  # used to stamp when a payment was paid
 from .models import Appointment, DepartmentFee, Payment, PrescriptionItem, PharmacyOrder
 from .forms import AppointmentForm, StaffAppointmentForm, PaymentForm, AppointmentEditForm
 from .notifications import send_appointment_confirmation_email  # emails the patient once an appointment is confirmed
 from apps.inventory.models import Medicine, MedicineStock  # the pharmacy catalog the doctor picks medicine from
 from apps.user_management.models import StaffProfile  # holds the room number and hourly fee for a doctor
-from apps.core.utils import require_role  # checks the logged in user's profile role
-
-# roles allowed to manage fees and confirm cash payments
-PAYMENT_STAFF_ROLES = ('admin', 'receptionist')
-
-# roles allowed to run the pharmacy counter (view prescriptions, dispense, take payment)
-PHARMACY_STAFF_ROLES = ('admin', 'pharmacist')
-
-# roles allowed to view reports (this first version only has doctor reports)
-REPORT_STAFF_ROLES = ('admin', 'doctor')
+from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
 
 
 def _doctor_room(doctor):
@@ -384,12 +373,8 @@ def prescription_item_delete(request, pk, item_pk):
 
 
 @login_required
+@required_role(['admin', 'receptionist'], 'You do not have permission to confirm payments.', 'appointment_index')
 def confirm_cash_payment(request, pk):
-    # only reception/admin staff may confirm that cash was received
-    error_response = require_role(request, PAYMENT_STAFF_ROLES, 'You do not have permission to confirm payments.', 'appointment_index')
-    if error_response:
-        return error_response
-
     appointment = get_object_or_404(Appointment, pk=pk)  # find the appointment or show a 404 page
     payment = getattr(appointment, 'payment', None)  # the Payment linked to this appointment, if any
 
@@ -408,12 +393,8 @@ def confirm_cash_payment(request, pk):
 
 
 @login_required
+@required_role(['admin', 'receptionist'], 'You do not have permission to manage fees.')
 def fee_index(request):
-    # only reception/admin staff may change consultation fees
-    error_response = require_role(request, PAYMENT_STAFF_ROLES, 'You do not have permission to manage fees.')
-    if error_response:
-        return error_response
-
     if request.method == 'POST':
         # go through every real department (skip the blank "Select Department" choice)
         for code, label in Appointment.DEPARTMENT_CHOICES:
@@ -436,12 +417,8 @@ def fee_index(request):
 
 
 @login_required
+@required_role(['admin', 'pharmacist'], 'You do not have permission to view the pharmacy counter.')
 def pharmacy_queue(request):
-    # only pharmacists/admin may see the pharmacy counter
-    error_response = require_role(request, PHARMACY_STAFF_ROLES, 'You do not have permission to view the pharmacy counter.')
-    if error_response:
-        return error_response
-
     # appointments that have prescribed medicine and are not completed yet
     appointments = Appointment.objects.filter(
         prescription_items__isnull=False,
@@ -457,12 +434,8 @@ def pharmacy_queue(request):
 
 
 @login_required
+@required_role(['admin', 'pharmacist'], 'You do not have permission to view the pharmacy counter.')
 def pharmacy_order_detail(request, pk):
-    # only pharmacists/admin may open an order
-    error_response = require_role(request, PHARMACY_STAFF_ROLES, 'You do not have permission to view the pharmacy counter.')
-    if error_response:
-        return error_response
-
     appointment = get_object_or_404(Appointment, pk=pk)
     # make the order row the first time anyone opens this appointment's pharmacy page
     order, _created = PharmacyOrder.objects.get_or_create(appointment=appointment)
@@ -539,181 +512,6 @@ def pay_medicine_online(request, pk):
         messages.success(request, 'Payment received. Thank you!')
 
     return redirect('my_appointment_detail', pk=appointment.pk)
-
-
-# ── Reports ────────────────────────────────────────────────────────────────
-
-def _resolve_report_doctor(request):
-    # works out which doctor's report to show.
-    # a doctor always sees their own report - the ?doctor_id= query string is
-    # ignored so they can never view a colleague's report by editing the URL.
-    # an admin may filter by any doctor; returns None until they pick one,
-    # which the report pages use to show a doctor dropdown instead of data.
-    if request.user.profile.role == 'doctor':
-        return request.user
-
-    doctor_id = request.GET.get('doctor_id')
-    if not doctor_id:
-        return None
-    return get_object_or_404(User, pk=doctor_id, profile__role='doctor')
-
-
-def _doctor_revenue_data(doctor, start_date, end_date):
-    # every appointment for this doctor, with its payment attached, inside the chosen date range
-    appointments = Appointment.objects.filter(doctor=doctor).select_related('patient', 'payment').order_by('-date')
-    if start_date:
-        appointments = appointments.filter(date__gte=start_date)
-    if end_date:
-        appointments = appointments.filter(date__lte=end_date)
-
-    total_collected = 0  # everything the hospital collected for this doctor's appointments
-    take_home = 0  # just the doctor's own cut of that money
-    paid_count = 0
-
-    for appointment in appointments:
-        payment = getattr(appointment, 'payment', None)
-        if payment and payment.status == 'paid':
-            total_collected += payment.amount
-            take_home += payment.doctor_fee_amount
-            paid_count += 1
-
-    return {
-        'doctor': doctor,
-        'appointments': appointments,
-        'total_collected': total_collected,
-        'take_home': take_home,
-        'hospital_share': total_collected - take_home,
-        'paid_count': paid_count,
-    }
-
-
-def _appointment_summary_data(doctor, start_date, end_date):
-    # every appointment for this doctor, inside the chosen date range
-    appointments = Appointment.objects.filter(doctor=doctor).select_related('patient').order_by('-date')
-    if start_date:
-        appointments = appointments.filter(date__gte=start_date)
-    if end_date:
-        appointments = appointments.filter(date__lte=end_date)
-
-    return {
-        'doctor': doctor,
-        'appointments': appointments,
-        'total_count': appointments.count(),
-        'pending_count': appointments.filter(status='pending').count(),
-        'confirmed_count': appointments.filter(status='confirmed').count(),
-        'cancelled_count': appointments.filter(status='cancelled').count(),
-    }
-
-
-@login_required
-def reports_index(request):
-    # only doctors and admins may open the reports menu
-    error_response = require_role(request, REPORT_STAFF_ROLES, 'You do not have permission to view reports.')
-    if error_response:
-        return error_response
-
-    return render(request, 'dashboard/report_management/index.html')
-
-
-@login_required
-def doctor_revenue_report(request):
-    error_response = require_role(request, REPORT_STAFF_ROLES, 'You do not have permission to view reports.')
-    if error_response:
-        return error_response
-
-    doctor = _resolve_report_doctor(request)
-    start_date = request.GET.get('start_date', '')
-    end_date = request.GET.get('end_date', '')
-
-    context = {'doctor': doctor, 'start_date': start_date, 'end_date': end_date}
-    if doctor:
-        context.update(_doctor_revenue_data(doctor, start_date, end_date))
-    if request.user.profile.role == 'admin':
-        # only admins get to filter by doctor, so only they need this dropdown list
-        context['doctors'] = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')
-
-    return render(request, 'dashboard/report_management/doctor_revenue.html', context)
-
-
-@login_required
-def doctor_revenue_report_pdf(request):
-    # admin/doctor විතරයි මේ report එක බලන්න පුළුවන්, නැත්නම් back යනවා
-    error_response = require_role(request, REPORT_STAFF_ROLES, 'You do not have permission to view reports.')
-    if error_response:
-        return error_response
-
-    # මොන doctor ගේ report ද කියලා හොයාගන්නවා
-    doctor = _resolve_report_doctor(request)
-    if doctor is None:
-        # doctor කෙනෙක් තෝරලා නැත්නම් error එකක් දාලා report page එකට ආපහු යනවා
-        messages.error(request, 'Please choose a doctor first.')
-        return redirect('doctor_revenue_report')
-
-    # URL එකේ තියෙන date range එක ගන්නවා
-    start_date = request.GET.get('start_date', '')
-    end_date = request.GET.get('end_date', '')
-    # revenue data ටික calculate කරගන්නවා (total collected, doctor fee, hospital share)
-    data = _doctor_revenue_data(doctor, start_date, end_date)
-    data['start_date'] = start_date  # PDF එකේ header එකේ පෙන්නන්න date ටිකත් data එකට එකතු කරනවා
-    data['end_date'] = end_date
-
-    from xhtml2pdf import pisa  # HTML එකක් PDF file එකක් බවට හරවන library එක, මේ function එකට විතරක් ඕන නිසා මෙතනදීම import කරනවා
-
-    html = render_to_string('dashboard/report_management/doctor_revenue_pdf.html', data)  # data එක සමග template එක render කරලා HTML string එකක් හදනවා
-    response = HttpResponse(content_type='application/pdf')  # මේක PDF file එකක් කියලා browser එකට කියනවා
-    response['Content-Disposition'] = f'attachment; filename="doctor_revenue_{doctor.pk}.pdf"'  # download prompt එකක් පෙන්නන්න force කරනවා
-    pisa.CreatePDF(html, dest=response)  # HTML එක PDF එකක් බවට convert කරලා response එකට ලියනවා
-    return response  # PDF file එක browser එකට යවනවා
-
-
-@login_required
-def appointment_summary_report(request):
-    error_response = require_role(request, REPORT_STAFF_ROLES, 'You do not have permission to view reports.')
-    if error_response:
-        return error_response
-
-    doctor = _resolve_report_doctor(request)
-    start_date = request.GET.get('start_date', '')
-    end_date = request.GET.get('end_date', '')
-
-    context = {'doctor': doctor, 'start_date': start_date, 'end_date': end_date}
-    if doctor:
-        context.update(_appointment_summary_data(doctor, start_date, end_date))
-    if request.user.profile.role == 'admin':
-        context['doctors'] = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')
-
-    return render(request, 'dashboard/report_management/appointment_summary.html', context)
-
-
-@login_required
-def appointment_summary_report_pdf(request):
-    # admin/doctor විතරයි මේ report එක බලන්න පුළුවන්, නැත්නම් back යනවා
-    error_response = require_role(request, REPORT_STAFF_ROLES, 'You do not have permission to view reports.')
-    if error_response:
-        return error_response
-
-    # මොන doctor ගේ report ද කියලා හොයාගන්නවා
-    doctor = _resolve_report_doctor(request)
-    if doctor is None:
-        # doctor කෙනෙක් තෝරලා නැත්නම් error එකක් දාලා report page එකට ආපහු යනවා
-        messages.error(request, 'Please choose a doctor first.')
-        return redirect('appointment_summary_report')
-
-    # URL එකේ තියෙන date range එක ගන්නවා
-    start_date = request.GET.get('start_date', '')
-    end_date = request.GET.get('end_date', '')
-    # appointment summary data ටික calculate කරගන්නවා (total, pending, confirmed, cancelled)
-    data = _appointment_summary_data(doctor, start_date, end_date)
-    data['start_date'] = start_date  # PDF එකේ header එකේ පෙන්නන්න date ටිකත් data එකට එකතු කරනවා
-    data['end_date'] = end_date
-
-    from xhtml2pdf import pisa  # HTML එකක් PDF file එකක් බවට හරවන library එක, මේ function එකට විතරක් ඕන නිසා මෙතනදීම import කරනවා
-
-    html = render_to_string('dashboard/report_management/appointment_summary_pdf.html', data)  # data එක සමග template එක render කරලා HTML string එකක් හදනවා
-    response = HttpResponse(content_type='application/pdf')  # මේක PDF file එකක් කියලා browser එකට කියනවා
-    response['Content-Disposition'] = f'attachment; filename="appointment_summary_{doctor.pk}.pdf"'  # download prompt එකක් පෙන්නන්න force කරනවා
-    pisa.CreatePDF(html, dest=response)  # HTML එක PDF එකක් බවට convert කරලා response එකට ලියනවා
-    return response  # PDF file එක browser එකට යවනවා
 
 
 # lets a patient reschedule the date and time of their own appointment

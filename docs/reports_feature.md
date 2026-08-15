@@ -47,21 +47,21 @@ fee staff already configured through the app):
 
 ## Reports menu
 
-Lives inside `apps/appointment` (where `Appointment`/`Payment` already are) —
-no new Django app. This first version only has the **doctor's own** reports;
-other roles' reports are a future addition.
+Lives in its own app, `apps/reports` (reads `Appointment`/`Payment` from
+`apps.appointment.models`, no models of its own). This first version only has
+the **doctor's own** reports; other roles' reports are a future addition.
 
 ### Access rules
 
-- `_is_report_staff(user)` / `_require_report_staff(request)` — only `doctor`
-  and `admin` roles may open Reports at all (checked in
-  `apps/appointment/views.py`, sidebar link hidden for everyone else in
-  `templates/dashboard/layouts/sidebar.html`).
-- `_resolve_report_doctor(request)` — shared by both report pages (not the
-  PDF views, see below). A `doctor` role always gets back `request.user` —
-  the `?doctor_id=` query string is ignored so a doctor can't view a
-  colleague's report by editing the URL. An `admin` role gets back the
-  doctor named by `?doctor_id=`, or **`None`** if they haven't picked one yet.
+- `@login_required` + `@required_role(['admin', 'doctor'], ...)` on every view
+  in `apps/reports/views.py` — the shared project-wide permission decorator
+  from `apps/core/utils.py`. Sidebar link hidden for everyone else in
+  `templates/dashboard/layouts/sidebar.html`.
+- `_resolve_report_doctor(request)` — shared by both report views. A `doctor`
+  role always gets back `request.user` — the `?doctor_id=` query string is
+  ignored so a doctor can't view a colleague's report by editing the URL. An
+  `admin` role gets back the doctor named by `?doctor_id=`, or **`None`** if
+  they haven't picked one yet.
 
 ### Doctor filtering lives on the report page, not the index
 
@@ -71,23 +71,22 @@ both roles — it no longer lists doctors. Instead, `doctor_revenue.html` and
 when `request.user.profile.role == 'admin'`**; a doctor never sees it. When
 an admin opens a report with no `doctor_id` yet, the view still renders the
 page (`doctor` is `None` in the context) so the filter shows, and the
-template shows "Select a doctor above..." instead of a data table. The PDF
-views (`doctor_revenue_report_pdf` / `appointment_summary_report_pdf`) still
-require a resolved doctor — if `None`, they redirect back to the on-screen
-report with an error, since there's nothing to put in a PDF yet.
+template shows "Select a doctor above..." instead of a data table.
 
-### Views (`apps/appointment/views.py`)
+### Views (`apps/reports/views.py`)
+
+One view per report page — no separate PDF views. Each view builds the report
+data once, then branches at the end on `?download=pdf`:
 
 - `reports_index` — landing page, just the two cards.
-- `_doctor_revenue_data` / `_appointment_summary_data` — build the report
-  data once each (only called once a doctor is known), reused by both the
-  on-screen page and the PDF download so the numbers can never drift apart.
-- `doctor_revenue_report` / `doctor_revenue_report_pdf` — total collected,
-  doctor take-home (`sum(payment.doctor_fee_amount)`), hospital share, and
-  the appointment list, for an optional `start_date`/`end_date` range.
-- `appointment_summary_report` / `appointment_summary_report_pdf` — counts by
-  status (`pending`/`confirmed`/`cancelled`) and the appointment list, same
-  date range filter.
+- `doctor_revenue_report` — total collected, doctor take-home
+  (`sum(payment.doctor_fee_amount)`), hospital share, and the appointment
+  list, for an optional `start_date`/`end_date` range. With `?download=pdf`
+  in the URL it returns a PDF file instead of the HTML page (redirects back
+  with an error if no doctor is resolved yet — nothing to put in a PDF).
+- `appointment_summary_report` — counts by status
+  (`pending`/`confirmed`/`cancelled`) and the appointment list, same date
+  range filter and `?download=pdf` behaviour.
 
 ### PDF downloads
 
@@ -95,13 +94,14 @@ Built with `xhtml2pdf` (`render_to_string()` a plain, Bootstrap-free template
 → `pisa.CreatePDF()` → `HttpResponse(content_type='application/pdf')`). The
 PDF templates (`doctor_revenue_pdf.html`, `appointment_summary_pdf.html`) are
 separate from the on-screen ones because `xhtml2pdf` only understands basic
-CSS, not Bootstrap.
+CSS, not Bootstrap. The "Download PDF" button on each report page just adds
+`&download=pdf` to the same URL/query string as the page it's on.
 
-### URLs (`apps/appointment/urls.py`)
+### URLs (`apps/reports/urls.py`, mounted at `/reports/`)
 
-- `/Appointments/reports/` → `reports_index`
-- `/Appointments/reports/doctor-revenue/` (+ `/pdf/`) → revenue report
-- `/Appointments/reports/appointment-summary/` (+ `/pdf/`) → summary report
+- `/reports/` → `reports_index`
+- `/reports/doctor-revenue/` (add `?download=pdf` for the PDF) → revenue report
+- `/reports/appointment-summary/` (add `?download=pdf` for the PDF) → summary report
 
 ### Templates
 

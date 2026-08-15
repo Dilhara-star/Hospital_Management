@@ -26,7 +26,7 @@
                 <i class="fas fa-user-md mr-1"></i> {% if doctor %}{{ doctor.get_full_name }}{% else %}Appointment Summary{% endif %}
             </h6>
             {% if doctor %}
-            <a href="{% url 'appointment_summary_report_pdf' %}?doctor_id={{ doctor.pk }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-sm btn-danger">
+            <a href="{% url 'appointment_summary_report' %}?download=pdf&doctor_id={{ doctor.pk }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-sm btn-danger">
                 <i class="fas fa-file-pdf"></i> Download PDF
             </a>
             {% endif %}
@@ -35,18 +35,22 @@
 
             <!-- filter row, GET so the page can be bookmarked / shared -->
             <form method="get" action="{% url 'appointment_summary_report' %}" class="form-row align-items-end mb-4">
-                {% if request.user.profile.role == 'admin' %}
-                {# only admins may filter by doctor - a doctor can only ever see their own report #}
                 <div class="form-group col-md-3">
                     <label>Doctor</label>
+                    {% if request.user.profile.role == 'admin' %}
                     <select name="doctor_id" class="form-control">
                         <option value="">-- Select Doctor --</option>
                         {% for d in doctors %}
                         <option value="{{ d.pk }}" {% if doctor and doctor.pk == d.pk %}selected{% endif %}>{{ d.get_full_name }}</option>
                         {% endfor %}
                     </select>
+                    {% else %}
+                    {# a doctor can only ever see their own report, so the dropdown is shown but locked #}
+                    <select class="form-control" disabled>
+                        <option selected>{{ doctor.get_full_name }}</option>
+                    </select>
+                    {% endif %}
                 </div>
-                {% endif %}
                 <div class="form-group col-md-3">
                     <label>From</label>
                     <input type="date" name="start_date" class="form-control" value="{{ start_date }}">

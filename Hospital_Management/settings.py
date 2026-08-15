@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'apps.inventory',
     'apps.core',
     'apps.contact',
+    'apps.reports',
     
 
 ]

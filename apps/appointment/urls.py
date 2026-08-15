@@ -21,13 +21,6 @@ urlpatterns = [
     path('my/<int:pk>/pay-medicine/', views.pay_medicine_online, name='pay_medicine_online'),
     path('edit_appointment/<int:pk>/', views.edit_appointment, name='edit_appointment'),
 
-    # Reports
-    path('reports/', views.reports_index, name='reports_index'),
-    path('reports/doctor-revenue/', views.doctor_revenue_report, name='doctor_revenue_report'),
-    path('reports/doctor-revenue/pdf/', views.doctor_revenue_report_pdf, name='doctor_revenue_report_pdf'),
-    path('reports/appointment-summary/', views.appointment_summary_report, name='appointment_summary_report'),
-    path('reports/appointment-summary/pdf/', views.appointment_summary_report_pdf, name='appointment_summary_report_pdf'),
-
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

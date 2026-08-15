@@ -6,13 +6,10 @@ from .forms import PatientCreateForm, PatientEditForm, StaffCreateForm, StaffEdi
 from .models import UserProfile, PatientProfile, StaffProfile  # our own profile models
 from .notifications import send_staff_welcome_email  # emails a new staff member their username
 from .notifications import send_patient_welcome_email  # emails a new patient their username
-from apps.core.utils import require_role  # checks the logged in user's profile role
+from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
 
 # role codes that count as "staff" (not a patient, not a plain "user")
 STAFF_ROLES = ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'lab_technician']
-
-# roles allowed to assign a room to each doctor
-ROOM_STAFF_ROLES = ('admin', 'receptionist')
 
 
 # ── Patient Management ────────────────────────────────────────────────────────
@@ -307,12 +304,8 @@ def staff_delete(request, user_id):
 # ── Doctor Rooms ──────────────────────────────────────────────────────────────
 
 @login_required
+@required_role(['admin', 'receptionist'], 'You do not have permission to manage doctor rooms.')
 def doctor_room_list(request):
-    # only reception/admin staff may assign doctor rooms
-    error_response = require_role(request, ROOM_STAFF_ROLES, 'You do not have permission to manage doctor rooms.')
-    if error_response:
-        return error_response
-
     # every active doctor, ordered by name
     doctors = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')
 
