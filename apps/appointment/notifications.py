@@ -14,7 +14,6 @@ def _room_for(doctor):
     except StaffProfile.DoesNotExist:
         return 'Not assigned yet'  # this doctor has no staff profile row yet
 
-
 def send_appointment_confirmation_email(appointment):
     # emails the patient once their appointment is confirmed (paid online, or cash
     # confirmed at reception). any failure here (no internet, wrong api key, brevo
@@ -59,7 +58,6 @@ def send_appointment_confirmation_email(appointment):
         # brevo could not be reached - just log it, the appointment is still confirmed either way
         print(f'Could not send appointment confirmation email: {error}')
 
-
 def send_appointment_confirmation_email_admin(appointment):
     # emails the patient once their appointment is confirmed (paid online, or cash
     # confirmed at reception). any failure here (no internet, wrong api key, brevo
@@ -103,8 +101,6 @@ def send_appointment_confirmation_email_admin(appointment):
     except requests.RequestException as error:
         # brevo could not be reached - just log it, the appointment is still confirmed either way
         print(f'Could not send appointment confirmation email: {error}')
-
-
 
 def send_email_appointment_without_payment(appointment):
     to_email = appointment.patient.email

@@ -2,11 +2,10 @@ Emails me times ————-
 
 1,2 Apppointmnt karama with Pay send to customer , admin.   -- DONE.
 
-3. Apppointmnt karama without pay sens to customer
+3. Apppointmnt karama without pay sens to customer --DONE.
 
-5.User sign up unama
+5.User sign up unama --DONE.
 
-6.When set room number by admin to doctor before one hour to channelling.
 
 7,8. Stock 100 adu unama adminta, 50 unama supplier ta
 
