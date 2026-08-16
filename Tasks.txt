@@ -80,5 +80,9 @@ meke re order levels meet unama mail eka yanna hadanna. (ape danuth mail ekak yn
 
 
 ----------------------------------------------------------------------------------------------------
+http://127.0.0.1:8000/Appointment/
+Department eka select karama, ekata adala Doctor drop down wen na.
+
+
 i have Viva on next week. this project is done by you. so i dont have ideas about where is the all function are exsting.
 give me Guide. below is the sample Questions that can ask. 
