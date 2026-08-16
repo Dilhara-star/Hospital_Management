@@ -78,7 +78,7 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="purchase_price">Purchase Price</label>
+                                <label for="purchase_price">Purchase Price (Rs.)</label>
                                 <input type="number" id="purchase_price" name="purchase_price" class="form-control" step="0.01" min="0" value="{{ batch.purchase_price|default_if_none:'' }}">
                                 {% if form.purchase_price.errors %}<div class="text-danger small mt-1">{{ form.purchase_price.errors.0 }}</div>{% endif %}
                             </div>

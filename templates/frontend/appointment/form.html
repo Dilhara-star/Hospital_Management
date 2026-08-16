@@ -132,7 +132,7 @@
       <nav class="breadcrumbs">
         <div class="container">
           <ol>
-            <li><a href="index.html">Home</a></li>
+            <li><a href="{% url 'frontend_index' %}">Home</a></li>
             <li class="current">Appointment</li>
           </ol>
         </div>
@@ -225,7 +225,7 @@
                         <select id="doctor" name="doctor" class="form-select">
                           <option value="">Select Doctor</option>
                           {% for doctor in doctors %}
-                          <option value="{{ doctor.pk }}" {% if doctor.pk == appointment.doctor_id %}selected{% endif %}>{{ doctor.get_full_name }}</option>
+                          <option value="{{ doctor.pk }}" {% if doctor.pk == appointment.doctor_id or doctor.pk|stringformat:"s" == selected_doctor_id %}selected{% endif %}>{{ doctor.get_full_name }}</option>
                           {% endfor %}
                         </select>
                         {% for error in form.doctor.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
@@ -251,7 +251,7 @@
                       <div class="col-12">
                         <!-- updates live as soon as a department + doctor are picked, well before the payment step -->
                         <div class="fee-box">
-                          Estimated Appointment Fee: <strong>$<span class="fee-amount-value">0.00</span></strong>
+                          Estimated Appointment Fee: <strong>Rs. <span class="fee-amount-value">0.00</span></strong>
                         </div>
                       </div>
                       <div class="col-12 text-end">
@@ -314,7 +314,7 @@
                     <div class="step-heading">Payment</div>
 
                     <div class="fee-box">
-                      Consultation Fee: <strong>$<span class="fee-amount-value">0.00</span></strong>
+                      Consultation Fee: <strong>Rs. <span class="fee-amount-value">0.00</span></strong>
                     </div>
 
                     <div class="row gy-3 mb-4">
@@ -385,6 +385,8 @@
     {{ fees|json_script:"department-fees" }}
     <!-- each doctor's own hourly fee, read by the script below -->
     {{ doctor_fees|json_script:"doctor-fees" }}
+    <!-- department each doctor treats patients in, read by the script below -->
+    {{ doctor_departments|json_script:"doctor-departments" }}
 
     <script>
       // this script moves the booking form between step 1 (appointment details),
@@ -410,6 +412,23 @@
         var departmentFees = JSON.parse(document.getElementById('department-fees').textContent);
         // each doctor's own hourly fee, e.g. {"3": "1500.00"}
         var doctorFees = JSON.parse(document.getElementById('doctor-fees').textContent);
+        // department each doctor treats patients in, e.g. {"3": "cardiology"}
+        var doctorDepartments = JSON.parse(document.getElementById('doctor-departments').textContent);
+
+        // only show doctors that belong to the selected department in the Doctor dropdown
+        function filterDoctorsByDepartment() {
+          var selectedDepartment = departmentField.value;
+          var options = doctorField.querySelectorAll('option');
+          options.forEach(function (option) {
+            if (option.value === '') return;  // always keep the "Select Doctor" placeholder visible
+            var matches = !selectedDepartment || doctorDepartments[option.value] === selectedDepartment;
+            option.hidden = !matches;
+          });
+          // if the doctor that was picked no longer matches, clear the doctor field
+          if (doctorField.value && doctorDepartments[doctorField.value] !== undefined && selectedDepartment && doctorDepartments[doctorField.value] !== selectedDepartment) {
+            doctorField.value = '';
+          }
+        }
 
         // show the total fee (department fee + doctor's own fee) for the current picks,
         // everywhere the fee is shown on the page (step 1 and step 3)
@@ -467,10 +486,17 @@
           step2.classList.remove('d-none');
         }
 
+        // only show doctors from the selected department as soon as the page loads (covers a
+        // restored draft or a browser-remembered selection), and again whenever it is changed
+        filterDoctorsByDepartment();
+        departmentField.addEventListener('change', function () {
+          filterDoctorsByDepartment();
+          updateFeeDisplay();
+        });
+
         // show the fee as soon as the page loads (covers a restored draft or a browser-remembered selection),
         // and again live whenever the department or doctor is changed
         updateFeeDisplay();
-        departmentField.addEventListener('change', updateFeeDisplay);
         doctorField.addEventListener('change', updateFeeDisplay);
 
         // save the draft before leaving the page to log in or sign up

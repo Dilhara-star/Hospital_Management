@@ -1,0 +1,92 @@
+{% extends 'frontend/layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="find-a-doctor section">
+
+  <div class="container section-title" data-aos="fade-up">
+    <h2>Find A Doctor</h2>
+    <p>Search our full directory of doctors by name or specialty.</p>
+  </div>
+
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+    <div class="row justify-content-center mb-5" data-aos="fade-up" data-aos-delay="200">
+      <div class="col-lg-8 text-center">
+        <div class="search-section">
+          <form class="search-form" action="{% url 'doctor_list' %}" method="get">
+            <div class="search-input-group">
+              <div class="input-wrapper">
+                <i class="bi bi-person"></i>
+                <input type="text" class="form-control" name="name" value="{{ search_name }}" placeholder="Enter doctor name">
+              </div>
+              <div class="select-wrapper">
+                <i class="bi bi-heart-pulse"></i>
+                <select class="form-select" name="specialty">
+                  <option value="">All Specialties</option>
+                  {% for value, label in department_choices %}
+                  {% if value %}
+                  <option value="{{ value }}" {% if value == specialty %}selected{% endif %}>{{ label }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <button type="submit" class="search-btn">
+                <i class="bi bi-search"></i>
+                Find Doctors
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="doctors-grid" data-aos="fade-up" data-aos-delay="300">
+      {% for doctor in page_obj %}
+      <div class="doctor-profile" data-aos="zoom-in">
+        <div class="profile-header">
+          <div class="doctor-avatar">
+            {% if doctor.profile.profile_picture %}
+            <img src="{{ doctor.profile.profile_picture.url }}" alt="{{ doctor.get_full_name }}" class="img-fluid">
+            {% else %}
+            <img src="{% static 'assets/img/health/staff-2.webp' %}" alt="{{ doctor.get_full_name }}" class="img-fluid">
+            {% endif %}
+            <div class="status-indicator available"></div>
+          </div>
+          <div class="doctor-details">
+            <h4>Dr. {{ doctor.get_full_name }}</h4>
+            <span class="specialty-tag">{{ doctor.staff_profile.get_department_display|default:"General Consultation" }}</span>
+            <div class="experience-info">
+              <i class="bi bi-award"></i>
+              <span>{{ doctor.staff_profile.years_of_experience|default:0 }} years experience</span>
+            </div>
+          </div>
+        </div>
+        <div class="action-buttons">
+          <a href="{% url 'doctor_detail' doctor.pk %}" class="btn-secondary">View Details</a>
+          <a href="{% url 'appointment_form' %}?doctor={{ doctor.pk }}" class="btn-primary">Schedule</a>
+        </div>
+      </div><!-- End Doctor Profile -->
+      {% empty %}
+      <p class="text-muted text-center py-4">No doctors match your search.</p>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&name={{ search_name }}&specialty={{ specialty }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&name={{ search_name }}&specialty={{ specialty }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+
+  </div>
+
+</section>
+{% endblock %}

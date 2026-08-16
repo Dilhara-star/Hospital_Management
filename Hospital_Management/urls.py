@@ -18,22 +18,27 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from apps.appointment import urls as appointment_urls  # split into patient-facing and staff-facing url lists
+from apps.contact import urls as contact_urls  # split into patient-facing and staff-facing url lists
+from apps.pharmacy import urls as pharmacy_urls  # split into patient-facing and staff-facing url lists
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
     path('dashboard/', include('apps.dashboard.urls')),
     path('', include('apps.frontend.urls')),
-    path('Users/', include('apps.user_management.urls')),
-    path('Appointment/', include('apps.appointment.urls')),
-    path('inventory/', include('apps.inventory.urls')),
+    path('Appointment/', include(appointment_urls.urlpatterns)),  # patient-facing appointment pages
+    path('pharmacy/', include(pharmacy_urls.urlpatterns)),  # patient-facing pharmacy pages (pay/download bill)
     path('core/', include('apps.core.urls')),
-    path('contact/', include('apps.contact.urls')),
-    path('reports/', include('apps.reports.urls')),
-    
+    path('contact/', include(contact_urls.urlpatterns)),  # public contact-us pages
 
-
-
-
+    # every staff/dashboard page lives under the "dashboard/" prefix
+    path('dashboard/users/', include('apps.user_management.urls')),
+    path('dashboard/supplier/', include('apps.supplier.urls')),
+    path('dashboard/stock/', include('apps.stock.urls')),
+    path('dashboard/reports/', include('apps.reports.urls')),
+    path('dashboard/appointments/', include(appointment_urls.dashboard_urlpatterns)),  # staff-facing appointment pages
+    path('dashboard/pharmacy/', include(pharmacy_urls.dashboard_urlpatterns)),  # staff-facing pharmacy counter pages
+    path('dashboard/contact/', include(contact_urls.dashboard_urlpatterns)),  # staff-facing inquiry pages
 
 ]
 

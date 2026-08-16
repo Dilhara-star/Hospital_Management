@@ -20,3 +20,79 @@ Emails me times ————-
 
 Tasks ——————————-
 13.User cant cancel appointment in last 24hrs.
+
+
+
+
+Check each user role below and analyze whether it has the correct access permissions. If a role lacks necessary access, update its permissions for user validation purposes.
+For example, if a user has the customer role, they should not have access to the Dashboard, its submenus, or its actions.
+Please provide a simple implementation plan using a permission decorator approach, like @required_permission(['admin', 'doctor']).
+Give me plan
+
+When user for Appoiment (oneline or pay at hospital), then Send payment bill to user via exsting email. 
+Give me professional Bill and detail plan
+
+
+
+
+
+
+
+
+analys this medical managemnt system, give me all reports that can generate based on Models of this site. list based on user role.(
+customer no need reports)
+Give me professional plan.
+
+
+analys this medical managemnt system, give me all emails that can send based on Models of this site.
+Give me professional plan
+
+
+1. check entire Frontend and dashborad and find there are any demo pages that can viewed by customers or staff. list them with appropriate actions (delete, or linking, update).
+i need to complete this projects that why. also check there are any dead links.
+2. Check user reset password flows are corerct and working.
+3. in dashoard, each pages should be under '/dashboard/' urls prefix. 
+4. remove unwanted menus from dashboard. like 'table, chart, pages...
+
+Give me plan
+
+
+
+
+
+
+
+1. Make apps for each differnce Topics. Currently appointment app's views.py handle 'pharmacy_order', 'pay_medicine_online' that not related to appointment. like that 
+find other app's functions that not relavent to the app. make seperate apps for them and move to them. bcz this project should be 
+understand any beginer level student easily. so he should can  find any function easily well organaized way.
+
+2. seperate Dashboard and Frontend def functions on views.py with horizontal Commented (show Frontend or Dashboard) line. for easily understand.
+
+3. Def funtion name should be meaning full. like : process refund -> appointment refund process by customers.
+
+4. add Simple understadning comment above the each def function in entire project.
+
+5. Entire Project's Currency should be Rs. only.
+
+6. make seperate app for report generation.
+
+Give me Plan
+
+
+
+
+Make Blog Section for SEO. - New app. Totally CRUD.
+Remove Contact us from dashboard. and contact us form directly send email to admin.
+
+
+
+http://127.0.0.1:8000/dashboard/stock/medicines/
+meke re order levels meet unama mail eka yanna hadanna. (ape danuth mail ekak ynwa eka waradi mekath ekka)
+
+
+
+
+
+
+i have Viva on next week. this project is done by you. so i dont have ideas about where is the all function are exsting.
+give me Guide. below is the sample Questions that can ask. 

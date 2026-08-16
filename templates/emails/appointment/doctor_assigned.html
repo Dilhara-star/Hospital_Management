@@ -1,0 +1,49 @@
+<div style="background-color: #f8fafc; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155; line-height: 1.6;">
+  <div style="max-width: 560px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+
+    <p style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Dear {{ appointment.doctor.get_full_name }},</p>
+
+    <p style="margin-top: 0; margin-bottom: 24px; font-size: 15px; color: #475569;">
+      You have been <strong style="color: #0f172a;">assigned</strong> a new appointment. Here are the details:
+    </p>
+
+    <div style="background-color: #f1f5f9; border-left: 4px solid #2563eb; border-radius: 4px; padding: 16px 20px; margin-bottom: 24px;">
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        <li style="margin-bottom: 8px; font-size: 14px;">
+          <span style="color: #64748b; font-weight: 600; display: inline-block; width: 150px;">Appointment Number:</span>
+          <strong style="color: #0f172a;">{{ appointment_number }}</strong>
+        </li>
+        <li style="margin-bottom: 8px; font-size: 14px;">
+          <span style="color: #64748b; font-weight: 600; display: inline-block; width: 150px;">Patient:</span>
+          <strong style="color: #0f172a;">{{ appointment.patient_name }}</strong>
+        </li>
+        <li style="margin-bottom: 8px; font-size: 14px;">
+          <span style="color: #64748b; font-weight: 600; display: inline-block; width: 150px;">Date:</span>
+          <strong style="color: #0f172a;">{{ appointment.date|date:"d M Y" }}</strong>
+        </li>
+        <li style="margin-bottom: 8px; font-size: 14px;">
+          <span style="color: #64748b; font-weight: 600; display: inline-block; width: 150px;">Time:</span>
+          <strong style="color: #0f172a;">{{ appointment.get_time_slot_display }}</strong>
+        </li>
+        <li style="margin-bottom: 8px; font-size: 14px;">
+          <span style="color: #64748b; font-weight: 600; display: inline-block; width: 150px;">Department:</span>
+          <strong style="color: #0f172a;">{{ appointment.get_department_display }}</strong>
+        </li>
+        <li style="margin: 0; font-size: 14px;">
+          <span style="color: #64748b; font-weight: 600; display: inline-block; width: 150px;">Room:</span>
+          <strong style="color: #0f172a;">{{ room_number|default:"Not assigned yet" }}</strong>
+        </li>
+      </ul>
+    </div>
+
+    <p style="margin-top: 0; margin-bottom: 28px; font-size: 14px; color: #64748b;">
+      Please check your schedule in the dashboard for more details.
+    </p>
+
+    <p style="margin: 0; font-size: 14px; color: #334155; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+      Thank you,<br>
+      <strong style="color: #0f172a;">{{ sender_name }}</strong>
+    </p>
+
+  </div>
+</div>

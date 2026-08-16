@@ -3,6 +3,7 @@ from django.contrib import messages  # lets us show "success"/"error" banners af
 from django.shortcuts import redirect  # helper to send the user to another page
 
 
+# blocks a view unless the logged in user's profile role is in the allowed list
 def required_role(allowed_roles, message='You do not have permission to view this page.', redirect_to='dashboard_index'):
     # a decorator - put it under @login_required, like this:
     #   @login_required
@@ -11,6 +12,7 @@ def required_role(allowed_roles, message='You do not have permission to view thi
     #       ...
     # only lets the view run if the logged in user's profile role is inside allowed_roles
     def decorator(view_func):
+        # runs the role check, then either blocks the request or runs the real view
         @wraps(view_func)  # keeps the view's real name and docstring
         def wrapped_view(request, *args, **kwargs):
             if not hasattr(request.user, 'profile') or request.user.profile.role not in allowed_roles:

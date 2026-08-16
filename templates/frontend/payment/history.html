@@ -1,0 +1,119 @@
+{% extends 'frontend/layouts/base.html' %}
+
+{% block content %}
+<section class="payments-section py-5" style="background:#f4f6fb; min-height:80vh;">
+  <div class="container">
+
+    <!-- Page Title -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h4 class="fw-bold" style="color:#2c4964;">Payment History</h4>
+        <p class="text-muted mb-0">See every consultation and medicine payment on your account, including refunds.</p>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+          {{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Consultation Payments -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
+      <div class="card-header border-0 pt-4 px-4" style="background:transparent;">
+        <h6 class="fw-bold mb-0" style="color:#2c4964;">
+          <i class="bi bi-calendar2-check me-2"></i>Consultation Payments
+        </h6>
+      </div>
+      <div class="card-body px-4 pb-4">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr class="text-muted small">
+                <th>Date</th>
+                <th>Doctor</th>
+                <th>Amount (Rs.)</th>
+                <th>Method</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for payment in consultation_payments %}
+              <tr>
+                <td>{{ payment.appointment.date }}</td>
+                <td>
+                  {% if payment.appointment.doctor %}Dr. {{ payment.appointment.doctor.get_full_name }}{% else %}<span class="text-muted">-</span>{% endif %}
+                </td>
+                <td>{{ payment.amount }}</td>
+                <td>{{ payment.get_method_display }}</td>
+                <td>
+                  {% if payment.status == 'paid' %}
+                    <span class="badge bg-success">Paid</span>
+                  {% elif payment.status == 'refunded' %}
+                    <span class="badge bg-info">Refunded</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">No consultation payments yet.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medicine Payments -->
+    <div class="card border-0 shadow-sm" style="border-radius:16px;">
+      <div class="card-header border-0 pt-4 px-4" style="background:transparent;">
+        <h6 class="fw-bold mb-0" style="color:#2c4964;">
+          <i class="bi bi-capsule me-2"></i>Medicine Payments
+        </h6>
+      </div>
+      <div class="card-body px-4 pb-4">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr class="text-muted small">
+                <th>Date</th>
+                <th>Amount (Rs.)</th>
+                <th>Method</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in medicine_payments %}
+              <tr>
+                <td>{{ order.appointment.date }}</td>
+                <td>{{ order.total_amount }}</td>
+                <td>{{ order.get_payment_method_display|default:"-" }}</td>
+                <td>
+                  {% if order.payment_status == 'paid' %}
+                    <span class="badge bg-success">Paid</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-4">No medicine payments yet.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

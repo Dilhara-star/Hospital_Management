@@ -1,0 +1,62 @@
+{% extends 'frontend/layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="py-5" style="background:#f4f6fb; min-height:80vh;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm" style="border-radius:16px;">
+          <div class="card-body p-4 p-md-5">
+
+            <div class="row align-items-center g-4 mb-4">
+              <div class="col-md-4 text-center">
+                {% if doctor.profile.profile_picture %}
+                <img src="{{ doctor.profile.profile_picture.url }}" alt="{{ doctor.get_full_name }}"
+                     class="img-fluid rounded-circle" style="width:180px; height:180px; object-fit:cover;">
+                {% else %}
+                <img src="{% static 'assets/img/health/staff-2.webp' %}" alt="{{ doctor.get_full_name }}"
+                     class="img-fluid rounded-circle" style="width:180px; height:180px; object-fit:cover;">
+                {% endif %}
+              </div>
+              <div class="col-md-8">
+                <h3 class="fw-bold mb-1" style="color:#2c4964;">Dr. {{ doctor.get_full_name }}</h3>
+                <p class="text-muted mb-3">{{ doctor.staff_profile.get_department_display|default:"General Consultation" }}</p>
+                <a href="{% url 'appointment_form' %}?doctor={{ doctor.pk }}" class="btn btn-primary">
+                  <i class="bi bi-calendar2-check me-1"></i> Schedule Appointment
+                </a>
+              </div>
+            </div>
+
+            <hr>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="text-muted small">Department</div>
+                <div class="fw-semibold">{{ doctor.staff_profile.get_department_display|default:"-" }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="text-muted small">Years of Experience</div>
+                <div class="fw-semibold">{{ doctor.staff_profile.years_of_experience|default:0 }} years</div>
+              </div>
+              <div class="col-md-6">
+                <div class="text-muted small">Specialization</div>
+                <div class="fw-semibold">{{ doctor.staff_profile.specialization|default:"-" }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="text-muted small">Qualification</div>
+                <div class="fw-semibold">{{ doctor.staff_profile.qualification|default:"-" }}</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <a href="{% url 'doctor_list' %}" class="text-decoration-none">&larr; Back to Find a Doctor</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -11,18 +11,18 @@ class UserProfileAdmin(admin.ModelAdmin):
     # search box on the list page
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'user__email')
 
+    # shows the linked user's full name as a column
     def get_full_name(self, obj):
-        # show the linked user's full name as a column
         return obj.user.get_full_name()
     get_full_name.short_description = 'Name'
 
+    # shows the linked user's username as a column
     def get_username(self, obj):
-        # show the linked user's username as a column
         return obj.user.username
     get_username.short_description = 'Username'
 
+    # shows the linked user's email as a column
     def get_email(self, obj):
-        # show the linked user's email as a column
         return obj.user.email
     get_email.short_description = 'Email'
 

@@ -5,6 +5,7 @@ from django.core.management.commands.startapp import Command as BaseCommand
 class Command(BaseCommand):
     help = 'Creates a Django app directory inside apps/ with the correct dotted name.'
 
+    # runs the normal startapp command inside apps/, then fixes apps.py to use the "apps.<name>" dotted path
     def handle(self, **options):
         app_name = options['name']
 

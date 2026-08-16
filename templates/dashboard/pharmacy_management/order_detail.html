@@ -80,8 +80,8 @@
                             <td>{{ item.dosage }}</td>
                             <td>{{ item.quantity }}</td>
                             <td>{{ item.instructions|default:"-" }}</td>
-                            <td>{{ item.medicine.price }}</td>
-                            <td>{{ item.medicine.price|floatformat:2 }} &times; {{ item.quantity }}</td>
+                            <td>Rs. {{ item.medicine.price }}</td>
+                            <td>Rs. {{ item.medicine.price|floatformat:2 }} &times; {{ item.quantity }}</td>
                         </tr>
                         {% empty %}
                         <tr>
@@ -92,7 +92,7 @@
                     <tfoot>
                         <tr>
                             <th colspan="5" class="text-right">Grand Total</th>
-                            <th>{{ total_amount }}</th>
+                            <th>Rs. {{ total_amount }}</th>
                         </tr>
                     </tfoot>
                 </table>
@@ -142,11 +142,7 @@
             <form method="post" action="{% url 'pharmacy_order_detail' appointment.pk %}" class="form-inline mt-3">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="record_payment">
-                <label class="mr-2">Payment Method</label>
-                <select name="payment_method" class="form-control mr-2">
-                    <option value="cash">Cash to Pharmacist</option>
-                    <option value="online">Online</option>
-                </select>
+                <label class="mr-2">Payment Method: Cash to Pharmacist</label>
                 <button type="submit" class="btn btn-success">
                     <i class="fas fa-money-bill-wave"></i> Record Payment
                 </button>

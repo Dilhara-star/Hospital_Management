@@ -6,3 +6,12 @@ requests==2.34.2
 sqlparse==0.5.5
 tzdata==2026.2
 xhtml2pdf==0.2.17
+
+# On Windows, installing xhtml2pdf pulls in rlPyCairo (via svglib) as a
+# sub-dependency, and rlPyCairo needs a native cairo DLL this machine does
+# not have. That makes every "Download PDF" button crash with a 500 error.
+# xhtml2pdf never actually needs it (only used for embedding SVG images,
+# which this project's PDF reports don't do), so after installing, run:
+#   pip uninstall -y rlPyCairo cairocffi
+# xhtml2pdf's own fallback code (an existing try/except ImportError) then
+# quietly skips SVG support and PDF generation works normally.

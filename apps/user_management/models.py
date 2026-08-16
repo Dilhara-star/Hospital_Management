@@ -38,8 +38,8 @@ class UserProfile(models.Model):
     class Meta:
         db_table = 'user_profiles'  # name of this model's table in the database
 
+    # text shown for this row in the admin site and dropdowns
     def __str__(self):
-        # text shown for this row in the admin site and dropdowns
         return f"{self.user.get_full_name()} - {self.get_role_display()}"
 
 
@@ -101,6 +101,7 @@ class PatientProfile(models.Model):
     class Meta:
         db_table = 'patient_profiles'  # name of this model's table in the database
 
+    # saves the patient, auto-building their MRN (medical record number) the first time
     def save(self, *args, **kwargs):
         # check if this is a brand new row (no id yet)
         is_new = not self.pk
@@ -112,9 +113,9 @@ class PatientProfile(models.Model):
             # update just the mrn column, to avoid running save() again
             PatientProfile.objects.filter(pk=self.pk).update(mrn=self.mrn)
 
+    # works out the patient's age from their date of birth
     @property
     def age(self):
-        # work out the patient's age from their date of birth
         try:
             dob = self.user.profile.date_of_birth
             if dob:
@@ -125,8 +126,8 @@ class PatientProfile(models.Model):
         # no date of birth on file, so we don't know their age
         return None
 
+    # text shown for this row in the admin site and dropdowns
     def __str__(self):
-        # text shown for this row in the admin site and dropdowns
         return f"{self.user.get_full_name()} ({self.mrn})"
 
 
@@ -134,10 +135,13 @@ class StaffProfile(models.Model):
     # drop-down choices for department
     DEPARTMENT_CHOICES = [
         ('', '---------'),
+        ('general', 'General Consultation'),
         ('cardiology', 'Cardiology'),
         ('neurology', 'Neurology'),
         ('orthopedics', 'Orthopedics'),
         ('pediatrics', 'Pediatrics'),
+        ('dermatology', 'Dermatology'),
+        ('oncology', 'Oncology'),
         ('emergency', 'Emergency'),
         ('icu', 'ICU'),
         ('opd', 'OPD'),
@@ -190,10 +194,13 @@ class StaffProfile(models.Model):
     emergency_contact_phone = models.CharField(max_length=20, blank=True)
     # doctor's own consultation fee, added on top of the department fee (only meaningful for doctors)
     hourly_fee = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    # how many years this doctor has practiced, shown on the "Find a Doctor" page (only meaningful for doctors)
+    years_of_experience = models.PositiveIntegerField(null=True, blank=True, default=0)
 
     class Meta:
         db_table = 'staff_profiles'  # name of this model's table in the database
 
+    # saves the staff member, auto-building their employee id the first time
     def save(self, *args, **kwargs):
         # check if this is a brand new row (no id yet)
         is_new = not self.pk
@@ -205,6 +212,6 @@ class StaffProfile(models.Model):
             # update just the employee_id column, to avoid running save() again
             StaffProfile.objects.filter(pk=self.pk).update(employee_id=self.employee_id)
 
+    # text shown for this row in the admin site and dropdowns
     def __str__(self):
-        # text shown for this row in the admin site and dropdowns
         return f"{self.user.get_full_name()} ({self.employee_id})"

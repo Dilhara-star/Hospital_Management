@@ -1,7 +1,7 @@
   {% load static %}
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Index - Clinic Bootstrap Template</title>
+  <title>Medi Plus Clinic</title>
   <meta name="description" content="">
   <meta name="keywords" content="">
 
@@ -41,6 +41,12 @@
     /* Smooth the transition so content doesn't jump */
     body {
       transition: padding-top 0.3s ease;
+    }
+    /* Greys out "Coming Soon" links for features that are not built yet */
+    .disabled {
+      opacity: 0.5;
+      cursor: default;
+      pointer-events: none;
     }
   </style>
 

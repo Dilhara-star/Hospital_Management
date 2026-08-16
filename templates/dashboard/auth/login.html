@@ -102,6 +102,9 @@
                                     </form>
                                     <hr>
                                     <div class="text-center">
+                                        <a class="small" href="{% url 'forgot_password' %}">Forgot Password?</a>
+                                    </div>
+                                    <div class="text-center mt-2">
                                         <a class="small" href="{% url 'register' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">Create an Account!</a>
                                     </div>
                                 </div>

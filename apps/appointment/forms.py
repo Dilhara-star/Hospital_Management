@@ -21,6 +21,7 @@ class AppointmentForm(forms.ModelForm):
             'patient_name', 'patient_contact', 'patient_age', 'patient_address', 'patient_nic',
         ]
 
+    # stops a patient from booking an appointment on a date that has already passed
     def clean_date(self):
         appointment_date = self.cleaned_data['date']
         if appointment_date < date.today():
@@ -61,6 +62,7 @@ class AppointmentEditForm(forms.ModelForm):
         model = Appointment
         fields = ['date', 'time_slot']
 
+    # stops a patient from rescheduling their appointment into the past
     def clean_date(self):
         # stop the patient from rescheduling into the past
         new_date = self.cleaned_data['date']

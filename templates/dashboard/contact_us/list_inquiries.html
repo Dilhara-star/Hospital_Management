@@ -317,18 +317,18 @@
 
   <!-- Inquiry List -->
   <div class="inquiry-list">
-{% for inquiry in inquiries %} 
-    <!-- Card 1 (Pending) -->
-    <div class="inquiry-card" id="card-1">
+{% for inquiry in inquiries %}
+    <!-- each card uses the real inquiry id, so every card's buttons target only that card -->
+    <div class="inquiry-card{% if inquiry.status == 'solved' %} is-solved{% endif %}" id="card-{{ inquiry.id }}">
       <div class="inquiry-meta">
         <div class="sender-info">
-          <div class="avatar">JD</div>
+          <div class="avatar">{{ inquiry.name|slice:":2"|upper }}</div>
           <div>
             <p class="sender-name">{{ inquiry.name}}</p>
             <p class="sender-email">{{ inquiry.email }}</p>
           </div>
         </div>
-        <span class="badge badge-pending" id="badge-1">Pending</span>
+        <span class="badge {% if inquiry.status == 'solved' %}badge-solved{% else %}badge-pending{% endif %}">{{ inquiry.get_status_display }}</span>
       </div>
       <div class="inquiry-body">
         <h3 class="inquiry-subject">{{ inquiry.subject}}</h3>
@@ -336,27 +336,38 @@
         <span class="inquiry-timestamp">Received {{inquiry.created_date}}</span>
       </div>
       <div class="inquiry-actions">
-        <button class="btn btn-solve" onclick="toggleSolve('card-1', 'badge-1', this)">
+        {% if inquiry.status == 'solved' %}
+        <button class="btn btn-solve active" disabled>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          Mark as Solved
+          Solved
         </button>
-        <button class="btn btn-reply" onclick="toggleReply('reply-1')">
+        {% else %}
+        <!-- real post to the server, so marking solved also emails the sender -->
+        <form method="post" action="{% url 'mark_inquiry_solved' inquiry.id %}" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-solve">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Mark as Solved
+          </button>
+        </form>
+        {% endif %}
+        <button class="btn btn-reply" onclick="toggleReply('reply-{{ inquiry.id }}')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
           Reply
         </button>
       </div>
 
       <!-- Inline Reply Box -->
-      <div class="reply-box" id="reply-1">
-        <textarea class="reply-textarea" placeholder="Write your response to John Doe..."></textarea>
+      <div class="reply-box" id="reply-{{ inquiry.id }}">
+        <textarea class="reply-textarea" placeholder="Write your response to {{ inquiry.name }}..."></textarea>
         <div class="reply-controls">
-          <button class="btn btn-cancel" onclick="toggleReply('reply-1')">Cancel</button>
-          <button class="btn btn-reply" onclick="sendReply('reply-1')">Send Email Reply</button>
+          <button class="btn btn-cancel" onclick="toggleReply('reply-{{ inquiry.id }}')">Cancel</button>
+          <button class="btn btn-reply" onclick="sendReply('reply-{{ inquiry.id }}')">Send Email Reply</button>
         </div>
       </div>
     </div>
 {% endfor %}
-   
+
 
   </div>
 </div>
@@ -365,27 +376,6 @@
   function toggleReply(id) {
     const box = document.getElementById(id);
     box.classList.toggle('open');
-  }
-
-  function toggleSolve(cardId, badgeId, btn) {
-    const card = document.getElementById(cardId);
-    const badge = document.getElementById(badgeId);
-
-    if (badge.classList.contains('badge-pending')) {
-      badge.classList.remove('badge-pending');
-      badge.classList.add('badge-solved');
-      badge.innerText = 'Solved';
-      card.classList.add('is-solved');
-      btn.classList.add('active');
-      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Solved`;
-    } else {
-      badge.classList.remove('badge-solved');
-      badge.classList.add('badge-pending');
-      badge.innerText = 'Pending';
-      card.classList.remove('is-solved');
-      btn.classList.remove('active');
-      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Mark as Solved`;
-    }
   }
 
   function sendReply(id) {

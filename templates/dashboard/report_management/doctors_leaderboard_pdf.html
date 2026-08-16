@@ -1,0 +1,48 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+</style>
+</head>
+<body>
+
+    <h1>Doctors Revenue Leaderboard</h1>
+    <p class="sub">
+        {% if start_date or end_date %}{{ start_date|default:"the start" }} to {{ end_date|default:"today" }}{% else %}All time{% endif %}
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Doctor</th>
+                <th>Appointments</th>
+                <th>Total Collected</th>
+                <th>Doctor Take-Home</th>
+                <th>Hospital Share</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in leaderboard %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ row.doctor.get_full_name }}</td>
+                <td>{{ row.appointment_count }}</td>
+                <td>Rs. {{ row.paid_total }}</td>
+                <td>Rs. {{ row.take_home }}</td>
+                <td>Rs. {{ row.hospital_share }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No doctors found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

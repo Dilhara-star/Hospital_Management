@@ -12,11 +12,13 @@ class ProfileDetailsForm(forms.Form):
     date_of_birth = forms.DateField(required=False)  # date of birth picker, not required
     gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False)  # gender drop-down
 
+    # remembers which user is being edited, so clean_email can allow them to keep their own email
     def __init__(self, *args, user=None, **kwargs):
         # remember which user is being edited, so we can allow them to keep their own email
         self.user = user
         super().__init__(*args, **kwargs)
 
+    # stops someone from switching their email to one another account already uses
     def clean_email(self):
         # pull the cleaned email value out of the form
         email = self.cleaned_data['email']
@@ -43,6 +45,7 @@ class ChangePasswordForm(forms.Form):
     new_password = forms.CharField(widget=forms.PasswordInput)  # new password text box (hidden characters)
     confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm new password text box (hidden characters)
 
+    # stops the password change if the two new password boxes don't match
     def clean(self):
         # run the normal checks first
         cleaned_data = super().clean()
@@ -55,6 +58,7 @@ class ChangePasswordForm(forms.Form):
         # give back the checked data
         return cleaned_data
 
+    # checks the typed "current password" actually matches the account's real password
     def validate_current_password(self, user):
         # true only if the typed current password matches the account's real password
         return user.check_password(self.cleaned_data.get('current_password', ''))

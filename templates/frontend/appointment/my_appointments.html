@@ -137,8 +137,48 @@
                 </tbody>
               </table>
               <a href=" {% url 'edit_appointment' selected_appointment.id %}" class="btn btn-warning">Edit</a>
+              {% if selected_appointment.status != 'cancelled' %}
+                <button type="button" class="btn btn-outline-danger ms-2"
+                        data-bs-toggle="modal" data-bs-target="#cancelAppointmentModal">
+                  Cancel Appointment
+                </button>
+              {% endif %}
+              {% if selected_appointment.payment.status == 'paid' %}
+                <a href="{% url 'download_appointment_bill' selected_appointment.pk %}" class="btn btn-outline-primary ms-2">
+                  <i class="bi bi-file-earmark-pdf me-1"></i>Download Bill (PDF)
+                </a>
+              {% endif %}
             </div>
           </div>
+
+          <!-- Cancel Appointment Modal -->
+          {% if selected_appointment.status != 'cancelled' %}
+          <div class="modal fade" id="cancelAppointmentModal" tabindex="-1" aria-labelledby="cancelAppointmentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content" style="border-radius:16px;">
+                <form method="post" action="{% url 'cancel_appointment' selected_appointment.pk %}">
+                  {% csrf_token %}
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="cancelAppointmentModalLabel">Cancel Appointment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p class="mb-3">Are you sure you want to cancel this appointment?</p>
+                    <ul class="list-unstyled small text-muted mb-3">
+                      <li><strong class="text-dark">Department:</strong> {{ selected_appointment.get_department_display }}</li>
+                      <li><strong class="text-dark">Date:</strong> {{ selected_appointment.date }} &middot; {{ selected_appointment.get_time_slot_display }}</li>
+                    </ul>
+                    <p class="text-danger small mb-0"><i class="bi bi-exclamation-triangle me-1"></i>This action cannot be undone.</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Keep Appointment</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Yes, Cancel Appointment</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endif %}
 
           <!-- Prescription -->
           <div class="card border-0 shadow-sm" style="border-radius:16px;">
@@ -212,6 +252,11 @@
                   <i class="bi bi-credit-card me-1"></i>Pay Online
                 </button>
                 <span class="text-muted small ms-2">or pay by cash to the pharmacist at the counter.</span>
+              {% endif %}
+              {% if pharmacy_order.payment_status == 'paid' %}
+                <a href="{% url 'download_medicine_bill' selected_appointment.pk %}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-file-earmark-pdf me-1"></i>Download Bill (PDF)
+                </a>
               {% endif %}
             </div>
           </div>

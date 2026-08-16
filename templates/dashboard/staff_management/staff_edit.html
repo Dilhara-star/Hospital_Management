@@ -172,11 +172,15 @@
                             </div>
                         </div>
                         {% if profile.role == 'doctor' %}
-                        {# only doctors charge a personal consultation fee, so only show this field for them #}
+                        {# only doctors charge a personal consultation fee and show years of experience, so only show these fields for them #}
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="hourly_fee">Hourly Fee <span class="text-muted">(Doctors only)</span></label>
+                                <label for="hourly_fee">Hourly Fee (Rs.) <span class="text-muted">(Doctors only)</span></label>
                                 <input type="number" id="hourly_fee" name="hourly_fee" class="form-control" step="0.01" min="0" value="{{ staff_profile.hourly_fee }}">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="years_of_experience">Years of Experience <span class="text-muted">(Doctors only)</span></label>
+                                <input type="number" id="years_of_experience" name="years_of_experience" class="form-control" min="0" value="{{ staff_profile.years_of_experience }}">
                             </div>
                         </div>
                         {% endif %}

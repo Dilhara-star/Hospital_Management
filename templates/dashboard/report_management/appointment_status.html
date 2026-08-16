@@ -1,0 +1,155 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Hospital Appointment Status Report</h1>
+        <a href="{% url 'reports_index' %}" class="btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm"></i> Back to Reports
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-calendar-check mr-1"></i> Appointment Status
+            </h6>
+            <a href="{% url 'hospital_appointment_status_report' %}?download=pdf&start_date={{ start_date }}&end_date={{ end_date }}&department={{ department }}" class="btn btn-sm btn-danger">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </a>
+        </div>
+        <div class="card-body">
+
+            <!-- filter row, GET so the page can be bookmarked / shared -->
+            <form method="get" action="{% url 'hospital_appointment_status_report' %}" class="form-row align-items-end mb-4">
+                <div class="form-group col-md-3">
+                    <label>Department</label>
+                    <select name="department" class="form-control">
+                        <option value="">All Departments</option>
+                        {% for code, label in departments %}
+                        {% if code %}
+                        <option value="{{ code }}" {% if department == code %}selected{% endif %}>{{ label }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <label>From</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="form-group col-md-3">
+                    <label>To</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <div class="form-group col-md-3">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+                    <a href="{% url 'hospital_appointment_status_report' %}" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+
+            <!-- status counts -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_count }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_count }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Confirmed</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ confirmed_count }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-left-danger shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Cancelled</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ cancelled_count }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Department</th>
+                            <th>Time Slot</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in page_obj %}
+                        <tr>
+                            <td>{{ appointment.date }}</td>
+                            <td>{{ appointment.patient.get_full_name }}</td>
+                            <td>{% if appointment.doctor %}{{ appointment.doctor.get_full_name }}{% else %}<span class="text-muted">Unassigned</span>{% endif %}</td>
+                            <td>{{ appointment.get_department_display }}</td>
+                            <td>{{ appointment.get_time_slot_display }}</td>
+                            <td>
+                                {% if appointment.status == 'confirmed' %}
+                                <span class="badge badge-success">{{ appointment.get_status_display }}</span>
+                                {% elif appointment.status == 'cancelled' %}
+                                <span class="badge badge-danger">{{ appointment.get_status_display }}</span>
+                                {% else %}
+                                <span class="badge badge-warning">{{ appointment.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No appointments found for this period.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- page links, keeps the same filters while moving between pages -->
+            {% if page_obj.paginator.num_pages > 1 %}
+            <nav>
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&department={{ department }}&start_date={{ start_date }}&end_date={{ end_date }}">Previous</a></li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&department={{ department }}&start_date={{ start_date }}&end_date={{ end_date }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

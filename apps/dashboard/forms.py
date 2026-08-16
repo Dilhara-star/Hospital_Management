@@ -12,6 +12,7 @@ class PatientSignupForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)  # password text box (hidden characters)
     confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm password text box (hidden characters)
 
+    # stops two accounts from sharing the same username
     def clean_username(self):
         # pull the cleaned username value out of the form
         username = self.cleaned_data['username']
@@ -21,6 +22,7 @@ class PatientSignupForm(forms.Form):
         # username is free to use
         return username
 
+    # stops two accounts from sharing the same email address
     def clean_email(self):
         # pull the cleaned email value out of the form
         email = self.cleaned_data['email']
@@ -30,6 +32,7 @@ class PatientSignupForm(forms.Form):
         # email is free to use
         return email
 
+    # stops sign up if the two password boxes don't match
     def clean(self):
         # run the normal checks first
         cleaned_data = super().clean()

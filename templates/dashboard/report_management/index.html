@@ -52,5 +52,52 @@
         </div>
     </div>
 
+    {% if request.user.profile.role == 'admin' %}
+    {# hospital-wide reports only make sense at the whole-hospital level, so only admin sees this section #}
+    <h6 class="text-gray-500 font-weight-bold mb-3">Hospital-Wide</h6>
+    <div class="row">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-money-bill-wave fa-2x text-primary mb-3"></i>
+                    <h5>Hospital Revenue</h5>
+                    <p class="text-muted small">Total income across consultations and pharmacy, by payment method and status.</p>
+                    <a href="{% url 'hospital_revenue_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-clinic-medical fa-2x text-primary mb-3"></i>
+                    <h5>Department Performance</h5>
+                    <p class="text-muted small">Appointment count and revenue collected, per department.</p>
+                    <a href="{% url 'department_performance_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-md fa-2x text-primary mb-3"></i>
+                    <h5>Doctors Leaderboard</h5>
+                    <p class="text-muted small">Every doctor compared side by side: appointments, revenue, take-home.</p>
+                    <a href="{% url 'doctors_leaderboard_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-2x text-primary mb-3"></i>
+                    <h5>Appointment Status</h5>
+                    <p class="text-muted small">Pending / confirmed / cancelled counts across every doctor and department.</p>
+                    <a href="{% url 'hospital_appointment_status_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

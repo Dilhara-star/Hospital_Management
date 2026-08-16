@@ -1,0 +1,84 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 12px; color: #333; }
+    h1 { font-size: 20px; margin-bottom: 0; color: #2c4964; }
+    p.sub { color: #777; margin-top: 4px; }
+    .paid-stamp { color: #16a34a; font-weight: bold; border: 1px solid #16a34a; padding: 3px 10px; }
+    table.info { width: 100%; margin-top: 20px; }
+    table.info td { vertical-align: top; padding: 2px 0; }
+    table.info td.label { color: #777; width: 120px; }
+    table.items { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    table.items th, table.items td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    table.items th { background-color: #f4f4f4; }
+    table.items td.number { text-align: center; }
+    table.items td.amount { text-align: right; }
+    table.totals { margin-top: 10px; width: 100%; }
+    table.totals td { border: none; padding: 4px 8px; }
+    table.totals td.label { color: #777; text-align: right; }
+    table.totals td.value { font-weight: bold; text-align: right; width: 100px; }
+    table.totals tr.total td { border-top: 1px solid #333; font-size: 14px; }
+    p.footer { color: #999; margin-top: 30px; font-size: 10px; }
+</style>
+</head>
+<body>
+
+    <table style="width: 100%;">
+        <tr>
+            <td>
+                <h1>Medi Plus</h1>
+                <p class="sub">Pharmacy Payment Receipt / Bill</p>
+            </td>
+            <td style="text-align: right;">
+                <p class="sub">Bill No: {{ order.transaction_ref }}</p>
+                <p class="sub">Paid On: {{ order.paid_at|date:"d M Y, h:i A" }}</p>
+                <span class="paid-stamp">PAID</span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="info">
+        <tr><td class="label">Billed To</td><td>{{ appointment.patient_name }}</td></tr>
+        <tr><td class="label">Contact</td><td>{{ appointment.patient_contact }}</td></tr>
+        <tr><td class="label">NIC</td><td>{{ appointment.patient_nic }}</td></tr>
+        <tr><td class="label">Appointment No</td><td>APT-{{ appointment.pk|stringformat:"06d" }}</td></tr>
+    </table>
+
+    <table class="items">
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th style="text-align: center;">Qty</th>
+                <th style="text-align: right;">Unit Price</th>
+                <th style="text-align: right;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in billed_items %}
+            <tr>
+                <td>{{ row.name }}</td>
+                <td class="number">{{ row.quantity }}</td>
+                <td class="amount">Rs. {{ row.unit_price }}</td>
+                <td class="amount">Rs. {{ row.subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="totals">
+        <tr class="total">
+            <td class="label">Total Amount</td>
+            <td class="value">Rs. {{ medicine_total }}</td>
+        </tr>
+    </table>
+
+    <table class="info">
+        <tr><td class="label">Payment Method</td><td>{{ order.get_payment_method_display }}</td></tr>
+        <tr><td class="label">Transaction Ref</td><td>{{ order.transaction_ref }}</td></tr>
+    </table>
+
+    <p class="footer">This is a computer generated bill and does not require a signature. Thank you for choosing Medi Plus.</p>
+
+</body>
+</html>

@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'apps.user_management',
     'apps.frontend',
     'apps.appointment',
-    'apps.inventory',
+    'apps.pharmacy',
+    'apps.supplier',
+    'apps.stock',
     'apps.core',
     'apps.contact',
     'apps.reports',
@@ -72,7 +74,7 @@ load_dotenv(BASE_DIR / '.env')  # load BREVO_* variables below from the .env fil
 # Brevo email settings, used to send the appointment confirmation email
 BREVO_API_KEY = os.getenv('BREVO_API_KEY', '')  # secret key from your Brevo account
 BREVO_SENDER_EMAIL = os.getenv('BREVO_SENDER_EMAIL', '')  # "from" address, must be a verified sender in Brevo
-BREVO_SENDER_NAME = os.getenv('BREVO_SENDER_NAME', 'City Hospital')  # "from" name shown to the patient
+BREVO_SENDER_NAME = os.getenv('BREVO_SENDER_NAME', 'Medi Plus')  # "from" name shown to the patient
 
 # The URL used to access the media files in the browser
 MEDIA_URL = '/media/'
@@ -151,9 +153,9 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-LOGIN_URL = '/dashboard/login/'
+LOGIN_URL = '/dashboard/users/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/dashboard/login/'
+LOGOUT_REDIRECT_URL = '/dashboard/users/login/'
 
 
 ADMIN_NOTIFY_EMAIL = os.getenv('ADMIN_NOTIFY_EMAIL', '')  # where staff notification emails go

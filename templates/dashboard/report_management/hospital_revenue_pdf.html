@@ -1,0 +1,56 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    h2 { font-size: 13px; margin-top: 18px; margin-bottom: 4px; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    table.totals { margin-top: 16px; width: 60%; }
+    table.totals td { border: none; padding: 4px 6px; }
+    table.totals td.label { color: #777; }
+    table.totals td.value { font-weight: bold; text-align: right; }
+</style>
+</head>
+<body>
+
+    <h1>Hospital Revenue Report</h1>
+    <p class="sub">
+        {% if start_date or end_date %}{{ start_date|default:"the start" }} to {{ end_date|default:"today" }}{% else %}All time{% endif %}
+    </p>
+
+    <table class="totals">
+        <tr>
+            <td class="label">Grand Total Collected</td>
+            <td class="value">Rs. {{ grand_total }}</td>
+        </tr>
+    </table>
+
+    <h2>Consultations</h2>
+    <table>
+        <tr><th>Collected</th><th>Online</th><th>Cash</th><th>Pending</th><th>Refunded</th></tr>
+        <tr>
+            <td>Rs. {{ consultation_paid }}</td>
+            <td>Rs. {{ consultation_online }}</td>
+            <td>Rs. {{ consultation_cash }}</td>
+            <td>Rs. {{ consultation_pending }}</td>
+            <td>Rs. {{ consultation_refunded }}</td>
+        </tr>
+    </table>
+
+    <h2>Pharmacy</h2>
+    <table>
+        <tr><th>Collected</th><th>Online</th><th>Cash</th><th>Pending</th></tr>
+        <tr>
+            <td>Rs. {{ pharmacy_paid }}</td>
+            <td>Rs. {{ pharmacy_online }}</td>
+            <td>Rs. {{ pharmacy_cash }}</td>
+            <td>Rs. {{ pharmacy_pending }}</td>
+        </tr>
+    </table>
+
+</body>
+</html>

@@ -1,16 +1,15 @@
 from django.urls import path
 from . import views
 
+# public contact-us pages, mounted at "contact/"
 urlpatterns = [
-    #frontend start here
-    path('index/', views.contact_us_index, name='contact_us_index'), 
+    path('index/', views.contact_us_index, name='contact_us_index'),
     path('add_contact/', views.add_contact, name='add_contact'),
-    # path('delete_category/<int:id>/', views.delete_category, name='delete_category'),
+]
 
-
-  #dash board start here
+# staff-facing inquiry management pages, mounted at "dashboard/contact/"
+dashboard_urlpatterns = [
     path('list/', views.view_inquiries, name='view_inquiries'),
     path('view_inquiry/<int:id>/', views.view_inquiry, name='view_inquiry'),
-    # path('edit_category/<int:id>/', views.edit_category, name='edit_category'),
-
+    path('mark_solved/<int:id>/', views.mark_inquiry_solved, name='mark_inquiry_solved'),
 ]

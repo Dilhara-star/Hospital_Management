@@ -1,0 +1,44 @@
+<div style="background-color: #f8fafc; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155; line-height: 1.6;">
+  <div style="max-width: 560px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+
+    <p style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Medicine stock expiry alert:</p>
+
+    <p style="margin-top: 0; margin-bottom: 24px; font-size: 15px; color: #475569;">
+      The following stock batches need attention.
+    </p>
+
+    {% if expired_batches %}
+    <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #dc2626;">Already Expired</p>
+    <div style="background-color: #f1f5f9; border-left: 4px solid #dc2626; border-radius: 4px; padding: 16px 20px; margin-bottom: 24px;">
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for batch in expired_batches %}
+        <li style="margin-bottom: 8px; font-size: 14px;">
+          <strong style="color: #0f172a;">{{ batch.medicine.name }}</strong>
+          <span style="color: #64748b;"> - Batch {{ batch.batch_number }}, {{ batch.quantity }} units, expired {{ batch.expiry_date|date:"d M Y" }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if expiring_batches %}
+    <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #b45309;">Expiring Soon</p>
+    <div style="background-color: #f1f5f9; border-left: 4px solid #f59e0b; border-radius: 4px; padding: 16px 20px; margin-bottom: 24px;">
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for batch in expiring_batches %}
+        <li style="margin-bottom: 8px; font-size: 14px;">
+          <strong style="color: #0f172a;">{{ batch.medicine.name }}</strong>
+          <span style="color: #64748b;"> - Batch {{ batch.batch_number }}, {{ batch.quantity }} units, expires {{ batch.expiry_date|date:"d M Y" }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <p style="margin: 0; font-size: 14px; color: #334155; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+      Thank you,<br>
+      <strong style="color: #0f172a;">{{ sender_name }}</strong>
+    </p>
+
+  </div>
+</div>

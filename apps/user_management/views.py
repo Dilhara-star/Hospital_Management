@@ -1,20 +1,144 @@
 from django.shortcuts import render, redirect, get_object_or_404  # helpers for rendering pages and redirecting
 from django.contrib import messages  # lets us show "success"/"error" banners after an action
+from django.contrib.auth import authenticate, login, logout  # django's login tools
 from django.contrib.auth.decorators import login_required  # blocks a view unless the user is logged in
 from django.contrib.auth.models import User  # built-in user model (login, username, password)
-from .forms import PatientCreateForm, PatientEditForm, StaffCreateForm, StaffEditForm, STAFF_ROLE_CHOICES  # our forms
+from django.contrib.auth.tokens import default_token_generator  # makes and checks password reset tokens
+from django.urls import reverse  # builds a url from a view name, used in the reset link
+from django.utils.encoding import force_bytes, force_str  # turns a user id into text and back again
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode  # makes the user id safe to put in a url
+from .forms import (
+    PatientCreateForm, PatientEditForm, StaffCreateForm, StaffEditForm, STAFF_ROLE_CHOICES,
+    ForgotPasswordForm, SetNewPasswordForm,
+)  # our forms
 from .models import UserProfile, PatientProfile, StaffProfile  # our own profile models
 from .notifications import send_staff_welcome_email  # emails a new staff member their username
 from .notifications import send_patient_welcome_email  # emails a new patient their username
+from .notifications import send_patient_discharge_email  # emails a patient once they are discharged
+from .notifications import send_password_reset_email  # emails the reset link to the account's email
 from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
 
 # role codes that count as "staff" (not a patient, not a plain "user")
 STAFF_ROLES = ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'lab_technician']
 
 
+# ── Shared Helpers ───────────────────────────────────────────────────────────
+
+def _redirect_by_role(person):
+    # send patients to the patient portal, plain frontend accounts to the frontend, doctors to appointments, everyone else (staff) to the dashboard
+    if hasattr(person, 'profile'):
+        role = person.profile.role
+        if role == 'patient':
+            return redirect('patient_portal')
+        if role == 'user':
+            return redirect('frontend_index')
+        if role == 'doctor':
+            return redirect('appointment_index')  # doctor logs in and sees their appointments
+    return redirect('dashboard_index')
+
+
+# ── Auth (public pages, used by staff and patients alike, before login) ──────
+
+# shows the login form and logs an account in when the username/password match
+def login_view(request):
+    if request.user.is_authenticated:
+        # already logged in, so skip straight to their home page
+        return _redirect_by_role(request.user)
+
+    if request.method == 'POST':
+        # read the username/password typed in the form
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        # check the username/password match an account
+        person = authenticate(request, username=username, password=password)
+
+        if person is not None:
+            # log this account in
+            login(request, person)
+            # if they were sent here from another page, go back there after logging in
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            return _redirect_by_role(person)
+        else:
+            # username/password did not match any account
+            messages.error(request, 'Invalid username or password.')
+
+    return render(request, 'dashboard/auth/login.html')
+
+
+# logs the current account out
+def logout_view(request):
+    if request.method == 'POST':
+        # log the current account out
+        logout(request)
+    return redirect('login')
+
+
+# lets someone request a password reset link by typing their account email
+def forgot_password_view(request):
+    if request.user.is_authenticated:
+        # already logged in, so skip straight to their home page
+        return _redirect_by_role(request.user)
+
+    # form is only used to check the typed email looks valid; the lookup is done by hand below
+    form = ForgotPasswordForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        email = request.POST.get('email', '')  # email address typed on the page
+        matching_user = User.objects.filter(email=email).first()  # the account with this email, if any
+
+        if matching_user:
+            # a token tied to this account's current password hash - it stops working once used or the password changes
+            token = default_token_generator.make_token(matching_user)
+            # the account's id, encoded so it is safe to put inside a url
+            uidb64 = urlsafe_base64_encode(force_bytes(matching_user.pk))
+            # the full clickable link, e.g. https://.../dashboard/users/reset-password/Mg/abc123/
+            reset_link = request.build_absolute_uri(reverse('reset_password_confirm', args=[uidb64, token]))
+            send_password_reset_email(matching_user, reset_link)  # email the link to this account
+
+        # same message either way, so this page can't be used to check which emails are registered
+        messages.success(request, 'If an account with that email exists, a reset link has been sent.')
+        return redirect('login')
+
+    return render(request, 'dashboard/auth/forgot_password.html', {'form': form})
+
+
+# lets someone set a new password after clicking the link from their reset email
+def reset_password_confirm_view(request, uidb64, token):
+    if request.user.is_authenticated:
+        # already logged in, so skip straight to their home page
+        return _redirect_by_role(request.user)
+
+    # decode the account id out of the url, or None if it is not a valid encoded id
+    try:
+        user_id = force_str(urlsafe_base64_decode(uidb64))
+        reset_user = get_object_or_404(User, pk=user_id)
+    except (TypeError, ValueError, OverflowError):
+        reset_user = None
+
+    # the token must belong to this exact account and still be valid (unused, password unchanged since)
+    if not reset_user or not default_token_generator.check_token(reset_user, token):
+        messages.error(request, 'This password reset link is invalid or has expired.')
+        return redirect('forgot_password')
+
+    # form is only used to check the typed passwords are valid; the actual save is done by hand below
+    form = SetNewPasswordForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        reset_user.set_password(request.POST.get('new_password', ''))  # set the new password (django hashes it)
+        reset_user.save()  # write the change to the database
+        messages.success(request, 'Your password has been reset. Please log in.')
+        return redirect('login')
+
+    return render(request, 'dashboard/auth/reset_password.html', {'form': form})
+
+
 # ── Patient Management ────────────────────────────────────────────────────────
 
+# lists every patient account
 @login_required
+@required_role(['admin', 'receptionist'], 'You do not have permission to view patients.')
 def patient_user_list(request):
     # only show users whose current role is "patient"
     # this stops old patients from showing here after their role gets changed (e.g. to pharmacist)
@@ -23,7 +147,9 @@ def patient_user_list(request):
     return render(request, 'dashboard/patient_management/patient_list.html', {'patients': patients})
 
 
+# registers a new patient: makes their login account, basic profile, and medical record
 @login_required
+@required_role(['admin', 'receptionist'], 'You do not have permission to add patients.')
 def patient_add(request):
     patient_user = User()  # a blank user, only used so the template can show default field values
     profile = UserProfile(role='patient')  # a blank profile
@@ -76,7 +202,9 @@ def patient_add(request):
     })
 
 
+# updates an existing patient's account, profile, and medical record
 @login_required
+@required_role(['admin', 'receptionist'], 'You do not have permission to edit patients.')
 def patient_edit(request, patient_id):
     # find the patient we want to edit, or show a 404 page if they don't exist
     patient = get_object_or_404(PatientProfile, pk=patient_id)
@@ -87,6 +215,9 @@ def patient_edit(request, patient_id):
 
     # form is only used to check the typed data is valid; the actual save is done by hand below
     form = PatientEditForm(request.POST or None, current_user=patient_user)
+
+    # remembered before the save below overwrites it, so we can tell if status just changed to discharged
+    was_discharged = patient.status == 'discharged'
 
     if request.method == 'POST' and form.is_valid():
         # update the login account fields
@@ -117,6 +248,10 @@ def patient_edit(request, patient_id):
         patient.status = request.POST.get('status', 'active')  # patient status
         patient.save()  # write the changes to the database
 
+        if patient.status == 'discharged' and not was_discharged:
+            # status just changed to discharged here, so let the patient know by email
+            send_patient_discharge_email(patient_user)
+
         # show a success banner
         messages.success(request, f'Patient "{patient.user.get_full_name()}" updated successfully.')
         # go back to the patient list page
@@ -128,7 +263,9 @@ def patient_edit(request, patient_id):
     })
 
 
+# shows one patient's full profile and medical record
 @login_required
+@required_role(['admin', 'receptionist'], 'You do not have permission to view this patient.')
 def patient_detail(request, patient_id):
     # find the patient, or show a 404 page if they don't exist, loading related rows in one query
     patient = get_object_or_404(
@@ -138,7 +275,9 @@ def patient_detail(request, patient_id):
     return render(request, 'dashboard/patient_management/patient_detail.html', {'patient': patient})
 
 
+# deletes a patient's account and every profile row linked to it
 @login_required
+@required_role(['admin', 'receptionist'], 'You do not have permission to delete patients.')
 def patient_delete(request, patient_id):
     # find the patient we want to delete, or show a 404 page if they don't exist
     patient = get_object_or_404(PatientProfile, pk=patient_id)
@@ -157,7 +296,9 @@ def patient_delete(request, patient_id):
 
 # ── Staff Management ──────────────────────────────────────────────────────────
 
+# lists every staff account
 @login_required
+@required_role(['admin'], 'You do not have permission to view staff.')
 def staff_user_list(request):
     # get every staff profile, plus their linked User and StaffProfile rows, in one query
     profiles = UserProfile.objects.select_related('user', 'user__staff_profile').filter(role__in=STAFF_ROLES)
@@ -165,7 +306,9 @@ def staff_user_list(request):
     return render(request, 'dashboard/staff_management/staff_list.html', {'profiles': profiles})
 
 
+# registers a new staff member: makes their login account, profile, and employment record
 @login_required
+@required_role(['admin'], 'You do not have permission to add staff.')
 def staff_add(request):
     staff_user = User()  # a blank user, only used so the template can show default field values
     profile = UserProfile()  # a blank profile, only used so the template can show default field values
@@ -205,7 +348,9 @@ def staff_add(request):
     })
 
 
+# updates an existing staff member's account, profile, and employment record
 @login_required
+@required_role(['admin'], 'You do not have permission to edit staff.')
 def staff_edit(request, user_id):
     # find the staff member we want to edit, or show a 404 page if they don't exist
     staff_user = get_object_or_404(User, pk=user_id)
@@ -249,6 +394,7 @@ def staff_edit(request, user_id):
         staff_profile.employment_type = request.POST.get('employment_type', '')  # employment type
         staff_profile.shift = request.POST.get('shift', '')  # shift
         staff_profile.hourly_fee = request.POST.get('hourly_fee') or 0  # consultation fee (doctors only)
+        staff_profile.years_of_experience = request.POST.get('years_of_experience') or 0  # years of practice (doctors only)
         staff_profile.emergency_contact_name = request.POST.get('emergency_contact_name', '')  # emergency contact name
         staff_profile.emergency_contact_phone = request.POST.get('emergency_contact_phone', '')  # emergency contact phone
         staff_profile.save()  # write the changes to the database
@@ -265,7 +411,9 @@ def staff_edit(request, user_id):
     })
 
 
+# shows one staff member's full profile and employment record
 @login_required
+@required_role(['admin'], 'You do not have permission to view this staff member.')
 def staff_detail(request, user_id):
     # find the staff member, or show a 404 page if they don't exist
     staff_user = get_object_or_404(User, pk=user_id)
@@ -284,7 +432,9 @@ def staff_detail(request, user_id):
     })
 
 
+# deletes a staff member's account and every profile row linked to it
 @login_required
+@required_role(['admin'], 'You do not have permission to delete staff.')
 def staff_delete(request, user_id):
     # find the staff member we want to delete, or show a 404 page if they don't exist
     staff_user = get_object_or_404(User, pk=user_id)
@@ -303,11 +453,11 @@ def staff_delete(request, user_id):
 
 # ── Doctor Rooms ──────────────────────────────────────────────────────────────
 
+# lets staff assign or update the room number each doctor sees patients in
 @login_required
 @required_role(['admin', 'receptionist'], 'You do not have permission to manage doctor rooms.')
 def doctor_room_list(request):
-    # every active doctor, ordered by name
-    doctors = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')
+    doctors = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')  # every active doctor
 
     if request.method == 'POST':
         # go through every doctor and read the room number typed for them

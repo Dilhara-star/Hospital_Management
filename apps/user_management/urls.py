@@ -4,6 +4,12 @@ from django.conf import settings  # project settings (e.g. DEBUG, MEDIA_URL)
 from django.conf.urls.static import static  # serves uploaded files while developing
 
 urlpatterns = [
+    # Auth
+    path('login/', views.login_view, name='login'),  # /dashboard/users/login/
+    path('logout/', views.logout_view, name='logout'),  # /dashboard/users/logout/
+    path('forgot-password/', views.forgot_password_view, name='forgot_password'),  # /dashboard/users/forgot-password/
+    path('reset-password/<uidb64>/<token>/', views.reset_password_confirm_view, name='reset_password_confirm'),  # /dashboard/users/reset-password/.../
+
     # Patient management
     path('patients/', views.patient_user_list, name='patient_user_list'),  # /Users/patients/ shows every patient
     path('patients/add/', views.patient_add, name='patient_add'),  # /Users/patients/add/ registers a new patient

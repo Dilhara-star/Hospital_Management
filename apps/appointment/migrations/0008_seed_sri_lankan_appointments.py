@@ -46,9 +46,9 @@ def seed_appointments(apps, schema_editor):
     Appointment = apps.get_model('appointment', 'Appointment')
     DepartmentFee = apps.get_model('appointment', 'DepartmentFee')
     Payment = apps.get_model('appointment', 'Payment')
-    PrescriptionItem = apps.get_model('appointment', 'PrescriptionItem')
-    PharmacyOrder = apps.get_model('appointment', 'PharmacyOrder')
-    Medicine = apps.get_model('inventory', 'Medicine')
+    PrescriptionItem = apps.get_model('pharmacy', 'PrescriptionItem')
+    PharmacyOrder = apps.get_model('pharmacy', 'PharmacyOrder')
+    Medicine = apps.get_model('stock', 'Medicine')
 
     today = date.today()  # today's date, used for every appointment date calculation below
 
@@ -201,7 +201,8 @@ class Migration(migrations.Migration):
     dependencies = [
         ('appointment', '0007_seed_department_fees'),
         ('user_management', '0014_seed_sri_lankan_people'),
-        ('inventory', '0004_seed_pharmacy_catalog'),
+        ('stock', '0002_seed_medicine_catalog'),
+        ('pharmacy', '0001_initial'),
     ]
 
     operations = [

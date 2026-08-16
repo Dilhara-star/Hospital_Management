@@ -75,7 +75,7 @@
                     <div class="card border-left-primary shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Collected</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_collected }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ total_collected }}</div>
                         </div>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
                     <div class="card border-left-success shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Doctor Take-Home</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ take_home }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ take_home }}</div>
                         </div>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
                     <div class="card border-left-info shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Hospital Share</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ hospital_share }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ hospital_share }}</div>
                         </div>
                     </div>
                 </div>
@@ -128,8 +128,8 @@
                                 <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
-                            <td>{% if appointment.payment %}${{ appointment.payment.doctor_fee_amount }}{% else %}-{% endif %}</td>
-                            <td>{% if appointment.payment %}${{ appointment.payment.amount }}{% else %}-{% endif %}</td>
+                            <td>{% if appointment.payment %}Rs. {{ appointment.payment.doctor_fee_amount }}{% else %}-{% endif %}</td>
+                            <td>{% if appointment.payment %}Rs. {{ appointment.payment.amount }}{% else %}-{% endif %}</td>
                         </tr>
                         {% empty %}
                         <tr>

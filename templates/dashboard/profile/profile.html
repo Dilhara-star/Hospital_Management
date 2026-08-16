@@ -42,7 +42,7 @@
                     {% if profile.role == 'doctor' and sp %}
                     {# doctors can see their own consultation fee here, but can only change it by asking an admin #}
                     <p class="text-gray-500 small mb-3">
-                        <i class="fas fa-money-bill-wave"></i> Hourly Fee: ${{ sp.hourly_fee }}
+                        <i class="fas fa-money-bill-wave"></i> Hourly Fee: Rs. {{ sp.hourly_fee }}
                     </p>
                     {% endif %}
 

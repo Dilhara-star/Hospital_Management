@@ -2,8 +2,35 @@ from django import forms  # django's form tools
 from django.contrib.auth.models import User  # built-in user model (login, username, password)
 from .models import UserProfile, PatientProfile, StaffProfile  # our own profile models
 
-# role codes that count as "staff" (not a patient, not a plain "user")
-STAFF_ROLES = ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'lab_technician']
+# role codes offered on the staff Role dropdown - lab technician is left out on purpose,
+# so it can no longer be picked here (existing lab technician accounts still work fine)
+STAFF_ROLES = ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist']
+
+
+# ── Auth Forms ────────────────────────────────────────────────────────────────
+
+class ForgotPasswordForm(forms.Form):
+    """Field checked on the "forgot password" page. The lookup/email happens in the view."""
+    email = forms.EmailField(required=True)  # email text box
+
+
+class SetNewPasswordForm(forms.Form):
+    """Fields checked when setting a new password from a reset link. Saving happens in the view."""
+    new_password = forms.CharField(widget=forms.PasswordInput)  # new password text box (hidden characters)
+    confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm new password text box (hidden characters)
+
+    # stops the reset if the two new password boxes don't match
+    def clean(self):
+        # run the normal checks first
+        cleaned_data = super().clean()
+        # get both new password values
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
+        # show an error if they typed the passwords differently
+        if new_password and confirm_password and new_password != confirm_password:
+            self.add_error('confirm_password', 'Passwords do not match.')
+        # give back the checked data
+        return cleaned_data
 
 
 # ── Patient Forms ─────────────────────────────────────────────────────────────
@@ -38,6 +65,7 @@ class PatientCreateForm(forms.Form):
     # Status
     status = forms.ChoiceField(choices=PatientProfile.STATUS_CHOICES)  # patient status drop-down (active, inactive, discharged)
 
+    # stops two patients from sharing the same username
     def clean_username(self):
         # pull the cleaned username value out of the form
         username = self.cleaned_data['username']
@@ -47,6 +75,7 @@ class PatientCreateForm(forms.Form):
         # username is free to use
         return username
 
+    # stops two patients from sharing the same email address
     def clean_email(self):
         # pull the cleaned email value out of the form
         email = self.cleaned_data['email']
@@ -56,6 +85,7 @@ class PatientCreateForm(forms.Form):
         # email is free to use
         return email
 
+    # stops registration if the two password boxes don't match
     def clean(self):
         # run the normal checks first
         cleaned_data = super().clean()
@@ -97,12 +127,14 @@ class PatientEditForm(forms.Form):
     # Status
     status = forms.ChoiceField(choices=PatientProfile.STATUS_CHOICES)  # patient status drop-down (active, inactive, discharged)
 
+    # remembers which patient is being edited, so clean_username/clean_email can allow them to keep their own values
     def __init__(self, *args, current_user=None, **kwargs):
         # remember which user is being edited, so we can allow them to keep their own username/email
         self.current_user = current_user
         # run the normal form setup
         super().__init__(*args, **kwargs)
 
+    # stops this patient from switching to a username another account already uses
     def clean_username(self):
         # pull the cleaned username value out of the form
         username = self.cleaned_data['username']
@@ -117,6 +149,7 @@ class PatientEditForm(forms.Form):
         # username is free to use
         return username
 
+    # stops this patient from switching to an email another account already uses
     def clean_email(self):
         # pull the cleaned email value out of the form
         email = self.cleaned_data['email']
@@ -157,6 +190,7 @@ class StaffCreateForm(forms.Form):
     confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm password text box (hidden characters)
     is_active = forms.BooleanField(required=False, initial=True)  # checkbox for whether the account can log in
 
+    # stops two staff members from sharing the same username
     def clean_username(self):
         # pull the cleaned username value out of the form
         username = self.cleaned_data['username']
@@ -166,6 +200,7 @@ class StaffCreateForm(forms.Form):
         # username is free to use
         return username
 
+    # stops two staff members from sharing the same email address
     def clean_email(self):
         # pull the cleaned email value out of the form
         email = self.cleaned_data['email']
@@ -175,6 +210,7 @@ class StaffCreateForm(forms.Form):
         # email is free to use
         return email
 
+    # stops registration if the two password boxes don't match
     def clean(self):
         # run the normal checks first
         cleaned_data = super().clean()
@@ -210,16 +246,19 @@ class StaffEditForm(forms.Form):
     employment_type = forms.ChoiceField(choices=StaffProfile.EMPLOYMENT_TYPE_CHOICES, required=False)  # employment type drop-down
     shift = forms.ChoiceField(choices=StaffProfile.SHIFT_CHOICES, required=False)  # shift drop-down
     hourly_fee = forms.DecimalField(required=False, min_value=0)  # doctor's own consultation fee (doctors only)
+    years_of_experience = forms.IntegerField(required=False, min_value=0)  # doctor's years of practice (doctors only)
     # Emergency contact
     emergency_contact_name = forms.CharField(max_length=100, required=False)  # emergency contact name text box
     emergency_contact_phone = forms.CharField(max_length=20, required=False)  # emergency contact phone text box
 
+    # remembers which staff member is being edited, so clean_username/clean_email can allow them to keep their own values
     def __init__(self, *args, current_user=None, **kwargs):
         # remember which user is being edited, so we can allow them to keep their own username/email
         self.current_user = current_user
         # run the normal form setup
         super().__init__(*args, **kwargs)
 
+    # stops this staff member from switching to a username another account already uses
     def clean_username(self):
         # pull the cleaned username value out of the form
         username = self.cleaned_data['username']
@@ -234,6 +273,7 @@ class StaffEditForm(forms.Form):
         # username is free to use
         return username
 
+    # stops this staff member from switching to an email another account already uses
     def clean_email(self):
         # pull the cleaned email value out of the form
         email = self.cleaned_data['email']

@@ -51,7 +51,7 @@ loaded in `Hospital_Management/settings.py` with `python-dotenv`:
 ```
 BREVO_API_KEY=your-brevo-api-key-here
 BREVO_SENDER_EMAIL=your-verified-sender@example.com
-BREVO_SENDER_NAME=City Hospital
+BREVO_SENDER_NAME=Medi Plus
 ```
 
 Copy `.env.example` to `.env` and fill in your real values. See the Brevo

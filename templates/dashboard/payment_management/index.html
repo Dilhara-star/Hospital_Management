@@ -1,0 +1,125 @@
+{% extends 'dashboard/layouts/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Payments</h1>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-money-bill-wave mr-1"></i> All Payments
+            </h6>
+            <span class="badge badge-primary badge-pill">{{ page_obj.paginator.count }} total</span>
+        </div>
+        <div class="card-body">
+
+            <!-- search box and status filter, both submit as a normal GET request -->
+            <form method="get" class="form-inline mb-3">
+                <input type="text" name="q" value="{{ search_query }}" class="form-control mr-2"
+                    placeholder="Search patient name or transaction ref">
+                <select name="status" class="form-control mr-2">
+                    <option value="">All Statuses</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if value == status_filter %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Transaction Ref</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Amount (Rs.)</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Paid At</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in page_obj %}
+                        <tr>
+                            <td>{{ payment.transaction_ref|default:"-" }}</td>
+                            <td>
+                                <div class="font-weight-bold">{{ payment.appointment.patient_name }}</div>
+                            </td>
+                            <td>
+                                {% if payment.appointment.doctor %}Dr. {{ payment.appointment.doctor.get_full_name }}{% else %}<span class="text-muted">-</span>{% endif %}
+                            </td>
+                            <td>{{ payment.amount }}</td>
+                            <td>{{ payment.get_method_display }}</td>
+                            <td>
+                                {% if payment.status == 'paid' %}
+                                <span class="badge badge-success">Paid</span>
+                                {% elif payment.status == 'refunded' %}
+                                <span class="badge badge-info">Refunded</span>
+                                {% else %}
+                                <span class="badge badge-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ payment.paid_at|default:"-" }}</td>
+                            <td class="text-center text-nowrap">
+                                <a href="{% url 'appointment_view' payment.appointment.pk %}" class="btn btn-sm btn-info" title="View Appointment">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if payment.status == 'paid' %}
+                                <form method="post" action="{% url 'payment_refund' payment.pk %}" class="d-inline"
+                                    onsubmit="return confirm('Refund this payment and cancel the appointment?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Refund">
+                                        <i class="fas fa-undo"></i> Refund
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="fas fa-money-bill-wave fa-2x mb-2 d-block"></i>
+                                No payments found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-3">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}">Previous</a></li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
