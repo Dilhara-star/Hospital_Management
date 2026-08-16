@@ -22,8 +22,6 @@ Tasks ——————————-
 13.User cant cancel appointment in last 24hrs.
 
 
-
-
 Check each user role below and analyze whether it has the correct access permissions. If a role lacks necessary access, update its permissions for user validation purposes.
 For example, if a user has the customer role, they should not have access to the Dashboard, its submenus, or its actions.
 Please provide a simple implementation plan using a permission decorator approach, like @required_permission(['admin', 'doctor']).
@@ -31,12 +29,6 @@ Give me plan
 
 When user for Appoiment (oneline or pay at hospital), then Send payment bill to user via exsting email. 
 Give me professional Bill and detail plan
-
-
-
-
-
-
 
 
 analys this medical managemnt system, give me all reports that can generate based on Models of this site. list based on user role.(
@@ -57,11 +49,6 @@ i need to complete this projects that why. also check there are any dead links.
 Give me plan
 
 
-
-
-
-
-
 1. Make apps for each differnce Topics. Currently appointment app's views.py handle 'pharmacy_order', 'pay_medicine_online' that not related to appointment. like that 
 find other app's functions that not relavent to the app. make seperate apps for them and move to them. bcz this project should be 
 understand any beginer level student easily. so he should can  find any function easily well organaized way.
@@ -79,20 +66,19 @@ understand any beginer level student easily. so he should can  find any function
 Give me Plan
 
 
+-----------------------------------------------------------------------------------------------------
+8/17 Monday me pahala deka karanna
+
 
 
 Make Blog Section for SEO. - New app. Totally CRUD.
 Remove Contact us from dashboard. and contact us form directly send email to admin.
-
-
 
 http://127.0.0.1:8000/dashboard/stock/medicines/
 meke re order levels meet unama mail eka yanna hadanna. (ape danuth mail ekak ynwa eka waradi mekath ekka)
 
 
 
-
-
-
+----------------------------------------------------------------------------------------------------
 i have Viva on next week. this project is done by you. so i dont have ideas about where is the all function are exsting.
 give me Guide. below is the sample Questions that can ask. 
