@@ -1,12 +1,16 @@
+from datetime import date, timedelta  # date tools used by the medicine expiry report
 from django.contrib import messages  # lets us show "success"/"error" banners after an action
 from django.contrib.auth.decorators import login_required  # blocks a view unless the user is logged in
 from django.contrib.auth.models import User  # built-in user model (login, username, password)
 from django.core.paginator import Paginator  # splits a long list of appointments into pages
+from django.db.models import Sum, Count, F  # aggregation tools used by the stock and staff reports
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string  # turns a template into an HTML string, used for PDFs
 from django.http import HttpResponse
 from apps.appointment.models import Appointment, DepartmentFee  # the rows reports are built from
-from apps.pharmacy.models import PharmacyOrder  # the medicine orders pharmacy revenue reports are built from
+from apps.pharmacy.models import PharmacyOrder, PrescriptionItem  # the medicine orders and prescribed items reports are built from
+from apps.stock.models import Medicine, MedicineStock  # the medicine catalog and stock batches reports are built from
+from apps.user_management.models import PatientProfile, StaffProfile, UserProfile  # the patient and staff records reports are built from
 from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
 
 
@@ -369,3 +373,216 @@ def hospital_appointment_status_report(request):
     context['page_obj'] = paginator.get_page(page_number)  # the one page of appointments to show right now
 
     return render(request, 'dashboard/report_management/appointment_status.html', context)
+
+
+# shows every medicine whose total stock has fallen to or below its reorder level
+@login_required
+@required_role(['admin', 'pharmacist'], 'You do not have permission to view reports.')
+def low_stock_report(request):
+    medicines = Medicine.objects.all().order_by('name')  # every medicine in the catalog, alphabetical
+    # keep only the medicines that need reordering, using the model's own is_low_stock property
+    low_stock_medicines = [medicine for medicine in medicines if medicine.is_low_stock]
+
+    context = {'low_stock_medicines': low_stock_medicines}  # values the template and PDF both need
+
+    if request.GET.get('download') == 'pdf':
+        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
+        html = render_to_string('dashboard/report_management/low_stock_pdf.html', context)  # turn the template into an html string
+        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
+        response['Content-Disposition'] = 'attachment; filename="low_stock.pdf"'  # force a download prompt
+        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
+        return response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/low_stock.html', context)
+
+
+# shows stock batches that have already expired, or will expire within the next 30 days
+@login_required
+@required_role(['admin', 'pharmacist'], 'You do not have permission to view reports.')
+def medicine_expiry_report(request):
+    cutoff_date = date.today() + timedelta(days=30)  # anything expiring on or before this date is worth showing
+
+    # only batches that still have stock left, closest expiry first
+    batches = MedicineStock.objects.select_related('medicine').filter(
+        expiry_date__lte=cutoff_date, quantity__gt=0
+    ).order_by('expiry_date')
+
+    # split into two lists using the model's own is_expired property, so the template can show them separately
+    expired_batches = [batch for batch in batches if batch.is_expired]
+    expiring_soon_batches = [batch for batch in batches if not batch.is_expired]
+
+    context = {
+        'expired_batches': expired_batches,
+        'expiring_soon_batches': expiring_soon_batches,
+    }
+
+    if request.GET.get('download') == 'pdf':
+        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
+        html = render_to_string('dashboard/report_management/medicine_expiry_pdf.html', context)  # turn the template into an html string
+        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
+        response['Content-Disposition'] = 'attachment; filename="medicine_expiry.pdf"'  # force a download prompt
+        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
+        return response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/medicine_expiry.html', context)
+
+
+# shows every medicine ranked by how many units were prescribed, with an estimated revenue
+@login_required
+@required_role(['admin', 'pharmacist'], 'You do not have permission to view reports.')
+def medicine_sales_report(request):
+    start_date = request.GET.get('start_date', '')  # read the "from" date typed in the filter form
+    end_date = request.GET.get('end_date', '')  # read the "to" date typed in the filter form
+    context = {'start_date': start_date, 'end_date': end_date}
+
+    items = PrescriptionItem.objects.select_related('medicine')  # every prescribed medicine row
+    if start_date:
+        items = items.filter(created_at__date__gte=start_date)  # drop rows prescribed before the "from" date
+    if end_date:
+        items = items.filter(created_at__date__lte=end_date)  # drop rows prescribed after the "to" date
+
+    # group the rows by medicine, adding up how many units and how many times each was prescribed
+    sales_rows = items.values('medicine__id', 'medicine__name', 'medicine__price').annotate(
+        total_quantity=Sum('quantity'),
+        times_prescribed=Count('id'),
+    ).order_by('-total_quantity')
+
+    sales = []  # final list, one row per medicine, with its estimated revenue added in
+    grand_total_revenue = 0  # estimated revenue across every medicine, at current catalog price
+    for row in sales_rows:
+        revenue = row['total_quantity'] * row['medicine__price']  # units sold x current price
+        grand_total_revenue += revenue
+        sales.append({
+            'name': row['medicine__name'],
+            'total_quantity': row['total_quantity'],
+            'times_prescribed': row['times_prescribed'],
+            'price': row['medicine__price'],
+            'revenue': revenue,
+        })
+
+    context['sales'] = sales
+    context['grand_total_revenue'] = grand_total_revenue
+
+    if request.GET.get('download') == 'pdf':
+        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
+        html = render_to_string('dashboard/report_management/medicine_sales_pdf.html', context)  # turn the template into an html string
+        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
+        response['Content-Disposition'] = 'attachment; filename="medicine_sales.pdf"'  # force a download prompt
+        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
+        return response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/medicine_sales.html', context)
+
+
+# shows how much money the current medicine stock is worth, per medicine and in total
+@login_required
+@required_role(['admin', 'pharmacist'], 'You do not have permission to view reports.')
+def stock_valuation_report(request):
+    # only batches with a known purchase price add real value to the total
+    batches = MedicineStock.objects.select_related('medicine').filter(purchase_price__isnull=False)
+
+    # group the batches by medicine, adding up quantity and (quantity x purchase price) per medicine
+    valuation_rows = batches.values('medicine__id', 'medicine__name').annotate(
+        total_quantity=Sum('quantity'),
+        total_value=Sum(F('quantity') * F('purchase_price')),
+    ).order_by('-total_value')
+
+    context = {
+        'valuation_rows': valuation_rows,
+        'grand_total_value': sum(row['total_value'] or 0 for row in valuation_rows),  # add up every medicine's value
+    }
+
+    if request.GET.get('download') == 'pdf':
+        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
+        html = render_to_string('dashboard/report_management/stock_valuation_pdf.html', context)  # turn the template into an html string
+        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
+        response['Content-Disposition'] = 'attachment; filename="stock_valuation.pdf"'  # force a download prompt
+        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
+        return response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/stock_valuation.html', context)
+
+
+# shows patients registered in a date range, plus active/inactive/discharged counts
+@login_required
+@required_role(['admin'], 'You do not have permission to view reports.')
+def patient_registration_report(request):
+    # hospital-wide list of every patient, so only admin may open it
+    start_date = request.GET.get('start_date', '')  # read the "from" date typed in the filter form
+    end_date = request.GET.get('end_date', '')  # read the "to" date typed in the filter form
+
+    patients = PatientProfile.objects.select_related('user').order_by('-registered_date')  # every patient, newest first
+    if start_date:
+        patients = patients.filter(registered_date__gte=start_date)  # drop patients registered before the "from" date
+    if end_date:
+        patients = patients.filter(registered_date__lte=end_date)  # drop patients registered after the "to" date
+
+    # counts are worked out before the list is cut into pages, so they always cover the full filtered set
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'total_count': patients.count(),
+        'active_count': patients.filter(status='active').count(),
+        'inactive_count': patients.filter(status='inactive').count(),
+        'discharged_count': patients.filter(status='discharged').count(),
+    }
+
+    if request.GET.get('download') == 'pdf':
+        # the PDF gets the full list, not just one page
+        context['patients'] = patients
+        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
+        html = render_to_string('dashboard/report_management/patient_registration_pdf.html', context)  # turn the template into an html string
+        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
+        response['Content-Disposition'] = 'attachment; filename="patient_registration.pdf"'  # force a download prompt
+        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
+        return response  # send the pdf back to the browser
+
+    # the on-screen page shows 25 patients at a time, so the list stays fast even with many rows
+    paginator = Paginator(patients, 25)  # split the queryset into pages of 25 rows each
+    page_number = request.GET.get('page')  # which page the user asked for, from the URL
+    context['page_obj'] = paginator.get_page(page_number)  # the one page of patients to show right now
+
+    return render(request, 'dashboard/report_management/patient_registration.html', context)
+
+
+# shows how many staff members work in each department, and how many hold each role
+@login_required
+@required_role(['admin'], 'You do not have permission to view reports.')
+def staff_headcount_report(request):
+    # hospital-wide staff counts, so only admin may open it
+
+    # every staff record grouped by department, busiest department first
+    department_rows = StaffProfile.objects.exclude(department='').values('department').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    department_labels = dict(StaffProfile.DEPARTMENT_CHOICES)  # turns 'cardiology' into 'Cardiology' for display
+    department_stats = [
+        {'label': department_labels.get(row['department'], row['department']), 'count': row['count']}
+        for row in department_rows
+    ]
+
+    # every staff record grouped by role, most common role first
+    role_rows = StaffProfile.objects.select_related('user__profile').values('user__profile__role').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    role_labels = dict(UserProfile.ROLE_CHOICES)  # turns 'doctor' into 'Doctor' for display
+    role_stats = [
+        {'label': role_labels.get(row['user__profile__role'], row['user__profile__role']), 'count': row['count']}
+        for row in role_rows
+    ]
+
+    context = {
+        'department_stats': department_stats,
+        'role_stats': role_stats,
+        'total_staff': StaffProfile.objects.count(),
+    }
+
+    if request.GET.get('download') == 'pdf':
+        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
+        html = render_to_string('dashboard/report_management/staff_headcount_pdf.html', context)  # turn the template into an html string
+        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
+        response['Content-Disposition'] = 'attachment; filename="staff_headcount.pdf"'  # force a download prompt
+        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
+        return response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/staff_headcount.html', context)

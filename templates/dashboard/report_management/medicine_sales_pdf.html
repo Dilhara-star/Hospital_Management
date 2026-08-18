@@ -1,0 +1,47 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+</style>
+</head>
+<body>
+
+    <h1>Medicine Sales Report</h1>
+    <p class="sub">
+        {% if start_date or end_date %}{{ start_date|default:"the start" }} to {{ end_date|default:"today" }}{% else %}All time{% endif %}
+        &mdash; Estimated total revenue: Rs. {{ grand_total_revenue }}
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Medicine</th>
+                <th>Units Prescribed</th>
+                <th>Times Prescribed</th>
+                <th>Current Price</th>
+                <th>Estimated Revenue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in sales %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.total_quantity }}</td>
+                <td>{{ row.times_prescribed }}</td>
+                <td>Rs. {{ row.price }}</td>
+                <td>Rs. {{ row.revenue }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

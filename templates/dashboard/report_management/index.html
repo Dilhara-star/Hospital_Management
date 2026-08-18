@@ -89,10 +89,37 @@
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="card shadow">
                 <div class="card-body text-center">
-                    <i class="fas fa-calendar-check fa-2x text-primary mb-3"></i>
-                    <h5>Appointment Status</h5>
-                    <p class="text-muted small">Pending / confirmed / cancelled counts across every doctor and department.</p>
-                    <a href="{% url 'hospital_appointment_status_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                    <i class="fas fa-users fa-2x text-primary mb-3"></i>
+                    <h5>Staff Headcount</h5>
+                    <p class="text-muted small">Staff count broken down by department and by role.</p>
+                    <a href="{% url 'staff_headcount_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if request.user.profile.role == 'admin' or request.user.profile.role == 'pharmacist' %}
+    {# pharmacy and stock reports matter to whoever manages the medicine counter, so admin and pharmacist both see this section #}
+    <h6 class="text-gray-500 font-weight-bold mb-3">Pharmacy &amp; Stock</h6>
+    <div class="row">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-times fa-2x text-primary mb-3"></i>
+                    <h5>Medicine Expiry</h5>
+                    <p class="text-muted small">Batches already expired, or expiring within the next 30 days.</p>
+                    <a href="{% url 'medicine_expiry_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-2x text-primary mb-3"></i>
+                    <h5>Stock Valuation</h5>
+                    <p class="text-muted small">How much money the current medicine stock is worth.</p>
+                    <a href="{% url 'stock_valuation_report' %}" class="btn btn-primary btn-sm">View Report</a>
                 </div>
             </div>
         </div>

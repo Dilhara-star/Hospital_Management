@@ -1,0 +1,141 @@
+HOW TO ADD AN AGE-BASED DISCOUNT TO THE APPOINTMENT BILL (SHOWS ON PDF TOO)
+==============================================================================
+
+Goal: patients below age 10 get 10% off their consultation bill.
+The discount amount must be visible on the bill / PDF, not just a smaller total.
+
+This guide only explains the steps. No code has been changed yet.
+
+
+WHERE THE BILL IS BUILT TODAY (for context)
+------------------------------------------------------------------------------
+- apps/appointment/models.py
+    Appointment.patient_age   -> already stores the patient's age. Nothing to add here.
+    Payment.amount            -> the total the patient pays (department fee + doctor fee).
+
+- apps/appointment/views.py, function _create_appointment_payment_record()
+    This is where "amount" is worked out and the Payment row is created,
+    for both online payment and cash-at-reception bookings.
+
+- apps/appointment/views.py, function download_appointment_bill()
+    This builds the PDF using templates/frontend/appointment/appointment_bill_pdf.html
+
+- templates/frontend/appointment/appointment_bill_pdf.html
+    The actual PDF layout (uses xhtml2pdf, so keep the CSS simple).
+
+
+STEP 1: Add a new field to store the discount amount
+------------------------------------------------------------------------------
+In apps/appointment/models.py, inside class Payment, add one field next to "amount":
+
+    discount_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    # money taken off for the age discount. 0 means no discount was given.
+
+Why a new field: if you only shrink "amount", the bill will show a smaller
+total but nobody can tell WHY it is smaller. Keeping the discount in its own
+field lets the PDF print a separate "Age Discount" line.
+
+Then run, in the terminal:
+    python manage.py makemigrations appointment
+    python manage.py migrate
+
+Old, already-paid appointments will just get discount_amount = 0, which is fine.
+
+
+STEP 2: Work out the discount when the Payment row is created
+------------------------------------------------------------------------------
+Still in apps/appointment/views.py, inside _create_appointment_payment_record(),
+find this existing line:
+
+    fee_amount = department_fee + doctor_fee  # total the patient pays
+
+Right after it, add the age check:
+
+    # children below 10 years old get 10% off the total fee
+    discount_amount = 0
+    if appointment.patient_age < 10:
+        discount_amount = fee_amount * Decimal('0.10')  # 10% of the total
+    fee_amount = fee_amount - discount_amount  # final amount after discount
+
+(Decimal is already imported at the top of this file, so nothing new to import.)
+
+Then update the Payment.objects.create(...) call a few lines below to also save it:
+
+    Payment.objects.create(
+        appointment=appointment,
+        amount=fee_amount,               # this is now the amount AFTER discount
+        discount_amount=discount_amount, # how much was taken off, so the bill can show it
+        doctor_fee_amount=doctor_fee,
+        ...keep the rest of the fields exactly as they are now...
+    )
+
+To use a different rule later (different age, different %), only these few
+lines change - nothing else in the project needs to know about it.
+
+
+STEP 3: Fix the fee breakdown on the PDF view
+------------------------------------------------------------------------------
+In download_appointment_bill(), this existing line works out the department
+fee by subtracting the doctor's fee from the total:
+
+    department_fee = payment.amount - payment.doctor_fee_amount
+
+Problem: after Step 2, payment.amount is already AFTER the discount, so this
+line would now show a wrong (too small) department fee. Fix it by adding the
+discount back first:
+
+    amount_before_discount = payment.amount + payment.discount_amount
+    department_fee = amount_before_discount - payment.doctor_fee_amount
+    doctor_fee = payment.doctor_fee_amount
+
+Then pass discount_amount into the template too:
+
+    html = render_to_string('frontend/appointment/appointment_bill_pdf.html', {
+        'appointment': appointment,
+        'payment': payment,
+        'department_fee': department_fee,
+        'doctor_fee': doctor_fee,
+        'discount_amount': payment.discount_amount,
+    })
+
+
+STEP 4: Show the discount line on the PDF
+------------------------------------------------------------------------------
+In templates/frontend/appointment/appointment_bill_pdf.html, inside the
+"items" table, after the doctor's fee row, add:
+
+    {% if payment.discount_amount %}
+    <tr>
+        <td>Age Discount (10%)</td>
+        <td class="amount">- Rs. {{ payment.discount_amount }}</td>
+    </tr>
+    {% endif %}
+
+The "Total Amount" row at the bottom already prints {{ payment.amount }},
+which is the final discounted total, so that row needs no change.
+
+
+STEP 5 (OPTIONAL): show it on other pages too
+------------------------------------------------------------------------------
+Right now the discount will already be correct everywhere, because
+payment.amount is the real final amount - screens like the patient's
+"My Appointments" bill view, the dashboard payment list, and revenue
+reports all just read payment.amount as before.
+
+If you also want an explicit "Age Discount: Rs. X" line on a screen
+(not just the PDF), pass payment.discount_amount into that view/template
+the same way as Step 3-4. Good candidates, if wanted later:
+    - templates/dashboard/appointment_management/view.html
+    - templates/frontend/payment/history.html
+
+
+NOTES
+------------------------------------------------------------------------------
+- To change the age cutoff (e.g. below 12 instead of below 10), change the
+  "if appointment.patient_age < 10:" line in Step 2.
+- To change the percentage (e.g. 15% instead of 10%), change Decimal('0.10')
+  to Decimal('0.15') in Step 2.
+- The discount is decided once, at booking time, using the age typed into
+  the "patient_age" field on the booking form - no extra form field needed.
+- Money math always uses Decimal (never float), so amounts stay exact -
+  this project already does this everywhere else too.

@@ -1,0 +1,677 @@
+URL -> CODE LINE MAP
+=====================
+For each URL: urls.py line, views.py function+line, forms.py class+line (if any),
+email trigger (which send_..._email() call fires and from where), and notification
+file data (the notifications.py function + line that actually builds/sends the email).
+
+
+##################################################
+#              FRONTEND URLS (PUBLIC)            #
+##################################################
+
+App: apps/frontend/   (urls file: apps/frontend/urls.py)
+
+URL: /
+  urls.py      -> line 8
+  views.py     -> frontend_index (line 21)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /profile/
+  urls.py      -> line 9
+  views.py     -> profile_view (line 60)
+  forms.py     -> ProfileDetailsForm (line 6), ProfilePictureForm (line 37), ChangePasswordForm (line 42)   [file: apps/frontend/forms.py]
+  email        -> none
+  notify.py    -> none
+
+URL: /patient-portal/
+  urls.py      -> line 10
+  views.py     -> patient_portal (line 112)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /doctors/
+  urls.py      -> line 11
+  views.py     -> doctor_list (line 28)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /doctors/<pk>/
+  urls.py      -> line 12
+  views.py     -> doctor_detail (line 53)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+--------------------------------------------------
+
+App: apps/core/   (urls file: apps/core/urls.py)
+
+URL: /core/about-us
+  urls.py      -> line 7
+  views.py     -> about_us (line 5)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+--------------------------------------------------
+
+App: apps/contact/  (public part)   (urls file: apps/contact/urls.py)
+
+URL: /contact/index/
+  urls.py      -> line 6
+  views.py     -> contact_us_index (line 13)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /contact/add_contact/
+  urls.py      -> line 7
+  views.py     -> add_contact (line 19)
+  forms.py     -> ContactForm (line 6)   [file: apps/contact/forms.py]
+  email        -> send_contact_inquiry_admin_email() (line 30) - fires on every valid submit, tells the admin
+  notify.py    -> send_contact_inquiry_admin_email (line 7)   [file: apps/contact/notifications.py]
+
+--------------------------------------------------
+
+App: apps/appointment/  (public part)   (urls file: apps/appointment/urls.py)
+
+URL: /Appointment/
+  urls.py      -> line 8
+  views.py     -> appointment_form (line 358)
+  forms.py     -> AppointmentForm (line 10)   [file: apps/appointment/forms.py]
+  email        -> send_doctor_assignment_email() (line 389, only if a doctor was picked),
+                  send_appointment_confirmation_email() + send_appointment_confirmation_email_admin()
+                  (via _create_appointment_payment_record() line 391, only when paid online),
+                  send_email_appointment_without_payment() (line 396, only when paying at the hospital)
+  notify.py    -> send_doctor_assignment_email (line 286), send_appointment_confirmation_email (line 19),
+                  send_appointment_confirmation_email_admin (line 71), send_email_appointment_without_payment (line 116)
+                  [file: apps/appointment/notifications.py]
+
+URL: /Appointment/my/
+  urls.py      -> line 9
+  views.py     -> my_appointments (line 419)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /Appointment/my/<pk>/
+  urls.py      -> line 10
+  views.py     -> my_appointments (line 419)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /Appointment/payments/
+  urls.py      -> line 11
+  views.py     -> payment_history (line 460)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /Appointment/my/<pk>/bill/appointment.pdf
+  urls.py      -> line 12
+  views.py     -> download_appointment_bill (line 479)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /Appointment/edit_appointment/<pk>/
+  urls.py      -> line 13
+  views.py     -> edit_appointment (line 506)
+  forms.py     -> AppointmentEditForm (line 53)   [file: apps/appointment/forms.py]
+  email        -> send_appointment_update_email() (line 517) - patient rescheduled their own appointment
+  notify.py    -> send_appointment_update_email (line 154)   [file: apps/appointment/notifications.py]
+
+URL: /Appointment/cancel/<pk>/
+  urls.py      -> line 14
+  views.py     -> cancel_appointment (line 528)
+  forms.py     -> none
+  email        -> send_appointment_cancellation_email() (line 555) - only the cash/no-payment path; online paid goes to refund instead
+  notify.py    -> send_appointment_cancellation_email (line 198)   [file: apps/appointment/notifications.py]
+
+URL: /Appointment/refund/<pk>/
+  urls.py      -> line 15
+  views.py     -> refund_appointment (line 562)
+  forms.py     -> none
+  email        -> none (this view only shows the confirm page, see refund/<pk>/process/ below)
+  notify.py    -> none
+
+URL: /Appointment/refund/<pk>/process/
+  urls.py      -> line 18
+  views.py     -> appointment_refund_process_by_patient (line 583)
+  forms.py     -> none
+  email        -> send_appointment_refund_email() (line 605) - patient confirmed the online refund
+  notify.py    -> send_appointment_refund_email (line 241)   [file: apps/appointment/notifications.py]
+
+--------------------------------------------------
+
+App: apps/pharmacy/  (public part)   (urls file: apps/pharmacy/urls.py)
+
+URL: /pharmacy/my/<pk>/pay-medicine/
+  urls.py      -> line 6
+  views.py     -> pay_medicine_online (line 228)
+  forms.py     -> none
+  email        -> send_medicine_payment_confirmation_email() (line 238) - patient paid for their medicine online
+  notify.py    -> send_medicine_payment_confirmation_email (line 63)   [file: apps/pharmacy/notifications.py]
+
+URL: /pharmacy/my/<pk>/bill/medicine.pdf
+  urls.py      -> line 7
+  views.py     -> download_medicine_bill (line 246)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+
+##################################################
+#           DASHBOARD URLS (STAFF ONLY)          #
+#         (every URL starts with /dashboard/)    #
+##################################################
+
+App: apps/dashboard/   (urls file: apps/dashboard/urls.py)
+
+URL: /dashboard/
+  urls.py      -> line 7
+  views.py     -> dashboard_index (line 39)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/register/
+  urls.py      -> line 8
+  views.py     -> register_view (line 132)
+  forms.py     -> PatientSignupForm (line 5)   [file: apps/dashboard/forms.py]
+  email        -> none (this is the public self sign up page; staff-added patients get the welcome email instead, see /dashboard/users/patients/add/)
+  notify.py    -> none
+
+URL: /dashboard/profile/
+  urls.py      -> line 9
+  views.py     -> dashboard_profile (line 68)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+--------------------------------------------------
+
+App: apps/user_management/   (mounted at dashboard/users/)   (urls file: apps/user_management/urls.py)
+
+URL: /dashboard/users/login/
+  urls.py      -> line 8
+  views.py     -> login_view (line 43)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/users/logout/
+  urls.py      -> line 9
+  views.py     -> logout_view (line 71)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/users/forgot-password/
+  urls.py      -> line 10
+  views.py     -> forgot_password_view (line 79)
+  forms.py     -> ForgotPasswordForm (line 12)   [file: apps/user_management/forms.py]
+  email        -> send_password_reset_email() (line 98) - only if the typed email matches an account
+  notify.py    -> send_password_reset_email (line 7)   [file: apps/user_management/notifications.py]
+
+URL: /dashboard/users/reset-password/<uidb64>/<token>/
+  urls.py      -> line 11
+  views.py     -> reset_password_confirm_view (line 108)
+  forms.py     -> SetNewPasswordForm (line 17)   [file: apps/user_management/forms.py]
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/users/patients/
+  urls.py      -> line 14
+  views.py     -> patient_user_list (line 142)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/users/patients/add/
+  urls.py      -> line 15
+  views.py     -> patient_add (line 153)
+  forms.py     -> PatientCreateForm (line 38)   [file: apps/user_management/forms.py]
+  email        -> send_patient_welcome_email() (line 193) - emails the new patient their username
+  notify.py    -> send_patient_welcome_email (line 160)   [file: apps/user_management/notifications.py]
+
+URL: /dashboard/users/patients/<id>/edit/
+  urls.py      -> line 16
+  views.py     -> patient_edit (line 208)
+  forms.py     -> PatientEditForm (line 102)   [file: apps/user_management/forms.py]
+  email        -> send_patient_discharge_email() (line 253) - only fires the moment status changes to "discharged"
+  notify.py    -> send_patient_discharge_email (line 123)   [file: apps/user_management/notifications.py]
+
+URL: /dashboard/users/patients/<id>/detail/
+  urls.py      -> line 17
+  views.py     -> patient_detail (line 269)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/users/patients/<id>/delete/
+  urls.py      -> line 18
+  views.py     -> patient_delete (line 281)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/users/staff/
+  urls.py      -> line 21
+  views.py     -> staff_user_list (line 302)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/users/staff/add/
+  urls.py      -> line 22
+  views.py     -> staff_add (line 312)
+  forms.py     -> StaffCreateForm (line 179)   [file: apps/user_management/forms.py]
+  email        -> send_staff_welcome_email() (line 339) - emails the new staff member their username
+  notify.py    -> send_staff_welcome_email (line 45)   [file: apps/user_management/notifications.py]
+
+URL: /dashboard/users/staff/<id>/edit/
+  urls.py      -> line 23
+  views.py     -> staff_edit (line 354)
+  forms.py     -> StaffEditForm (line 227)   [file: apps/user_management/forms.py]
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/users/staff/<id>/detail/
+  urls.py      -> line 24
+  views.py     -> staff_detail (line 417)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/users/staff/<id>/delete/
+  urls.py      -> line 25
+  views.py     -> staff_delete (line 438)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/users/doctor-rooms/
+  urls.py      -> line 28
+  views.py     -> doctor_room_list (line 459)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+--------------------------------------------------
+
+App: apps/supplier/   (mounted at dashboard/supplier/)   (urls file: apps/supplier/urls.py)
+
+URL: /dashboard/supplier/
+  urls.py      -> line 6
+  views.py     -> supplier_list (line 17)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/supplier/add/
+  urls.py      -> line 7
+  views.py     -> supplier_add (line 25)
+  forms.py     -> SupplierForm (line 7)   [file: apps/supplier/forms.py]
+  email        -> send_supplier_welcome_email() (line 39) - tells the new supplier they were added
+  notify.py    -> send_supplier_welcome_email (line 7)   [file: apps/supplier/notifications.py]
+
+URL: /dashboard/supplier/<pk>/edit/
+  urls.py      -> line 8
+  views.py     -> supplier_edit (line 49)
+  forms.py     -> SupplierForm (line 7)   [file: apps/supplier/forms.py]
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/supplier/<pk>/detail/
+  urls.py      -> line 9
+  views.py     -> supplier_detail (line 71)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/supplier/<pk>/delete/
+  urls.py      -> line 10
+  views.py     -> supplier_delete (line 79)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+--------------------------------------------------
+
+App: apps/stock/   (mounted at dashboard/stock/)   (urls file: apps/stock/urls.py)
+
+URL: /dashboard/stock/medicines/
+  urls.py      -> line 7
+  views.py     -> medicine_list (line 20)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/stock/medicines/add/
+  urls.py      -> line 8
+  views.py     -> medicine_add (line 28)
+  forms.py     -> MedicineForm (line 7)   [file: apps/stock/forms.py]
+  email        -> none (a brand new medicine has no stock yet, so there is nothing low to alert on)
+  notify.py    -> none
+
+URL: /dashboard/stock/medicines/<pk>/edit/
+  urls.py      -> line 9
+  views.py     -> medicine_edit (line 50)
+  forms.py     -> MedicineForm (line 7)   [file: apps/stock/forms.py]
+  email        -> notify_low_stock() (line 63) - checks the reorder level; emails admin + supplier only if now low
+  notify.py    -> notify_low_stock (line 46), send_low_stock_admin_email (line 59), send_low_stock_supplier_email (line 97)   [file: apps/stock/notifications.py]
+
+URL: /dashboard/stock/medicines/<pk>/detail/
+  urls.py      -> line 10
+  views.py     -> medicine_detail (line 73)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/stock/medicines/<pk>/delete/
+  urls.py      -> line 11
+  views.py     -> medicine_delete (line 82)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/stock/batches/
+  urls.py      -> line 14
+  views.py     -> stock_list (line 97)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/stock/batches/add/
+  urls.py      -> line 15
+  views.py     -> stock_add (line 105)
+  forms.py     -> MedicineStockForm (line 14)   [file: apps/stock/forms.py]
+  email        -> notify_low_stock() (line 118) - checks the medicine this batch belongs to; emails admin + supplier only if still low
+  notify.py    -> notify_low_stock (line 46), send_low_stock_admin_email (line 59), send_low_stock_supplier_email (line 97)   [file: apps/stock/notifications.py]
+
+URL: /dashboard/stock/batches/<pk>/edit/
+  urls.py      -> line 16
+  views.py     -> stock_edit (line 133)
+  forms.py     -> MedicineStockForm (line 14)   [file: apps/stock/forms.py]
+  email        -> notify_low_stock() (line 146) - checks the medicine this batch belongs to; emails admin + supplier only if now low
+  notify.py    -> notify_low_stock (line 46), send_low_stock_admin_email (line 59), send_low_stock_supplier_email (line 97)   [file: apps/stock/notifications.py]
+
+URL: /dashboard/stock/batches/<pk>/detail/
+  urls.py      -> line 17
+  views.py     -> stock_detail (line 161)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/stock/batches/<pk>/delete/
+  urls.py      -> line 18
+  views.py     -> stock_delete (line 169)
+  forms.py     -> none
+  email        -> notify_low_stock() (line 175) - checks the medicine after the batch is gone; emails admin + supplier only if now low
+  notify.py    -> notify_low_stock (line 46), send_low_stock_admin_email (line 59), send_low_stock_supplier_email (line 97)   [file: apps/stock/notifications.py]
+
+--------------------------------------------------
+
+App: apps/reports/   (mounted at dashboard/reports/)   (urls file: apps/reports/urls.py)
+NOTE: every report view is read-only (screen + PDF download) - none of them send email or touch notifications.py.
+
+URL: /dashboard/reports/
+  urls.py      -> line 5
+  views.py     -> reports_index (line 20)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/doctor-revenue/
+  urls.py      -> line 6
+  views.py     -> doctor_revenue_report (line 27)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/appointment-summary/
+  urls.py      -> line 7
+  views.py     -> appointment_summary_report (line 86)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/hospital-revenue/
+  urls.py      -> line 8
+  views.py     -> hospital_revenue_report (line 137)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/department-performance/
+  urls.py      -> line 9
+  views.py     -> department_performance_report (line 219)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/doctors-leaderboard/
+  urls.py      -> line 10
+  views.py     -> doctors_leaderboard_report (line 275)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/appointment-status/
+  urls.py      -> line 11
+  views.py     -> hospital_appointment_status_report (line 334)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/low-stock/
+  urls.py      -> line 12
+  views.py     -> low_stock_report (line 381)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/medicine-expiry/
+  urls.py      -> line 13
+  views.py     -> medicine_expiry_report (line 402)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/medicine-sales/
+  urls.py      -> line 14
+  views.py     -> medicine_sales_report (line 433)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/stock-valuation/
+  urls.py      -> line 15
+  views.py     -> stock_valuation_report (line 480)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/patient-registration/
+  urls.py      -> line 16
+  views.py     -> patient_registration_report (line 509)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/reports/staff-headcount/
+  urls.py      -> line 17
+  views.py     -> staff_headcount_report (line 551)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+--------------------------------------------------
+
+App: apps/appointment/  (staff part, mounted at dashboard/appointments/)   (urls file: apps/appointment/urls.py)
+
+URL: /dashboard/appointments/index/
+  urls.py      -> line 25
+  views.py     -> appointment_index (line 109)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/appointments/add/
+  urls.py      -> line 26
+  views.py     -> appointment_add (line 133)
+  forms.py     -> StaffAppointmentForm (line 26)   [file: apps/appointment/forms.py]
+  email        -> send_doctor_assignment_email() (line 157, only if a doctor was picked),
+                  send_appointment_confirmation_email() + send_appointment_confirmation_email_admin()
+                  (via _create_appointment_payment_record() line 158, only if "cash received" was ticked)
+  notify.py    -> send_doctor_assignment_email (line 286), send_appointment_confirmation_email (line 19),
+                  send_appointment_confirmation_email_admin (line 71)   [file: apps/appointment/notifications.py]
+
+URL: /dashboard/appointments/view/<pk>/
+  urls.py      -> line 27
+  views.py     -> appointment_view (line 121)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/appointments/edit/<pk>/
+  urls.py      -> line 28
+  views.py     -> appointment_edit (line 173)
+  forms.py     -> AppointmentEditForm (line 53)   [file: apps/appointment/forms.py]
+  email        -> send_appointment_confirmation_email() (line 222, status just changed to confirmed),
+                  send_appointment_cancellation_email() (line 225, status just changed to cancelled),
+                  send_doctor_assignment_email() (line 229, doctor just assigned/changed)
+  notify.py    -> send_appointment_confirmation_email (line 19), send_appointment_cancellation_email (line 198),
+                  send_doctor_assignment_email (line 286)   [file: apps/appointment/notifications.py]
+
+URL: /dashboard/appointments/delete/<pk>/
+  urls.py      -> line 29
+  views.py     -> appointment_delete (line 246)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/appointments/confirm-payment/<pk>/
+  urls.py      -> line 30
+  views.py     -> confirm_cash_payment (line 260)
+  forms.py     -> none
+  email        -> send_appointment_confirmation_email() (line 272) - receptionist confirmed the cash payment
+  notify.py    -> send_appointment_confirmation_email (line 19)   [file: apps/appointment/notifications.py]
+
+URL: /dashboard/appointments/fees/
+  urls.py      -> line 31
+  views.py     -> fee_index (line 281)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/appointments/payments/
+  urls.py      -> line 32
+  views.py     -> payment_index (line 306)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/appointments/payments/<pk>/refund/
+  urls.py      -> line 33
+  views.py     -> payment_refund (line 339)
+  forms.py     -> PaymentForm (line 45)   [file: apps/appointment/forms.py]
+  email        -> send_appointment_refund_email() (line 347) - staff refunded a paid consultation
+  notify.py    -> send_appointment_refund_email (line 241)   [file: apps/appointment/notifications.py]
+
+--------------------------------------------------
+
+App: apps/pharmacy/  (staff part, mounted at dashboard/pharmacy/)   (urls file: apps/pharmacy/urls.py)
+
+URL: /dashboard/pharmacy/queue/
+  urls.py      -> line 12
+  views.py     -> pharmacy_queue (line 136)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/pharmacy/<pk>/
+  urls.py      -> line 13
+  views.py     -> pharmacy_order_detail (line 154)
+  forms.py     -> none
+  email        -> send_medicine_dispensed_email() (line 185, on the "dispense" action),
+                  send_medicine_payment_confirmation_email() (line 201, on the "record_payment" action),
+                  notify_low_stock() (line 189, checked once per dispensed medicine right after dispensing)
+  notify.py    -> send_medicine_dispensed_email (line 7), send_medicine_payment_confirmation_email (line 63)
+                  [file: apps/pharmacy/notifications.py]; notify_low_stock (line 46), send_low_stock_admin_email (line 59),
+                  send_low_stock_supplier_email (line 97)   [file: apps/stock/notifications.py]
+
+URL: /dashboard/pharmacy/prescribe/<pk>/search/
+  urls.py      -> line 14
+  views.py     -> appointment_pharmacy_search (line 103)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/pharmacy/prescribe/<pk>/remove-medicine/<item_pk>/
+  urls.py      -> line 15
+  views.py     -> prescription_item_delete (line 116)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+--------------------------------------------------
+
+App: apps/contact/  (staff part, mounted at dashboard/contact/)   (urls file: apps/contact/urls.py)
+
+URL: /dashboard/contact/list/
+  urls.py      -> line 12
+  views.py     -> view_inquiries (line 43)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/contact/view_inquiry/<id>/
+  urls.py      -> line 13
+  views.py     -> view_inquiry (line 51)
+  forms.py     -> none
+  email        -> none
+  notify.py    -> none
+
+URL: /dashboard/contact/mark_solved/<id>/
+  urls.py      -> line 14
+  views.py     -> mark_inquiry_solved (line 59)
+  forms.py     -> none
+  email        -> send_contact_resolved_email() (line 65) - tells the sender their message was resolved
+  notify.py    -> send_contact_resolved_email (line 45)   [file: apps/contact/notifications.py]
+
+
+##################################################
+#         EMAILS NOT TIED TO ANY URL/VIEW        #
+#      (fired by a scheduled `manage.py` command) #
+##################################################
+
+send_expiry_alert_admin_email
+  command      -> python manage.py send_expiry_alerts
+  command file -> apps/stock/management/commands/send_expiry_alerts.py (line 30 calls it)
+  notify.py    -> send_expiry_alert_admin_email (line 7)   [file: apps/stock/notifications.py]
+  what it does -> emails admin one digest of every expired/soon-to-expire stock batch
+
+send_insurance_expiry_email
+  command      -> python manage.py send_insurance_reminders
+  command file -> apps/user_management/management/commands/send_insurance_reminders.py (line 25 calls it)
+  notify.py    -> send_insurance_expiry_email (line 83)   [file: apps/user_management/notifications.py]
+  what it does -> emails one patient whose insurance policy is about to expire
+
+
+##################################################
+#                  ROOT FILE                     #
+##################################################
+
+Hospital_Management/urls.py  -> plugs every app's urls.py into the site.
+(Line numbers above are inside each app's OWN urls.py, not this root file.)
+
+
+TIP: If line numbers move after an edit, search the function or class name
+instead of the line number. The name stays the same, only the line moves.

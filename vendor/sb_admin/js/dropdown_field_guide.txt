@@ -1,0 +1,52 @@
+HOW TO ADD A DROPDOWN (SELECT) FIELD - MANUAL, NO forms.py
+==============================================================
+
+No form.py, no {{ form.field }}. Just plain HTML + view code.
+
+
+TYPE 1: Fixed choices (list of options) ====== meka eachchara en na.
+--------------------------------------------------------------
+Example: Payment status dropdown.
+
+1) View - send the choices list to the template:
+    return render(request, 'your_template.html', {
+        'status_choices': Payment.STATUS_CHOICES,
+    })
+
+2) Template - build the <select>:
+    <select name="status" id="status" class="form-control">
+        {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if value == obj.status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+
+3) View - read the picked value on POST:
+    status = request.POST.get('status')
+
+
+TYPE 2: Choices from a database table ============= Most used.
+--------------------------------------------------------------
+Example: Medicine dropdown on Add Stock page.
+
+1) View - send the list of rows:
+    return render(request, 'your_template.html', {
+        'medicines': Medicine.objects.all(),
+    })
+
+2) Template - build the <select>:
+    <select name="medicine" id="medicine" class="form-control">
+        <option value="">---------</option>
+        {% for item in medicines %}
+        <option value="{{ item.pk }}" {% if item.pk == batch.medicine_id %}selected{% endif %}>{{ item.name }}</option>
+        {% endfor %}
+    </select>
+
+3) View - read the picked value on POST:
+    medicine_id = request.POST.get('medicine')
+    medicine = get_object_or_404(Medicine, pk=medicine_id)
+
+
+NOTE
+--------------------------------------------------------------
+"selected" shows the current value on Edit pages. On Add pages there
+is no current value yet, so nothing is pre-selected.

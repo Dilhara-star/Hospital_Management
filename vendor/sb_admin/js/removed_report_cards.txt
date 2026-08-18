@@ -1,0 +1,78 @@
+HOW TO ADD BACK THE REMOVED REPORT CARDS (HTML side only, server side is untouched)
+====================================================================================
+File: Hospital_Management\templates\dashboard\report_management\index.html
+
+--------------------------------
+Appointment Status
+--------------------------------
+Danna line 88 ta pahalin (Hospital-Wide section eke, "Doctors Leaderboard" card eke pahalin).
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-2x text-primary mb-3"></i>
+                    <h5>Appointment Status</h5>
+                    <p class="text-muted small">Pending / confirmed / cancelled counts across every doctor and department.</p>
+                    <a href="{% url 'hospital_appointment_status_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Patient Registration
+--------------------------------
+Danna Appointment Status card eke pahalin, ehema nathnam line 88 ta pahalin (Hospital-Wide section eke).
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-plus fa-2x text-primary mb-3"></i>
+                    <h5>Patient Registration</h5>
+                    <p class="text-muted small">New patient registrations over time, plus active/inactive/discharged counts.</p>
+                    <a href="{% url 'patient_registration_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Low Stock
+--------------------------------
+Danna line 105 ta pahalin (Pharmacy & Stock section eke, row eka arambe wenna kalinma - "Medicine Expiry" card eke uda).
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x text-primary mb-3"></i>
+                    <h5>Low Stock</h5>
+                    <p class="text-muted small">Medicines that have fallen to or below their reorder level.</p>
+                    <a href="{% url 'low_stock_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Medicine Sales
+--------------------------------
+Danna "Medicine Expiry" card eke pahalin, "Stock Valuation" card eke uda (Pharmacy & Stock section eke).
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-pills fa-2x text-primary mb-3"></i>
+                    <h5>Medicine Sales</h5>
+                    <p class="text-muted small">Medicines ranked by units prescribed, with an estimated revenue.</p>
+                    <a href="{% url 'medicine_sales_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+NOTE
+--------------------------------------------------------------
+Views, urls.py, and templates for these 4 reports (low_stock, medicine_sales,
+patient_registration, hospital_appointment_status) are all still working.
+Only the card links on the Reports index page were removed. Paste any block
+back in to bring that card back.

@@ -42,11 +42,23 @@ def send_expiry_alert_admin_email(expired_batches, expiring_batches):
         print(f'Could not send expiry alert admin email: {error}')
 
 
-# emails the admin once a medicine's stock drops to 100 units or below
-def send_email_to_admin_low_stock(medicine, remaining_stock):
-    # emails the hospital admin when a medicine's total stock drops to 100 units or below.
+# checks one medicine's stock against its own reorder level, and emails admin + supplier if it is low
+def notify_low_stock(medicine):
+    # call this after anything that can change a medicine's total stock or reorder level
+    # (adding/editing/deleting a stock batch, editing the medicine, dispensing medicine).
+    # uses the same rule as the "Low Stock" badge on the medicine list page.
+    if not medicine.is_low_stock:
+        return  # stock is fine, nothing to send
+
+    remaining_stock = medicine.total_quantity  # fresh total, read once for both emails below
+    send_low_stock_admin_email(medicine, remaining_stock)
+    send_low_stock_supplier_email(medicine, remaining_stock)
+
+
+# emails the admin once a medicine's stock drops to or below its reorder level
+def send_low_stock_admin_email(medicine, remaining_stock):
     # any failure here (no internet, wrong api key, brevo is down) is only printed to the
-    # console - it must never crash the pharmacist's dispense action.
+    # console - it must never crash the page that triggered this check.
     to_email = settings.ADMIN_NOTIFY_EMAIL  # where the email goes
     if not to_email:
         return  # no admin email configured, nothing we can send
@@ -77,15 +89,14 @@ def send_email_to_admin_low_stock(medicine, remaining_stock):
         # 10 second timeout, so a slow or dead brevo api can never freeze the page
         requests.post('https://api.brevo.com/v3/smtp/email', json=payload, headers=headers, timeout=10)
     except requests.RequestException as error:
-        # brevo could not be reached - just log it, dispensing still succeeded either way
+        # brevo could not be reached - just log it
         print(f'Could not send low stock admin email: {error}')
 
 
-# emails the supplier once a medicine's stock drops to 50 units or below
-def send_email_to_supplier_low_stock(medicine, remaining_stock):
-    # emails the medicine's supplier when total stock drops to 50 units or below, so
-    # they know to send a new delivery. any failure here is only printed to the
-    # console - it must never crash the pharmacist's dispense action.
+# emails the supplier once a medicine's stock drops to or below its reorder level
+def send_low_stock_supplier_email(medicine, remaining_stock):
+    # any failure here is only printed to the console - it must never crash the page
+    # that triggered this check.
 
     # find the supplier who sent the most recent stock batch for this medicine
     last_batch = medicine.stock_batches.exclude(supplier__isnull=True).order_by('-received_date').first()
@@ -122,5 +133,5 @@ def send_email_to_supplier_low_stock(medicine, remaining_stock):
         # 10 second timeout, so a slow or dead brevo api can never freeze the page
         requests.post('https://api.brevo.com/v3/smtp/email', json=payload, headers=headers, timeout=10)
     except requests.RequestException as error:
-        # brevo could not be reached - just log it, dispensing still succeeded either way
+        # brevo could not be reached - just log it
         print(f'Could not send low stock supplier email: {error}')

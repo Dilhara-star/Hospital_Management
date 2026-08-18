@@ -9,4 +9,10 @@ urlpatterns = [
     path('department-performance/', views.department_performance_report, name='department_performance_report'),
     path('doctors-leaderboard/', views.doctors_leaderboard_report, name='doctors_leaderboard_report'),
     path('appointment-status/', views.hospital_appointment_status_report, name='hospital_appointment_status_report'),
+    path('low-stock/', views.low_stock_report, name='low_stock_report'),
+    path('medicine-expiry/', views.medicine_expiry_report, name='medicine_expiry_report'),
+    path('medicine-sales/', views.medicine_sales_report, name='medicine_sales_report'),
+    path('stock-valuation/', views.stock_valuation_report, name='stock_valuation_report'),
+    path('patient-registration/', views.patient_registration_report, name='patient_registration_report'),
+    path('staff-headcount/', views.staff_headcount_report, name='staff_headcount_report'),
 ]

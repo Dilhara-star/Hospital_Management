@@ -1,0 +1,45 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+</style>
+</head>
+<body>
+
+    <h1>Patient Registration Report</h1>
+    <p class="sub">
+        {% if start_date or end_date %}{{ start_date|default:"the start" }} to {{ end_date|default:"today" }}{% else %}All time{% endif %}
+        &mdash; Total: {{ total_count }}, Active: {{ active_count }}, Inactive: {{ inactive_count }}, Discharged: {{ discharged_count }}
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>MRN</th>
+                <th>Name</th>
+                <th>Registered Date</th>
+                <th>Blood Type</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+            <tr>
+                <td>{{ patient.mrn }}</td>
+                <td>{{ patient.user.get_full_name }}</td>
+                <td>{{ patient.registered_date }}</td>
+                <td>{{ patient.blood_type|default:"-" }}</td>
+                <td>{{ patient.get_status_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

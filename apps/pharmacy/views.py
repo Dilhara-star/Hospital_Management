@@ -9,7 +9,7 @@ from django.http import HttpResponse  # used to send a pdf file back as the resp
 from django.utils import timezone  # used to stamp when a payment was paid
 from apps.appointment.models import Appointment
 from apps.stock.models import Medicine, MedicineStock
-from apps.stock.notifications import send_email_to_admin_low_stock, send_email_to_supplier_low_stock
+from apps.stock.notifications import notify_low_stock  # emails admin/supplier when a medicine's stock is low
 from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
 from apps.user_management.models import StaffProfile  # holds the room number for a doctor
 from .models import PrescriptionItem, PharmacyOrder
@@ -184,13 +184,9 @@ def pharmacy_order_detail(request, pk):
 
             send_medicine_dispensed_email(order)  # let the patient know their medicine is ready and awaiting payment
 
-            # check each dispensed medicine's stock and alert admin/supplier if it is low
+            # check each dispensed medicine's stock and alert admin/supplier if it is now low
             for item in prescribed_items:
-                remaining_stock = item.medicine.total_quantity  # fresh total after the deduction above
-                if remaining_stock <= 100:
-                    send_email_to_admin_low_stock(item.medicine, remaining_stock)
-                if remaining_stock <= 50:
-                    send_email_to_supplier_low_stock(item.medicine, remaining_stock)
+                notify_low_stock(item.medicine)
 
             messages.success(request, 'Medicine has been given to the patient.')
 

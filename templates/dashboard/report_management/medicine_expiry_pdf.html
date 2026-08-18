@@ -1,0 +1,64 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    h2 { font-size: 14px; margin-top: 20px; margin-bottom: 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+</style>
+</head>
+<body>
+
+    <h1>Medicine Expiry Report</h1>
+    <p class="sub">Expired batches, and batches expiring within the next 30 days</p>
+
+    <h2>Already Expired</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th>Batch No.</th>
+                <th>Quantity</th>
+                <th>Expiry Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for batch in expired_batches %}
+            <tr>
+                <td>{{ batch.medicine.name }}</td>
+                <td>{{ batch.batch_number }}</td>
+                <td>{{ batch.quantity }}</td>
+                <td>{{ batch.expiry_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Expiring Within 30 Days</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th>Batch No.</th>
+                <th>Quantity</th>
+                <th>Expiry Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for batch in expiring_soon_batches %}
+            <tr>
+                <td>{{ batch.medicine.name }}</td>
+                <td>{{ batch.batch_number }}</td>
+                <td>{{ batch.quantity }}</td>
+                <td>{{ batch.expiry_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

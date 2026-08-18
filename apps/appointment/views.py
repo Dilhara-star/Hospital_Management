@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta  # used to work out the 24 hour appointment cancel cutoff
+from decimal import Decimal  # turns the posted amount text into a real decimal number
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -43,6 +44,16 @@ def _doctor_fee(doctor):
         return doctor.staff_profile.hourly_fee
     except StaffProfile.DoesNotExist:
         return 0
+
+
+# looks up the department a doctor belongs to, or '' if none has been set yet
+def _doctor_department(doctor):
+    if not doctor or not hasattr(doctor, 'profile'):
+        return ''
+    try:
+        return doctor.staff_profile.department
+    except StaffProfile.DoesNotExist:
+        return ''
 
 
 # builds the exact datetime an appointment starts, used for the 24 hour cancel/refund cutoff
@@ -199,7 +210,7 @@ def appointment_edit(request, pk):
         appointment.save()
 
         payment.appointment = appointment  # needed the first time, if there was no payment yet
-        payment.amount = request.POST.get('payment-amount') or 0
+        payment.amount = Decimal(request.POST.get('payment-amount') or 0)  # decimal, so it can be subtracted later
         payment.method = request.POST.get('payment-method', 'cash')
         payment.status = request.POST.get('payment-status', 'pending')
         if payment.status == 'paid' and not payment.paid_at:
@@ -389,14 +400,17 @@ def appointment_form(request):
     # fee for every department, shown on the payment step of the form
     fees = {row.department: str(row.fee) for row in DepartmentFee.objects.all()}
     # every active doctor, so the page can build the doctor dropdown
-    doctors = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')
+    # select_related('staff_profile') avoids one extra query per doctor below
+    doctors = User.objects.filter(profile__role='doctor', is_active=True).select_related('staff_profile').order_by('first_name', 'last_name')
     # each doctor's own hourly fee, added on top of the department fee on the payment step
     doctor_fees = {str(doctor.pk): str(_doctor_fee(doctor)) for doctor in doctors}
+    # department each doctor belongs to, so the page can hide doctors from other departments
+    doctor_departments = {str(doctor.pk): _doctor_department(doctor) for doctor in doctors}
     # doctor picked on the "Find a Doctor" page, so the dropdown here starts pre-selected on them
     selected_doctor_id = request.GET.get('doctor')
     return render(request, 'frontend/appointment/form.html', {
         'form': form, 'appointment': appointment, 'fees': fees, 'doctors': doctors, 'doctor_fees': doctor_fees,
-        'selected_doctor_id': selected_doctor_id,
+        'doctor_departments': doctor_departments, 'selected_doctor_id': selected_doctor_id,
     })
 
 

@@ -1,0 +1,167 @@
+--------------------------------
+Preferred Date validation
+--------------------------------
+Preferred Date validation ekata pahala code eka line 24 ta paste karanna - Hospital_Management\apps\appointment\forms.py.
+"class Meta:" mekata kelin pahalata paste wenna ona.
+Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+    # stops a patient from booking an appointment on a date that has already passed
+    def clean_date(self):
+        appointment_date = self.cleaned_data['date']
+        if appointment_date < date.today():
+            raise forms.ValidationError('Appointment date cannot be in the past.')
+        return appointment_date
+
+
+meka danna 65 ta (antimata) "class Meta:" eka pahalata kelin hode.
+Page eka: http://127.0.0.1:8000/Appointment/edit_appointment/<id>/  (patient's own Reschedule Appointment page)
+    # stops a patient from rescheduling their appointment into the past
+    def clean_date(self):
+        # stop the patient from rescheduling into the past
+        new_date = self.cleaned_data['date']
+        if new_date < date.today():
+            raise forms.ValidationError('Appointment date cannot be in the past.')
+        return new_date
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Patient Name validation
+--------------------------------
+Patient Name validation ekata pahala code eka line 24 ta paste karanna - Hospital_Management\apps\appointment\forms.py.
+"class Meta:" (AppointmentForm eke) mekata kelinma pahalata paste wenna ona.
+Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+    # stops a blank or too short name, and blocks numbers/symbols in the name
+    def clean_patient_name(self):
+        name = self.cleaned_data['patient_name'].strip()  # remove extra spaces from the start/end
+        if len(name) < 2:  # a real name needs at least 2 letters
+            raise forms.ValidationError("Please enter the patient's full name.")
+        for char in name:  # check every character in the name one by one
+            if not (char.isalpha() or char in " .'-"):  # only letters, spaces, dots, apostrophes, hyphens allowed
+                raise forms.ValidationError("Name can only contain letters, spaces, and . ' -")
+        return name
+
+
+meka danna 43 ta, "class Meta:" (StaffAppointmentForm eke) mekata kelinma pahalata.
+Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appointment - staff)
+         saha http://127.0.0.1:8000/dashboard/appointments/edit/<id>/  (Edit Appointment - staff)
+    # stops a blank or too short name, and blocks numbers/symbols in the name
+    def clean_patient_name(self):
+        name = self.cleaned_data['patient_name'].strip()  # remove extra spaces from the start/end
+        if len(name) < 2:  # a real name needs at least 2 letters
+            raise forms.ValidationError("Please enter the patient's full name.")
+        for char in name:  # check every character in the name one by one
+            if not (char.isalpha() or char in " .'-"):  # only letters, spaces, dots, apostrophes, hyphens allowed
+                raise forms.ValidationError("Name can only contain letters, spaces, and . ' -")
+        return name
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Patient Contact validation
+--------------------------------
+Patient Contact validation ekata pahala code eka line 24 ta paste karanna, "class Meta:" (AppointmentForm eke) mekata kelinma pahalata.
+Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+    # stops a contact number that is not a valid 10 digit Sri Lankan number
+    def clean_patient_contact(self):
+        contact = self.cleaned_data['patient_contact'].strip()  # remove extra spaces
+        contact = contact.replace(' ', '').replace('-', '')  # remove spaces/dashes typed inside the number
+        if not contact.isdigit() or len(contact) != 10 or not contact.startswith('0'):  # e.g. 0771234567
+            raise forms.ValidationError('Enter a valid 10 digit contact number, e.g. 0771234567.')
+        return contact
+
+
+meka danna 43 ta, "class Meta:" (StaffAppointmentForm eke) mekata kelinma pahalata.
+Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appointment - staff)
+         saha http://127.0.0.1:8000/dashboard/appointments/edit/<id>/  (Edit Appointment - staff)
+    # stops a contact number that is not a valid 10 digit Sri Lankan number
+    def clean_patient_contact(self):
+        contact = self.cleaned_data['patient_contact'].strip()  # remove extra spaces
+        contact = contact.replace(' ', '').replace('-', '')  # remove spaces/dashes typed inside the number
+        if not contact.isdigit() or len(contact) != 10 or not contact.startswith('0'):  # e.g. 0771234567
+            raise forms.ValidationError('Enter a valid 10 digit contact number, e.g. 0771234567.')
+        return contact
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Patient Age validation
+--------------------------------
+Patient Age validation ekata pahala code eka line 24 ta paste karanna, "class Meta:" (AppointmentForm eke) mekata kelinma pahalata.
+Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+    # stops an age that is not realistic for a patient
+    def clean_patient_age(self):
+        age = self.cleaned_data['patient_age']  # age typed on the form
+        if age < 1 or age > 120:  # a real patient's age is always in this range
+            raise forms.ValidationError('Enter a valid age between 1 and 120.')
+        return age
+
+
+meka danna 43 ta, "class Meta:" (StaffAppointmentForm eke) mekata kelinma pahalata.
+Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appointment - staff)
+         saha http://127.0.0.1:8000/dashboard/appointments/edit/<id>/  (Edit Appointment - staff)
+    # stops an age that is not realistic for a patient
+    def clean_patient_age(self):
+        age = self.cleaned_data['patient_age']  # age typed on the form
+        if age < 1 or age > 120:  # a real patient's age is always in this range
+            raise forms.ValidationError('Enter a valid age between 1 and 120.')
+        return age
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Patient Address validation
+--------------------------------
+Patient Address validation ekata pahala code eka line 24 ta paste karanna, "class Meta:" (AppointmentForm eke) mekata kelinma pahalata.
+Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+    # stops a blank or too short address
+    def clean_patient_address(self):
+        address = self.cleaned_data['patient_address'].strip()  # remove extra spaces
+        if len(address) < 5:  # a real address is always longer than this
+            raise forms.ValidationError('Please enter a valid address.')
+        return address
+
+
+meka danna 43 ta, "class Meta:" (StaffAppointmentForm eke) mekata kelinma pahalata.
+Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appointment - staff)
+         saha http://127.0.0.1:8000/dashboard/appointments/edit/<id>/  (Edit Appointment - staff)
+    # stops a blank or too short address
+    def clean_patient_address(self):
+        address = self.cleaned_data['patient_address'].strip()  # remove extra spaces
+        if len(address) < 5:  # a real address is always longer than this
+            raise forms.ValidationError('Please enter a valid address.')
+        return address
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Patient NIC validation
+--------------------------------
+Meka danna kalin, file eke uda "from datetime import date" line ekata pahalin "import re" kiyala tiyak danna one (NIC eka check karanna re module eka one wenawa).
+line 1 -> from datetime import date
+line 2 (aluthin) -> import re  # used to check the NIC number matches the Sri Lankan NIC format
+
+Patient NIC validation ekata pahala code eka line 25 ta paste karanna ("import re" danna passe, line ekak wadi wena nisa 24 wenuwata 25), "class Meta:" (AppointmentForm eke) mekata kelinma pahalata.
+Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+    # stops a NIC number that does not match the Sri Lankan NIC format
+    def clean_patient_nic(self):
+        nic = self.cleaned_data['patient_nic'].strip().upper()  # remove spaces, make the V/X letter uppercase
+        old_format = re.match(r'^\d{9}[VX]$', nic)  # old NIC: 9 digits then V or X, e.g. 991234567V
+        new_format = re.match(r'^\d{12}$', nic)  # new NIC: 12 digits, e.g. 199912345678
+        if not old_format and not new_format:
+            raise forms.ValidationError('Enter a valid NIC number, e.g. 991234567V or 199912345678.')
+        return nic
+
+
+meka danna 44 ta ("import re" danna passe), "class Meta:" (StaffAppointmentForm eke) mekata kelinma pahalata.
+Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appointment - staff)
+         saha http://127.0.0.1:8000/dashboard/appointments/edit/<id>/  (Edit Appointment - staff)
+    # stops a NIC number that does not match the Sri Lankan NIC format
+    def clean_patient_nic(self):
+        nic = self.cleaned_data['patient_nic'].strip().upper()  # remove spaces, make the V/X letter uppercase
+        old_format = re.match(r'^\d{9}[VX]$', nic)  # old NIC: 9 digits then V or X, e.g. 991234567V
+        new_format = re.match(r'^\d{12}$', nic)  # new NIC: 12 digits, e.g. 199912345678
+        if not old_format and not new_format:
+            raise forms.ValidationError('Enter a valid NIC number, e.g. 991234567V or 199912345678.')
+        return nic
+
+----------------------------------------------------------------------------------------------------------
