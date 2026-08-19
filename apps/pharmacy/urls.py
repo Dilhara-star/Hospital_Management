@@ -11,6 +11,5 @@ urlpatterns = [
 dashboard_urlpatterns = [
     path('queue/', views.pharmacy_queue, name='pharmacy_queue'),
     path('<int:pk>/', views.pharmacy_order_detail, name='pharmacy_order_detail'),
-    path('prescribe/<int:pk>/search/', views.appointment_pharmacy_search, name='appointment_pharmacy_search'),
     path('prescribe/<int:pk>/remove-medicine/<int:item_pk>/', views.prescription_item_delete, name='prescription_item_delete'),
 ]

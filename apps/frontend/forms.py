@@ -1,5 +1,8 @@
+from datetime import date  # used to check a date of birth is not in the future
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password  # checks a password is strong enough
+from apps.core.utils import check_phone_number  # checks a phone number is digits only, with a sensible length
 from apps.user_management.models import UserProfile
 
 
@@ -33,6 +36,25 @@ class ProfileDetailsForm(forms.Form):
         # email is free to use
         return email
 
+    # stops a phone number that is not digits (or a sensible length) from being saved
+    def clean_phone(self):
+        # pull the cleaned phone value out of the form
+        phone = self.cleaned_data.get('phone')
+        # raises an error if the phone number is not a sensible shape
+        check_phone_number(phone)
+        # phone number is fine (or was left blank)
+        return phone
+
+    # stops a date of birth being set in the future
+    def clean_date_of_birth(self):
+        # pull the cleaned date of birth value out of the form
+        dob = self.cleaned_data.get('date_of_birth')
+        # stop if a date was picked and it is after today
+        if dob and dob > date.today():
+            raise forms.ValidationError('Date of birth cannot be in the future.')
+        # date is fine (or was left blank)
+        return dob
+
 
 class ProfilePictureForm(forms.Form):
     """Field checked when uploading a new profile picture. Saving happens in the view."""
@@ -44,6 +66,15 @@ class ChangePasswordForm(forms.Form):
     current_password = forms.CharField(widget=forms.PasswordInput)  # current password text box (hidden characters)
     new_password = forms.CharField(widget=forms.PasswordInput)  # new password text box (hidden characters)
     confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm new password text box (hidden characters)
+
+    # stops a weak new password (too short, too common, all numbers, ...) being used
+    def clean_new_password(self):
+        # pull the cleaned new password value out of the form
+        new_password = self.cleaned_data.get('new_password')
+        # runs the password rules set in settings.py; raises an error if the password is too weak
+        validate_password(new_password)
+        # password is strong enough
+        return new_password
 
     # stops the password change if the two new password boxes don't match
     def clean(self):

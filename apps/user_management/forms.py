@@ -1,5 +1,9 @@
+from datetime import date  # used to check a date of birth is not in the future
 from django import forms  # django's form tools
 from django.contrib.auth.models import User  # built-in user model (login, username, password)
+from django.contrib.auth.validators import UnicodeUsernameValidator  # checks a username only has safe characters
+from django.contrib.auth.password_validation import validate_password  # checks a password is strong enough
+from apps.core.utils import check_phone_number  # checks a phone number is digits only, with a sensible length
 from .models import UserProfile, PatientProfile, StaffProfile  # our own profile models
 
 # role codes offered on the staff Role dropdown - lab technician is left out on purpose,
@@ -18,6 +22,15 @@ class SetNewPasswordForm(forms.Form):
     """Fields checked when setting a new password from a reset link. Saving happens in the view."""
     new_password = forms.CharField(widget=forms.PasswordInput)  # new password text box (hidden characters)
     confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm new password text box (hidden characters)
+
+    # stops a weak new password (too short, too common, all numbers, ...) being used
+    def clean_new_password(self):
+        # pull the cleaned new password value out of the form
+        new_password = self.cleaned_data.get('new_password')
+        # runs the password rules set in settings.py; raises an error if the password is too weak
+        validate_password(new_password)
+        # password is strong enough
+        return new_password
 
     # stops the reset if the two new password boxes don't match
     def clean(self):
@@ -69,6 +82,8 @@ class PatientCreateForm(forms.Form):
     def clean_username(self):
         # pull the cleaned username value out of the form
         username = self.cleaned_data['username']
+        # stop if it has characters other than letters, numbers, and @/./+/-/_
+        UnicodeUsernameValidator()(username)
         # stop if another user already has this username
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError('Username already exists.')
@@ -84,6 +99,53 @@ class PatientCreateForm(forms.Form):
             raise forms.ValidationError('Email address already in use.')
         # email is free to use
         return email
+
+    # stops a weak password (too short, too common, all numbers, ...) being used
+    def clean_password(self):
+        # pull the cleaned password value out of the form
+        password = self.cleaned_data.get('password')
+        # runs the password rules set in settings.py; raises an error if the password is too weak
+        validate_password(password)
+        # password is strong enough
+        return password
+
+    # stops a phone number that is not digits (or a sensible length) from being saved
+    def clean_phone(self):
+        # pull the cleaned phone value out of the form
+        phone = self.cleaned_data.get('phone')
+        # raises an error if the phone number is not a sensible shape
+        check_phone_number(phone)
+        # phone number is fine (or was left blank)
+        return phone
+
+    # stops an emergency contact phone number that is not digits (or a sensible length) from being saved
+    def clean_emergency_contact_phone(self):
+        # pull the cleaned emergency contact phone value out of the form
+        phone = self.cleaned_data.get('emergency_contact_phone')
+        # raises an error if the phone number is not a sensible shape
+        check_phone_number(phone)
+        # phone number is fine (or was left blank)
+        return phone
+
+    # stops a date of birth being set in the future
+    def clean_date_of_birth(self):
+        # pull the cleaned date of birth value out of the form
+        dob = self.cleaned_data.get('date_of_birth')
+        # stop if a date was picked and it is after today
+        if dob and dob > date.today():
+            raise forms.ValidationError('Date of birth cannot be in the future.')
+        # date is fine (or was left blank)
+        return dob
+
+    # stops an insurance policy expiry date being set in the past
+    def clean_insurance_expiry(self):
+        # pull the cleaned insurance expiry value out of the form
+        expiry = self.cleaned_data.get('insurance_expiry')
+        # stop if a date was picked and it is before today
+        if expiry and expiry < date.today():
+            raise forms.ValidationError('Insurance expiry date cannot be in the past.')
+        # date is fine (or was left blank)
+        return expiry
 
     # stops registration if the two password boxes don't match
     def clean(self):
@@ -138,6 +200,8 @@ class PatientEditForm(forms.Form):
     def clean_username(self):
         # pull the cleaned username value out of the form
         username = self.cleaned_data['username']
+        # stop if it has characters other than letters, numbers, and @/./+/-/_
+        UnicodeUsernameValidator()(username)
         # find any user that already has this username
         query = User.objects.filter(username=username)
         # do not count the user we are editing against themselves
@@ -163,6 +227,44 @@ class PatientEditForm(forms.Form):
             raise forms.ValidationError('Email address already in use.')
         # email is free to use
         return email
+
+    # stops a phone number that is not digits (or a sensible length) from being saved
+    def clean_phone(self):
+        # pull the cleaned phone value out of the form
+        phone = self.cleaned_data.get('phone')
+        # raises an error if the phone number is not a sensible shape
+        check_phone_number(phone)
+        # phone number is fine (or was left blank)
+        return phone
+
+    # stops an emergency contact phone number that is not digits (or a sensible length) from being saved
+    def clean_emergency_contact_phone(self):
+        # pull the cleaned emergency contact phone value out of the form
+        phone = self.cleaned_data.get('emergency_contact_phone')
+        # raises an error if the phone number is not a sensible shape
+        check_phone_number(phone)
+        # phone number is fine (or was left blank)
+        return phone
+
+    # stops a date of birth being set in the future
+    def clean_date_of_birth(self):
+        # pull the cleaned date of birth value out of the form
+        dob = self.cleaned_data.get('date_of_birth')
+        # stop if a date was picked and it is after today
+        if dob and dob > date.today():
+            raise forms.ValidationError('Date of birth cannot be in the future.')
+        # date is fine (or was left blank)
+        return dob
+
+    # stops an insurance policy expiry date being set in the past
+    def clean_insurance_expiry(self):
+        # pull the cleaned insurance expiry value out of the form
+        expiry = self.cleaned_data.get('insurance_expiry')
+        # stop if a date was picked and it is before today
+        if expiry and expiry < date.today():
+            raise forms.ValidationError('Insurance expiry date cannot be in the past.')
+        # date is fine (or was left blank)
+        return expiry
 
 
 # ── Staff Forms ───────────────────────────────────────────────────────────────
@@ -194,6 +296,8 @@ class StaffCreateForm(forms.Form):
     def clean_username(self):
         # pull the cleaned username value out of the form
         username = self.cleaned_data['username']
+        # stop if it has characters other than letters, numbers, and @/./+/-/_
+        UnicodeUsernameValidator()(username)
         # stop if another user already has this username
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError('Username already exists.')
@@ -209,6 +313,34 @@ class StaffCreateForm(forms.Form):
             raise forms.ValidationError('Email address already in use.')
         # email is free to use
         return email
+
+    # stops a weak password (too short, too common, all numbers, ...) being used
+    def clean_password(self):
+        # pull the cleaned password value out of the form
+        password = self.cleaned_data.get('password')
+        # runs the password rules set in settings.py; raises an error if the password is too weak
+        validate_password(password)
+        # password is strong enough
+        return password
+
+    # stops a phone number that is not digits (or a sensible length) from being saved
+    def clean_phone(self):
+        # pull the cleaned phone value out of the form
+        phone = self.cleaned_data.get('phone')
+        # raises an error if the phone number is not a sensible shape
+        check_phone_number(phone)
+        # phone number is fine (or was left blank)
+        return phone
+
+    # stops a date of birth being set in the future
+    def clean_date_of_birth(self):
+        # pull the cleaned date of birth value out of the form
+        dob = self.cleaned_data.get('date_of_birth')
+        # stop if a date was picked and it is after today
+        if dob and dob > date.today():
+            raise forms.ValidationError('Date of birth cannot be in the future.')
+        # date is fine (or was left blank)
+        return dob
 
     # stops registration if the two password boxes don't match
     def clean(self):
@@ -262,6 +394,8 @@ class StaffEditForm(forms.Form):
     def clean_username(self):
         # pull the cleaned username value out of the form
         username = self.cleaned_data['username']
+        # stop if it has characters other than letters, numbers, and @/./+/-/_
+        UnicodeUsernameValidator()(username)
         # find any user that already has this username
         query = User.objects.filter(username=username)
         # do not count the user we are editing against themselves
@@ -287,3 +421,41 @@ class StaffEditForm(forms.Form):
             raise forms.ValidationError('Email address already in use.')
         # email is free to use
         return email
+
+    # stops a phone number that is not digits (or a sensible length) from being saved
+    def clean_phone(self):
+        # pull the cleaned phone value out of the form
+        phone = self.cleaned_data.get('phone')
+        # raises an error if the phone number is not a sensible shape
+        check_phone_number(phone)
+        # phone number is fine (or was left blank)
+        return phone
+
+    # stops an emergency contact phone number that is not digits (or a sensible length) from being saved
+    def clean_emergency_contact_phone(self):
+        # pull the cleaned emergency contact phone value out of the form
+        phone = self.cleaned_data.get('emergency_contact_phone')
+        # raises an error if the phone number is not a sensible shape
+        check_phone_number(phone)
+        # phone number is fine (or was left blank)
+        return phone
+
+    # stops a date of birth being set in the future
+    def clean_date_of_birth(self):
+        # pull the cleaned date of birth value out of the form
+        dob = self.cleaned_data.get('date_of_birth')
+        # stop if a date was picked and it is after today
+        if dob and dob > date.today():
+            raise forms.ValidationError('Date of birth cannot be in the future.')
+        # date is fine (or was left blank)
+        return dob
+
+    # stops a hire date being set in the future
+    def clean_hire_date(self):
+        # pull the cleaned hire date value out of the form
+        hire_date = self.cleaned_data.get('hire_date')
+        # stop if a date was picked and it is after today
+        if hire_date and hire_date > date.today():
+            raise forms.ValidationError('Hire date cannot be in the future.')
+        # date is fine (or was left blank)
+        return hire_date

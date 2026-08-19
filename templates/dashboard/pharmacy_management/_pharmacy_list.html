@@ -11,7 +11,7 @@
 <!-- one small form per medicine, so the doctor can add it with its own dosage right away -->
 {% for medicine in medicines %}
 <form method="post" action="{% url 'appointment_edit' appointment.pk %}"
-    class="pharmacy-add-form row align-items-center border rounded py-2 px-1 mx-0 mb-2">
+    class="row align-items-center border rounded py-2 px-1 mx-0 mb-2">
     {% csrf_token %}
     <input type="hidden" name="medicine_id" value="{{ medicine.pk }}">
     <div class="col-md-3">

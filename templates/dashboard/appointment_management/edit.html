@@ -90,15 +90,17 @@
             </h6>
         </div>
         <div class="card-body">
-            <form method="get" action="{% url 'appointment_pharmacy_search' appointment.pk %}" class="form-row align-items-end mb-3" id="pharmacy-search-form">
+            <!-- plain GET form: submitting reloads this same page with ?q=..&category=.. set -->
+            <form method="get" action="{% url 'appointment_edit' appointment.pk %}" class="form-row align-items-end mb-3">
                 <div class="col-md-6 form-group mb-2">
                     <label>Search Medicine</label>
-                    <input type="text" name="q" id="pharmacy-search-input" class="form-control" placeholder="Medicine name"
+                    <input type="text" name="q" class="form-control" placeholder="Medicine name"
                         value="{{ search_query }}" autocomplete="off">
                 </div>
                 <div class="col-md-4 form-group mb-2">
                     <label>Category</label>
-                    <select name="category" id="pharmacy-category-select" class="form-control">
+                    <!-- onchange submits the form right away, so picking a category re-filters the list without an extra click -->
+                    <select name="category" class="form-control" onchange="this.form.submit()">
                         {% for value, label in category_choices %}
                         <option value="{{ value }}" {% if value == category %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
@@ -111,10 +113,7 @@
                 </div>
             </form>
 
-            <!-- this box is swapped out by JS every time the doctor types, without reloading the page -->
-            <div id="pharmacy-list-container">
-                {% include 'dashboard/pharmacy_management/_pharmacy_list.html' %}
-            </div>
+            {% include 'dashboard/pharmacy_management/_pharmacy_list.html' %}
         </div>
     </div>
 
@@ -126,10 +125,7 @@
             </h6>
         </div>
         <div class="card-body">
-            <!-- this box is swapped out by JS after Add or Remove, without reloading the page -->
-            <div id="prescribed-items-container">
-                {% include 'dashboard/appointment_management/_prescribed_items.html' %}
-            </div>
+            {% include 'dashboard/appointment_management/_prescribed_items.html' %}
         </div>
     </div>
 
@@ -272,74 +268,4 @@
     {% endif %}
 
 </div>
-{% endblock %}
-
-{% block scripts %}
-{% if is_doctor_view %}
-<script>
-    // live search for the pharmacy medicine list, updates without reloading the page
-    var pharmacySearchTimer = null;  // holds the "wait a bit before searching" timer
-
-    // ask the server for a fresh medicine list and swap it into the page
-    function loadPharmacyList(url) {
-        $.get(url, function (html) {
-            $('#pharmacy-list-container').html(html);  // put the new list in place of the old one
-        });
-    }
-
-    // build the search url from whatever is in the search box and category dropdown right now
-    function pharmacySearchUrl() {
-        var q = $('#pharmacy-search-input').val();  // text the doctor typed
-        var category = $('#pharmacy-category-select').val();  // category chosen from the dropdown
-        return '{% url "appointment_pharmacy_search" appointment.pk %}?q=' + encodeURIComponent(q) + '&category=' + encodeURIComponent(category);
-    }
-
-    // wait until the doctor stops typing for a moment, then search, so it does not search on every key
-    $('#pharmacy-search-input').on('keyup', function () {
-        clearTimeout(pharmacySearchTimer);  // cancel the search that was about to run
-        pharmacySearchTimer = setTimeout(function () {
-            loadPharmacyList(pharmacySearchUrl());
-        }, 400);  // 400ms pause after the last key press
-    });
-
-    // search again right away when the category dropdown changes
-    $('#pharmacy-category-select').on('change', function () {
-        loadPharmacyList(pharmacySearchUrl());
-    });
-
-    // pressing Enter or clicking the Search button should also search without reloading the page
-    $('#pharmacy-search-form').on('submit', function (e) {
-        e.preventDefault();  // stop the normal full page reload
-        loadPharmacyList(pharmacySearchUrl());
-    });
-
-    // the Previous/Next/page-number links are inside the swapped-out box, so use event delegation
-    $(document).on('click', '#pharmacy-list-container .pagination a.page-link', function (e) {
-        e.preventDefault();  // stop the normal full page reload
-        var query = $(this).attr('href');  // something like "?q=..&category=..&page=2"
-        loadPharmacyList('{% url "appointment_pharmacy_search" appointment.pk %}' + query);
-    });
-
-    // clicking "+ Add" on a medicine row saves it without reloading the page.
-    // the add forms live inside the swapped-out pharmacy box, so use event delegation.
-    $(document).on('submit', '.pharmacy-add-form', function (e) {
-        e.preventDefault();  // stop the normal full page reload
-        var $form = $(this);  // the one add-form that was submitted
-        $.post($form.attr('action'), $form.serialize(), function (html) {
-            $('#prescribed-items-container').html(html);  // show the newly added medicine right away
-            $form[0].reset();  // clear the dosage/quantity/instructions boxes for the next entry
-        });
-    });
-
-    // clicking the trash icon removes a prescribed medicine without reloading the page.
-    // the remove forms live inside the swapped-out prescribed-items box, so use event delegation.
-    $(document).on('submit', '.pharmacy-remove-form', function (e) {
-        e.preventDefault();  // stop the normal full page reload
-        var $form = $(this);  // the one remove-form that was submitted
-        $.post($form.attr('action'), $form.serialize(), function (html) {
-            $('#prescribed-items-container').html(html);  // show the table without the removed medicine
-        });
-    });
-</script>
-{% endif %}
 {% endblock %}

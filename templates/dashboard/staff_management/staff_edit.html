@@ -93,7 +93,8 @@
                             </div>
                             <div class="form-group col-md-4">
                                 <label for="date_of_birth">Date of Birth</label>
-                                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
+                                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" max="{% now 'Y-m-d' %}" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
+                                {% if form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-4">
                                 <label for="gender">Gender</label>
@@ -151,32 +152,19 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-4">
-                                <label for="hire_date">Hire Date</label>
-                                <input type="date" id="hire_date" name="hire_date" class="form-control" value="{{ staff_profile.hire_date|date:'Y-m-d' }}">
+                      
                             </div>
                             <div class="form-group col-md-4">
-                                <label for="employment_type">Employment Type</label>
-                                <select id="employment_type" name="employment_type" class="form-control">
-                                    {% for value, label in staff_profile.EMPLOYMENT_TYPE_CHOICES %}
-                                    <option value="{{ value }}" {% if value == staff_profile.employment_type %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
+                                
                             </div>
                             <div class="form-group col-md-4">
-                                <label for="shift">Shift</label>
-                                <select id="shift" name="shift" class="form-control">
-                                    {% for value, label in staff_profile.SHIFT_CHOICES %}
-                                    <option value="{{ value }}" {% if value == staff_profile.shift %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
+                                
                             </div>
                         </div>
                         {% if profile.role == 'doctor' %}
                         {# only doctors charge a personal consultation fee and show years of experience, so only show these fields for them #}
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="hourly_fee">Hourly Fee (Rs.) <span class="text-muted">(Doctors only)</span></label>
-                                <input type="number" id="hourly_fee" name="hourly_fee" class="form-control" step="0.01" min="0" value="{{ staff_profile.hourly_fee }}">
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="years_of_experience">Years of Experience <span class="text-muted">(Doctors only)</span></label>

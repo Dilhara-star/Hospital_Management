@@ -93,7 +93,8 @@
                             </div>
                             <div class="form-group col-md-4">
                                 <label for="date_of_birth">Date of Birth</label>
-                                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
+                                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" max="{% now 'Y-m-d' %}" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
+                                {% if form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-4">
                                 <label for="gender">Gender</label>

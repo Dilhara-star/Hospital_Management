@@ -8,6 +8,7 @@ TYPE 1: Fixed choices (list of options) ====== meka eachchara en na.
 --------------------------------------------------------------
 Example: Payment status dropdown.
 
+version 1: 
 1) View - send the choices list to the template:
     return render(request, 'your_template.html', {
         'status_choices': Payment.STATUS_CHOICES,
@@ -28,11 +29,15 @@ TYPE 2: Choices from a database table ============= Most used.
 --------------------------------------------------------------
 Example: Medicine dropdown on Add Stock page.
 
-1) View - send the list of rows:
+Version 1
+1) View - send item list that get from Model
+    medicines = Medicine.objects.all()
     return render(request, 'your_template.html', {
-        'medicines': Medicine.objects.all(),
+        'medicines': medicines,
     })
 
+
+Verison 1 :
 2) Template - build the <select>:
     <select name="medicine" id="medicine" class="form-control">
         <option value="">---------</option>
@@ -40,6 +45,7 @@ Example: Medicine dropdown on Add Stock page.
         <option value="{{ item.pk }}" {% if item.pk == batch.medicine_id %}selected{% endif %}>{{ item.name }}</option>
         {% endfor %}
     </select>
+
 
 3) View - read the picked value on POST:
     medicine_id = request.POST.get('medicine')

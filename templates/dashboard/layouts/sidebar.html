@@ -104,7 +104,7 @@
         <div id="collapseappointments" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <h6 class="collapse-header">Appointment Management:</h6>
-                <a class="collapse-item" href="">Schedule Appointment</a>
+                <a class="collapse-item" href="{% url 'appointment_add' %}">Schedule Appointment</a>
                 <a class="collapse-item" href="{% url 'appointment_index' %}">All Appointments</a>
                 {% if request.user.profile.role != 'doctor' %}
                 {# fee_index already blocks doctors server-side, so hide the dead-end link too #}

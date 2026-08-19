@@ -4,7 +4,6 @@ from django.contrib import messages  # helper to show success/error messages
 from django.contrib.auth.decorators import login_required  # decorator to require login
 from .models import Medicine, MedicineStock  # import our models
 from .forms import MedicineForm, MedicineStockForm  # import our forms
-from .notifications import notify_low_stock  # emails admin/supplier when a medicine's stock is low
 from apps.supplier.models import Supplier  # suppliers are picked from a dropdown on the stock pages
 from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
 
@@ -60,7 +59,6 @@ def medicine_edit(request, pk):
         medicine.reorder_level = request.POST.get('reorder_level') or 10  # minimum quantity before reorder
         medicine.description = request.POST.get('description', '')  # extra notes
         medicine.save()  # write the changes to the database
-        notify_low_stock(medicine)  # reorder level may have just crossed the total stock
         messages.success(request, f'Medicine "{medicine.name}" updated successfully.')
         return redirect('medicine_list')
 
@@ -115,7 +113,6 @@ def stock_add(request):
         batch.purchase_price = request.POST.get('purchase_price') or None  # price paid for this batch
         batch.expiry_date = request.POST.get('expiry_date') or None  # date this batch expires
         batch.save()  # write the new stock batch to the database
-        notify_low_stock(batch.medicine)  # check if this medicine is still low after the new batch
         messages.success(request, f'Stock batch "{batch.batch_number}" added successfully.')
         return redirect('stock_list')
 
@@ -143,7 +140,6 @@ def stock_edit(request, pk):
         batch.purchase_price = request.POST.get('purchase_price') or None  # price paid for this batch
         batch.expiry_date = request.POST.get('expiry_date') or None  # date this batch expires
         batch.save()  # write the changes to the database
-        notify_low_stock(batch.medicine)  # check if this medicine is now low after the edit
         messages.success(request, f'Stock batch "{batch.batch_number}" updated successfully.')
         return redirect('stock_list')
 
@@ -170,9 +166,7 @@ def stock_delete(request, pk):
     batch = get_object_or_404(MedicineStock, pk=pk)  # find the batch or show a 404 page
     if request.method == 'POST':
         batch_number = batch.batch_number  # remember the batch number before deleting
-        medicine = batch.medicine  # remember the medicine before deleting, so we can check its stock after
         batch.delete()  # delete the stock batch
-        notify_low_stock(medicine)  # check if removing this batch left the medicine low on stock
         messages.success(request, f'Stock batch "{batch_number}" deleted successfully.')
         return redirect('stock_list')
     return redirect('stock_list')

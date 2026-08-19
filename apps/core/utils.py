@@ -1,6 +1,18 @@
+import re  # used to check a phone number is made up of digits only
 from functools import wraps  # keeps the view's real name and docstring after we wrap it
 from django.contrib import messages  # lets us show "success"/"error" banners after an action
+from django.core.exceptions import ValidationError  # raised when a form field fails a check
 from django.shortcuts import redirect  # helper to send the user to another page
+
+# a valid phone number: digits only, with an optional + at the very start, 7 to 15 digits long
+PHONE_PATTERN = re.compile(r'^\+?\d{7,15}$')
+
+
+# checks a phone number typed on a form is a sensible shape; raises an error if not
+def check_phone_number(value):
+    # skip the check if the field was left blank (forms already handle "required" separately)
+    if value and not PHONE_PATTERN.match(value):
+        raise ValidationError('Enter a valid phone number (digits only, 7 to 15 numbers long).')
 
 
 # blocks a view unless the logged in user's profile role is in the allowed list

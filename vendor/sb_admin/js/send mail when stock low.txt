@@ -1,0 +1,161 @@
+HOW TO ADD BACK THE LOW STOCK EMAILS (admin + supplier)
+====================================================================================
+Meka dan ain karala tියෙන්නේ (moved out for now), ehema una email template files
+(emails/stock/remaining_stock_mail_admin.html, emails/stock/remaining_stock_mail_supplier.html)
+saha Brevo settings (ADMIN_NOTIFY_EMAIL, BREVO_*) welata gahala thiyanawa, wenas karanna one na.
+Pahala code tika 3ma file ekakata paste karanna one, ekak ekak.
+
+--------------------------------
+1) apps/stock/notifications.py
+--------------------------------
+Danna file eke ithuru wenna (bottom eke, line 42 "print(...)" ekata pahalin), 2 husma athara.
+
+def notify_low_stock(medicine):
+    # call this after anything that can change a medicine's total stock or reorder level
+    # (adding/editing/deleting a stock batch, editing the medicine, dispensing medicine).
+    # uses the same rule as the "Low Stock" badge on the medicine list page.
+    if not medicine.is_low_stock:
+        return  # stock is fine, nothing to send
+
+    remaining_stock = medicine.total_quantity  # fresh total, read once for both emails below
+    send_low_stock_admin_email(medicine, remaining_stock)
+    send_low_stock_supplier_email(medicine, remaining_stock)
+
+
+# emails the admin once a medicine's stock drops to or below its reorder level
+def send_low_stock_admin_email(medicine, remaining_stock):
+    # any failure here (no internet, wrong api key, brevo is down) is only printed to the
+    # console - it must never crash the page that triggered this check.
+    to_email = settings.ADMIN_NOTIFY_EMAIL  # where the email goes
+    if not to_email:
+        return  # no admin email configured, nothing we can send
+
+    subject = f'Low Stock Alert - {medicine.name} ({remaining_stock} units left)'  # email subject line
+
+    # build the email body from the template file, filling in the medicine details
+    html_content = render_to_string('emails/stock/remaining_stock_mail_admin.html', {
+        'medicine': medicine,
+        'remaining_stock': remaining_stock,
+        'sender_name': settings.BREVO_SENDER_NAME,
+    })
+
+    # the data brevo's transactional email api expects
+    payload = {
+        'sender': {'name': settings.BREVO_SENDER_NAME, 'email': settings.BREVO_SENDER_EMAIL},
+        'to': [{'email': to_email, 'name': 'Admin'}],
+        'subject': subject,
+        'htmlContent': html_content,
+    }
+    headers = {
+        'accept': 'application/json',
+        'api-key': settings.BREVO_API_KEY,  # brevo checks this key to know who is sending
+        'content-type': 'application/json',
+    }
+
+    try:
+        # 10 second timeout, so a slow or dead brevo api can never freeze the page
+        requests.post('https://api.brevo.com/v3/smtp/email', json=payload, headers=headers, timeout=10)
+    except requests.RequestException as error:
+        # brevo could not be reached - just log it
+        print(f'Could not send low stock admin email: {error}')
+
+
+# emails the supplier once a medicine's stock drops to or below its reorder level
+def send_low_stock_supplier_email(medicine, remaining_stock):
+    # any failure here is only printed to the console - it must never crash the page
+    # that triggered this check.
+
+    # find the supplier who sent the most recent stock batch for this medicine
+    last_batch = medicine.stock_batches.exclude(supplier__isnull=True).order_by('-received_date').first()
+    if not last_batch or not last_batch.supplier.email:
+        return  # no supplier email on file for this medicine, nothing we can send
+
+    supplier = last_batch.supplier  # the supplier to notify
+    to_email = supplier.email  # where the email goes
+
+    subject = f'Restock Needed - {medicine.name} ({remaining_stock} units left)'  # email subject line
+
+    # build the email body from the template file, filling in the medicine details
+    html_content = render_to_string('emails/stock/remaining_stock_mail_supplier.html', {
+        'medicine': medicine,
+        'remaining_stock': remaining_stock,
+        'supplier': supplier,
+        'sender_name': settings.BREVO_SENDER_NAME,
+    })
+
+    # the data brevo's transactional email api expects
+    payload = {
+        'sender': {'name': settings.BREVO_SENDER_NAME, 'email': settings.BREVO_SENDER_EMAIL},
+        'to': [{'email': to_email, 'name': supplier.name}],
+        'subject': subject,
+        'htmlContent': html_content,
+    }
+    headers = {
+        'accept': 'application/json',
+        'api-key': settings.BREVO_API_KEY,  # brevo checks this key to know who is sending
+        'content-type': 'application/json',
+    }
+
+    try:
+        # 10 second timeout, so a slow or dead brevo api can never freeze the page
+        requests.post('https://api.brevo.com/v3/smtp/email', json=payload, headers=headers, timeout=10)
+    except requests.RequestException as error:
+        # brevo could not be reached - just log it
+        print(f'Could not send low stock supplier email: {error}')
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+2) apps/stock/views.py
+--------------------------------
+Meke functions 4k call wela thiyenne (medicine_edit, stock_add, stock_edit, stock_delete eke).
+
+a) Import - danna line 6 ta pahalin ("from .forms import ..." ekata pahalin):
+from .notifications import notify_low_stock  # emails admin/supplier when a medicine's stock is low
+
+
+b) medicine_edit() eke, "medicine.save()  # write the changes to the database" line ekata (line 61) pahalin:
+        notify_low_stock(medicine)  # reorder level may have just crossed the total stock
+
+
+c) stock_add() eke, "batch.save()  # write the new stock batch to the database" line ekata (line 115) pahalin:
+        notify_low_stock(batch.medicine)  # check if this medicine is still low after the new batch
+
+
+d) stock_edit() eke, "batch.save()  # write the changes to the database" line ekata (line 142) pahalin:
+        notify_low_stock(batch.medicine)  # check if this medicine is now low after the edit
+
+
+e) stock_delete() eke, "batch_number = batch.batch_number" line ekata (line 168) pahalin,
+   eka husma "batch.delete()" line ekata kalinma ("medicine" eka danna one delete karanna kalin, delete una
+   passe batch.medicine access karanna behe):
+        medicine = batch.medicine  # remember the medicine before deleting, so we can check its stock after
+   eth "batch.delete()  # delete the stock batch" line ekata (line 169) pahalin:
+        notify_low_stock(medicine)  # check if removing this batch left the medicine low on stock
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+3) apps/pharmacy/views.py
+--------------------------------
+Meka call wenne dispense action eke, dispense karana hama medicine ekakma check karanna.
+
+a) Import - danna line 11 ta pahalin ("from apps.stock.models import ..." ekata pahalin):
+from apps.stock.notifications import notify_low_stock  # emails admin/supplier when a medicine's stock is low
+
+
+b) "send_medicine_dispensed_email(order)" line ekata (line 151) pahalin, "messages.success(...)" ekata kalinma:
+            # check each dispensed medicine's stock and alert admin/supplier if it is now low
+            for item in prescribed_items:
+                notify_low_stock(item.medicine)
+
+----------------------------------------------------------------------------------------------------------
+
+NOTE
+--------------------------------------------------------------
+Views, urls.py, models, and the two email templates
+(templates/emails/stock/remaining_stock_mail_admin.html,
+templates/emails/stock/remaining_stock_mail_supplier.html) are all still there and working.
+Only the "notify_low_stock / send_low_stock_admin_email / send_low_stock_supplier_email" functions
+and the 5 places that call notify_low_stock() were taken out. Paste all 3 blocks back in
+(same order, 1 then 2 then 3) to turn the low stock emails back on.

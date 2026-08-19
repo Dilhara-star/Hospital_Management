@@ -17,7 +17,7 @@
                 <td>{{ item.quantity }}</td>
                 <td>{{ item.instructions|default:"—" }}</td>
                 <td class="text-center">
-                    <form method="post" class="pharmacy-remove-form"
+                    <form method="post"
                         action="{% url 'prescription_item_delete' appointment.pk item.pk %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-danger">

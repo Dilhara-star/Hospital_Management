@@ -9,7 +9,6 @@ from django.http import HttpResponse  # used to send a pdf file back as the resp
 from django.utils import timezone  # used to stamp when a payment was paid
 from apps.appointment.models import Appointment
 from apps.stock.models import Medicine, MedicineStock
-from apps.stock.notifications import notify_low_stock  # emails admin/supplier when a medicine's stock is low
 from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
 from apps.user_management.models import StaffProfile  # holds the room number for a doctor
 from .models import PrescriptionItem, PharmacyOrder
@@ -26,21 +25,6 @@ def _doctor_room(doctor):
         return doctor.staff_profile.room_number
     except StaffProfile.DoesNotExist:
         return ''
-
-
-# true only if this request came from an ajax call, not a normal page load
-def _is_ajax(request):
-    # jQuery sets this header automatically on every $.post / $.get call
-    return request.headers.get('x-requested-with') == 'XMLHttpRequest'
-
-
-# renders just the "Prescribed for This Visit" table partial, used by the ajax add/remove views
-def _prescribed_items_response(request, appointment):
-    prescribed_items = appointment.prescription_items.select_related('medicine').all()
-    return render(request, 'dashboard/appointment_management/_prescribed_items.html', {
-        'appointment': appointment,
-        'prescribed_items': prescribed_items,
-    })
 
 
 # filters and paginates the medicine catalog for the pharmacy search box
@@ -75,9 +59,7 @@ def prescribe_medicine_for_appointment(request, appointment):
             quantity=request.POST.get('quantity') or 1,
             instructions=request.POST.get('instructions', ''),
         )
-        if _is_ajax(request):
-            return _prescribed_items_response(request, appointment)  # just refresh the table, no page reload
-
+        messages.success(request, 'Medicine added to the prescription.')
         return redirect('appointment_edit', pk=appointment.pk)
 
     medicines_page, search_query, category = _search_medicines(request)  # filtered + paginated medicine list
@@ -97,20 +79,6 @@ def prescribe_medicine_for_appointment(request, appointment):
     })
 
 
-# ajax endpoint for the pharmacy section's live search box; returns just the medicine list
-@login_required
-@required_role(['admin', 'doctor', 'pharmacist'], 'You do not have permission to search the pharmacy catalog.')
-def appointment_pharmacy_search(request, pk):
-    appointment = get_object_or_404(Appointment, pk=pk)  # which appointment the doctor is prescribing for
-    medicines_page, search_query, category = _search_medicines(request)  # same filtering as the full page
-    return render(request, 'dashboard/pharmacy_management/_pharmacy_list.html', {
-        'appointment': appointment,
-        'medicines': medicines_page,
-        'search_query': search_query,
-        'category': category,
-    })
-
-
 # lets the assigned doctor remove a medicine they added to this prescription by mistake
 @login_required
 def prescription_item_delete(request, pk, item_pk):
@@ -123,8 +91,6 @@ def prescription_item_delete(request, pk, item_pk):
     if request.method == 'POST':
         item = get_object_or_404(PrescriptionItem, pk=item_pk, appointment=appointment)  # must belong to this appointment
         item.delete()
-        if _is_ajax(request):
-            return _prescribed_items_response(request, appointment)  # just refresh the table, no page reload
         messages.success(request, 'Medicine removed from the prescription.')
 
     return redirect('appointment_edit', pk=appointment.pk)
@@ -183,10 +149,6 @@ def pharmacy_order_detail(request, pk):
                 order.save()
 
             send_medicine_dispensed_email(order)  # let the patient know their medicine is ready and awaiting payment
-
-            # check each dispensed medicine's stock and alert admin/supplier if it is now low
-            for item in prescribed_items:
-                notify_low_stock(item.medicine)
 
             messages.success(request, 'Medicine has been given to the patient.')
 
