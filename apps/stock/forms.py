@@ -1,5 +1,6 @@
 # forms for medicine catalog and stock batch management
 from django import forms  # import django's form tools
+from datetime import date  # import date to compare against today
 from .models import Medicine, MedicineStock  # import our models
 
 
@@ -15,3 +16,5 @@ class MedicineStockForm(forms.ModelForm):
     class Meta:
         model = MedicineStock  # this form is built from the medicine stock model
         fields = ['medicine', 'supplier', 'batch_number', 'quantity', 'purchase_price', 'expiry_date']  # fields checked by this form
+
+

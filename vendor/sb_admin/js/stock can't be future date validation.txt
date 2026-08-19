@@ -1,0 +1,9 @@
+  
+  line 21 eke danna. (class meta eka kelin pahalata)
+  
+    # check the expiry date is not a future date
+    def clean_expiry_date(self):
+        expiry_date = self.cleaned_data.get('expiry_date')  # get the typed expiry date
+        if expiry_date and expiry_date > date.today():  # block any date after today
+            raise forms.ValidationError('Expiry date cannot be a future date. Please pick today or an earlier date.')
+        return expiry_date  # give back the checked date

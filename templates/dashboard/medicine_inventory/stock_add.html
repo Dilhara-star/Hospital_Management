@@ -73,7 +73,7 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="expiry_date">Expiry Date <span class="text-danger">*</span></label>
-                                <input type="date" id="expiry_date" name="expiry_date" class="form-control" value="{{ batch.expiry_date|date:'Y-m-d' }}">
+                                <input type="date" id="expiry_date" name="expiry_date" class="form-control" value="{{ batch.expiry_date|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}">
                                 {% if form.expiry_date.errors %}<div class="text-danger small mt-1">{{ form.expiry_date.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
