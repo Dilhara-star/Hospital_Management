@@ -63,6 +63,12 @@
                 <td class="amount">Rs. {{ doctor_fee }}</td>
             </tr>
             {% endif %}
+            {% if discount_amount %}
+            <tr>
+                <td>Age Discount (10%)</td>
+                <td class="amount">- Rs. {{ discount_amount }}</td>
+            </tr>
+            {% endif %}
         </tbody>
     </table>
 

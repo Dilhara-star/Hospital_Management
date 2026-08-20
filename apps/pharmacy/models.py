@@ -49,7 +49,8 @@ class PharmacyOrder(models.Model):
     # each appointment has exactly one pharmacy order
     appointment = models.OneToOneField('appointment.Appointment', on_delete=models.CASCADE, related_name='pharmacy_order')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')  # where the order is in the flow
-    total_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # total price of the prescribed medicine
+    total_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # total price of the prescribed medicine, after discount
+    discount_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # money taken off for the under-10 age discount, 0 means no discount
     payment_method = models.CharField(max_length=10, choices=METHOD_CHOICES, blank=True)  # how the patient paid
     payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='pending')  # has it been paid yet
     transaction_ref = models.CharField(max_length=50, blank=True)  # fake receipt/reference number

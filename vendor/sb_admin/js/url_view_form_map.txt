@@ -21,7 +21,7 @@ URL: /
 URL: /profile/
   urls.py      -> line 9
   views.py     -> profile_view (line 60)
-  forms.py     -> ProfileDetailsForm (line 6), ProfilePictureForm (line 37), ChangePasswordForm (line 42)   [file: apps/frontend/forms.py]
+  forms.py     -> ProfileDetailsForm (line 9), ProfilePictureForm (line 59), ChangePasswordForm (line 64)   [file: apps/frontend/forms.py]
   email        -> none
   notify.py    -> none
 
@@ -81,70 +81,72 @@ App: apps/appointment/  (public part)   (urls file: apps/appointment/urls.py)
 
 URL: /Appointment/
   urls.py      -> line 8
-  views.py     -> appointment_form (line 358)
+  views.py     -> appointment_form (line 366)
   forms.py     -> AppointmentForm (line 10)   [file: apps/appointment/forms.py]
-  email        -> send_doctor_assignment_email() (line 389, only if a doctor was picked),
+  email        -> send_doctor_assignment_email() (line 397, only if a doctor was picked),
                   send_appointment_confirmation_email() + send_appointment_confirmation_email_admin()
-                  (via _create_appointment_payment_record() line 391, only when paid online),
-                  send_email_appointment_without_payment() (line 396, only when paying at the hospital)
+                  (via _create_appointment_payment_record() line 399, only when paid online),
+                  send_email_appointment_without_payment() (line 404, only when paying at the hospital)
   notify.py    -> send_doctor_assignment_email (line 286), send_appointment_confirmation_email (line 19),
                   send_appointment_confirmation_email_admin (line 71), send_email_appointment_without_payment (line 116)
                   [file: apps/appointment/notifications.py]
 
 URL: /Appointment/my/
   urls.py      -> line 9
-  views.py     -> my_appointments (line 419)
+  views.py     -> my_appointments (line 427)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /Appointment/my/<pk>/
   urls.py      -> line 10
-  views.py     -> my_appointments (line 419)
+  views.py     -> my_appointments (line 427)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /Appointment/payments/
   urls.py      -> line 11
-  views.py     -> payment_history (line 460)
+  views.py     -> payment_history (line 468)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /Appointment/my/<pk>/bill/appointment.pdf
   urls.py      -> line 12
-  views.py     -> download_appointment_bill (line 479)
+  views.py     -> download_appointment_bill (line 487)
   forms.py     -> none
   email        -> none
   notify.py    -> none
+  note         -> bill amount is rebuilt as payment.amount + payment.discount_amount, so the pdf can show
+                  the pre-discount department fee even though payment.amount already has the discount taken out
 
 URL: /Appointment/edit_appointment/<pk>/
   urls.py      -> line 13
-  views.py     -> edit_appointment (line 506)
+  views.py     -> edit_appointment (line 516)
   forms.py     -> AppointmentEditForm (line 53)   [file: apps/appointment/forms.py]
-  email        -> send_appointment_update_email() (line 517) - patient rescheduled their own appointment
+  email        -> send_appointment_update_email() (line 527) - patient rescheduled their own appointment
   notify.py    -> send_appointment_update_email (line 154)   [file: apps/appointment/notifications.py]
 
 URL: /Appointment/cancel/<pk>/
   urls.py      -> line 14
-  views.py     -> cancel_appointment (line 528)
+  views.py     -> cancel_appointment (line 538)
   forms.py     -> none
-  email        -> send_appointment_cancellation_email() (line 555) - only the cash/no-payment path; online paid goes to refund instead
+  email        -> send_appointment_cancellation_email() (line 565) - only the cash/no-payment path; online paid goes to refund instead
   notify.py    -> send_appointment_cancellation_email (line 198)   [file: apps/appointment/notifications.py]
 
 URL: /Appointment/refund/<pk>/
   urls.py      -> line 15
-  views.py     -> refund_appointment (line 562)
+  views.py     -> refund_appointment (line 572)
   forms.py     -> none
   email        -> none (this view only shows the confirm page, see refund/<pk>/process/ below)
   notify.py    -> none
 
 URL: /Appointment/refund/<pk>/process/
   urls.py      -> line 18
-  views.py     -> appointment_refund_process_by_patient (line 583)
+  views.py     -> appointment_refund_process_by_patient (line 593)
   forms.py     -> none
-  email        -> send_appointment_refund_email() (line 605) - patient confirmed the online refund
+  email        -> send_appointment_refund_email() (line 615) - patient confirmed the online refund
   notify.py    -> send_appointment_refund_email (line 241)   [file: apps/appointment/notifications.py]
 
 --------------------------------------------------
@@ -153,14 +155,14 @@ App: apps/pharmacy/  (public part)   (urls file: apps/pharmacy/urls.py)
 
 URL: /pharmacy/my/<pk>/pay-medicine/
   urls.py      -> line 6
-  views.py     -> pay_medicine_online (line 228)
+  views.py     -> pay_medicine_online (line 199)
   forms.py     -> none
-  email        -> send_medicine_payment_confirmation_email() (line 238) - patient paid for their medicine online
+  email        -> send_medicine_payment_confirmation_email() (line 209) - patient paid for their medicine online
   notify.py    -> send_medicine_payment_confirmation_email (line 63)   [file: apps/pharmacy/notifications.py]
 
 URL: /pharmacy/my/<pk>/bill/medicine.pdf
   urls.py      -> line 7
-  views.py     -> download_medicine_bill (line 246)
+  views.py     -> download_medicine_bill (line 217)
   forms.py     -> none
   email        -> none
   notify.py    -> none
@@ -215,14 +217,14 @@ URL: /dashboard/users/logout/
 URL: /dashboard/users/forgot-password/
   urls.py      -> line 10
   views.py     -> forgot_password_view (line 79)
-  forms.py     -> ForgotPasswordForm (line 12)   [file: apps/user_management/forms.py]
+  forms.py     -> ForgotPasswordForm (line 16)   [file: apps/user_management/forms.py]
   email        -> send_password_reset_email() (line 98) - only if the typed email matches an account
   notify.py    -> send_password_reset_email (line 7)   [file: apps/user_management/notifications.py]
 
 URL: /dashboard/users/reset-password/<uidb64>/<token>/
   urls.py      -> line 11
   views.py     -> reset_password_confirm_view (line 108)
-  forms.py     -> SetNewPasswordForm (line 17)   [file: apps/user_management/forms.py]
+  forms.py     -> SetNewPasswordForm (line 21)   [file: apps/user_management/forms.py]
   email        -> none
   notify.py    -> none
 
@@ -236,14 +238,14 @@ URL: /dashboard/users/patients/
 URL: /dashboard/users/patients/add/
   urls.py      -> line 15
   views.py     -> patient_add (line 153)
-  forms.py     -> PatientCreateForm (line 38)   [file: apps/user_management/forms.py]
+  forms.py     -> PatientCreateForm (line 51)   [file: apps/user_management/forms.py]
   email        -> send_patient_welcome_email() (line 193) - emails the new patient their username
   notify.py    -> send_patient_welcome_email (line 160)   [file: apps/user_management/notifications.py]
 
 URL: /dashboard/users/patients/<id>/edit/
   urls.py      -> line 16
   views.py     -> patient_edit (line 208)
-  forms.py     -> PatientEditForm (line 102)   [file: apps/user_management/forms.py]
+  forms.py     -> PatientEditForm (line 164)   [file: apps/user_management/forms.py]
   email        -> send_patient_discharge_email() (line 253) - only fires the moment status changes to "discharged"
   notify.py    -> send_patient_discharge_email (line 123)   [file: apps/user_management/notifications.py]
 
@@ -271,34 +273,34 @@ URL: /dashboard/users/staff/
 URL: /dashboard/users/staff/add/
   urls.py      -> line 22
   views.py     -> staff_add (line 312)
-  forms.py     -> StaffCreateForm (line 179)   [file: apps/user_management/forms.py]
+  forms.py     -> StaffCreateForm (line 281)   [file: apps/user_management/forms.py]
   email        -> send_staff_welcome_email() (line 339) - emails the new staff member their username
   notify.py    -> send_staff_welcome_email (line 45)   [file: apps/user_management/notifications.py]
 
 URL: /dashboard/users/staff/<id>/edit/
   urls.py      -> line 23
   views.py     -> staff_edit (line 354)
-  forms.py     -> StaffEditForm (line 227)   [file: apps/user_management/forms.py]
+  forms.py     -> StaffEditForm (line 359)   [file: apps/user_management/forms.py]
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/users/staff/<id>/detail/
   urls.py      -> line 24
-  views.py     -> staff_detail (line 417)
+  views.py     -> staff_detail (line 415)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/users/staff/<id>/delete/
   urls.py      -> line 25
-  views.py     -> staff_delete (line 438)
+  views.py     -> staff_delete (line 436)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/users/doctor-rooms/
   urls.py      -> line 28
-  views.py     -> doctor_room_list (line 459)
+  views.py     -> doctor_room_list (line 457)
   forms.py     -> none
   email        -> none
   notify.py    -> none
@@ -317,14 +319,14 @@ URL: /dashboard/supplier/
 URL: /dashboard/supplier/add/
   urls.py      -> line 7
   views.py     -> supplier_add (line 25)
-  forms.py     -> SupplierForm (line 7)   [file: apps/supplier/forms.py]
+  forms.py     -> SupplierForm (line 8)   [file: apps/supplier/forms.py]
   email        -> send_supplier_welcome_email() (line 39) - tells the new supplier they were added
   notify.py    -> send_supplier_welcome_email (line 7)   [file: apps/supplier/notifications.py]
 
 URL: /dashboard/supplier/<pk>/edit/
   urls.py      -> line 8
   views.py     -> supplier_edit (line 49)
-  forms.py     -> SupplierForm (line 7)   [file: apps/supplier/forms.py]
+  forms.py     -> SupplierForm (line 8)   [file: apps/supplier/forms.py]
   email        -> none
   notify.py    -> none
 
@@ -345,6 +347,11 @@ URL: /dashboard/supplier/<pk>/delete/
 --------------------------------------------------
 
 App: apps/stock/   (mounted at dashboard/stock/)   (urls file: apps/stock/urls.py)
+NOTE: the low-stock admin/supplier email alert feature has been removed. None of the
+views below send email any more, and apps/stock/notifications.py now only has
+send_expiry_alert_admin_email (used by the send_expiry_alerts command, see the bottom
+of this file) - notify_low_stock() and the two send_low_stock_..._email() functions
+no longer exist.
 
 URL: /dashboard/stock/medicines/
   urls.py      -> line 7
@@ -356,65 +363,65 @@ URL: /dashboard/stock/medicines/
 URL: /dashboard/stock/medicines/add/
   urls.py      -> line 8
   views.py     -> medicine_add (line 28)
-  forms.py     -> MedicineForm (line 7)   [file: apps/stock/forms.py]
-  email        -> none (a brand new medicine has no stock yet, so there is nothing low to alert on)
+  forms.py     -> MedicineForm (line 8)   [file: apps/stock/forms.py]
+  email        -> none
   notify.py    -> none
 
 URL: /dashboard/stock/medicines/<pk>/edit/
   urls.py      -> line 9
   views.py     -> medicine_edit (line 50)
-  forms.py     -> MedicineForm (line 7)   [file: apps/stock/forms.py]
-  email        -> notify_low_stock() (line 63) - checks the reorder level; emails admin + supplier only if now low
-  notify.py    -> notify_low_stock (line 46), send_low_stock_admin_email (line 59), send_low_stock_supplier_email (line 97)   [file: apps/stock/notifications.py]
+  forms.py     -> MedicineForm (line 8)   [file: apps/stock/forms.py]
+  email        -> none
+  notify.py    -> none
 
 URL: /dashboard/stock/medicines/<pk>/detail/
   urls.py      -> line 10
-  views.py     -> medicine_detail (line 73)
+  views.py     -> medicine_detail (line 72)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/stock/medicines/<pk>/delete/
   urls.py      -> line 11
-  views.py     -> medicine_delete (line 82)
+  views.py     -> medicine_delete (line 81)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/stock/batches/
   urls.py      -> line 14
-  views.py     -> stock_list (line 97)
+  views.py     -> stock_list (line 96)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/stock/batches/add/
   urls.py      -> line 15
-  views.py     -> stock_add (line 105)
-  forms.py     -> MedicineStockForm (line 14)   [file: apps/stock/forms.py]
-  email        -> notify_low_stock() (line 118) - checks the medicine this batch belongs to; emails admin + supplier only if still low
-  notify.py    -> notify_low_stock (line 46), send_low_stock_admin_email (line 59), send_low_stock_supplier_email (line 97)   [file: apps/stock/notifications.py]
+  views.py     -> stock_add (line 104)
+  forms.py     -> MedicineStockForm (line 15)   [file: apps/stock/forms.py]
+  email        -> none
+  notify.py    -> none
 
 URL: /dashboard/stock/batches/<pk>/edit/
   urls.py      -> line 16
-  views.py     -> stock_edit (line 133)
-  forms.py     -> MedicineStockForm (line 14)   [file: apps/stock/forms.py]
-  email        -> notify_low_stock() (line 146) - checks the medicine this batch belongs to; emails admin + supplier only if now low
-  notify.py    -> notify_low_stock (line 46), send_low_stock_admin_email (line 59), send_low_stock_supplier_email (line 97)   [file: apps/stock/notifications.py]
+  views.py     -> stock_edit (line 131)
+  forms.py     -> MedicineStockForm (line 15)   [file: apps/stock/forms.py]
+  email        -> none
+  notify.py    -> none
 
 URL: /dashboard/stock/batches/<pk>/detail/
   urls.py      -> line 17
-  views.py     -> stock_detail (line 161)
+  views.py     -> stock_detail (line 158)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/stock/batches/<pk>/delete/
   urls.py      -> line 18
-  views.py     -> stock_delete (line 169)
+  views.py     -> stock_delete (line 166)
   forms.py     -> none
-  email        -> notify_low_stock() (line 175) - checks the medicine after the batch is gone; emails admin + supplier only if now low
-  notify.py    -> notify_low_stock (line 46), send_low_stock_admin_email (line 59), send_low_stock_supplier_email (line 97)   [file: apps/stock/notifications.py]
+  email        -> none
+  notify.py    -> none
 
 --------------------------------------------------
 
@@ -518,105 +525,105 @@ App: apps/appointment/  (staff part, mounted at dashboard/appointments/)   (urls
 
 URL: /dashboard/appointments/index/
   urls.py      -> line 25
-  views.py     -> appointment_index (line 109)
+  views.py     -> appointment_index (line 117)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/appointments/add/
   urls.py      -> line 26
-  views.py     -> appointment_add (line 133)
+  views.py     -> appointment_add (line 141)
   forms.py     -> StaffAppointmentForm (line 26)   [file: apps/appointment/forms.py]
-  email        -> send_doctor_assignment_email() (line 157, only if a doctor was picked),
+  email        -> send_doctor_assignment_email() (line 165, only if a doctor was picked),
                   send_appointment_confirmation_email() + send_appointment_confirmation_email_admin()
-                  (via _create_appointment_payment_record() line 158, only if "cash received" was ticked)
+                  (via _create_appointment_payment_record() line 166, only if "cash received" was ticked)
   notify.py    -> send_doctor_assignment_email (line 286), send_appointment_confirmation_email (line 19),
                   send_appointment_confirmation_email_admin (line 71)   [file: apps/appointment/notifications.py]
 
 URL: /dashboard/appointments/view/<pk>/
   urls.py      -> line 27
-  views.py     -> appointment_view (line 121)
+  views.py     -> appointment_view (line 129)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/appointments/edit/<pk>/
   urls.py      -> line 28
-  views.py     -> appointment_edit (line 173)
+  views.py     -> appointment_edit (line 181)
   forms.py     -> AppointmentEditForm (line 53)   [file: apps/appointment/forms.py]
-  email        -> send_appointment_confirmation_email() (line 222, status just changed to confirmed),
-                  send_appointment_cancellation_email() (line 225, status just changed to cancelled),
-                  send_doctor_assignment_email() (line 229, doctor just assigned/changed)
+  note         -> if the logged in user IS the assigned doctor, this view hands off entirely to
+                  apps.pharmacy.views.prescribe_medicine_for_appointment (line 188 here calls it;
+                  that function lives at apps/pharmacy/views.py line 53) so the doctor sees the
+                  prescribe-medicine screen instead of the reception/admin edit form below
+  email        -> send_appointment_confirmation_email() (line 230, status just changed to confirmed),
+                  send_appointment_cancellation_email() (line 233, status just changed to cancelled),
+                  send_doctor_assignment_email() (line 237, doctor just assigned/changed)
   notify.py    -> send_appointment_confirmation_email (line 19), send_appointment_cancellation_email (line 198),
                   send_doctor_assignment_email (line 286)   [file: apps/appointment/notifications.py]
 
 URL: /dashboard/appointments/delete/<pk>/
   urls.py      -> line 29
-  views.py     -> appointment_delete (line 246)
+  views.py     -> appointment_delete (line 254)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/appointments/confirm-payment/<pk>/
   urls.py      -> line 30
-  views.py     -> confirm_cash_payment (line 260)
+  views.py     -> confirm_cash_payment (line 268)
   forms.py     -> none
-  email        -> send_appointment_confirmation_email() (line 272) - receptionist confirmed the cash payment
+  email        -> send_appointment_confirmation_email() (line 280) - receptionist confirmed the cash payment
   notify.py    -> send_appointment_confirmation_email (line 19)   [file: apps/appointment/notifications.py]
 
 URL: /dashboard/appointments/fees/
   urls.py      -> line 31
-  views.py     -> fee_index (line 281)
+  views.py     -> fee_index (line 289)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/appointments/payments/
   urls.py      -> line 32
-  views.py     -> payment_index (line 306)
+  views.py     -> payment_index (line 314)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/appointments/payments/<pk>/refund/
   urls.py      -> line 33
-  views.py     -> payment_refund (line 339)
+  views.py     -> payment_refund (line 347)
   forms.py     -> PaymentForm (line 45)   [file: apps/appointment/forms.py]
-  email        -> send_appointment_refund_email() (line 347) - staff refunded a paid consultation
+  email        -> send_appointment_refund_email() (line 355) - staff refunded a paid consultation
   notify.py    -> send_appointment_refund_email (line 241)   [file: apps/appointment/notifications.py]
 
 --------------------------------------------------
 
 App: apps/pharmacy/  (staff part, mounted at dashboard/pharmacy/)   (urls file: apps/pharmacy/urls.py)
+NOTE: there is no longer a "prescribe/<pk>/search/" URL. Searching the medicine catalog to
+prescribe now happens inline inside apps.appointment.views.appointment_edit's doctor branch,
+which calls the helper prescribe_medicine_for_appointment() (apps/pharmacy/views.py line 53);
+that helper itself calls the _search_medicines() helper (apps/pharmacy/views.py line 32).
+Neither helper has its own URL - they are plain functions, not url-routed views.
 
 URL: /dashboard/pharmacy/queue/
   urls.py      -> line 12
-  views.py     -> pharmacy_queue (line 136)
+  views.py     -> pharmacy_queue (line 103)
   forms.py     -> none
   email        -> none
   notify.py    -> none
 
 URL: /dashboard/pharmacy/<pk>/
   urls.py      -> line 13
-  views.py     -> pharmacy_order_detail (line 154)
+  views.py     -> pharmacy_order_detail (line 121)
   forms.py     -> none
-  email        -> send_medicine_dispensed_email() (line 185, on the "dispense" action),
-                  send_medicine_payment_confirmation_email() (line 201, on the "record_payment" action),
-                  notify_low_stock() (line 189, checked once per dispensed medicine right after dispensing)
+  email        -> send_medicine_dispensed_email() (line 158, on the "dispense" action),
+                  send_medicine_payment_confirmation_email() (line 170, on the "record_payment" action)
   notify.py    -> send_medicine_dispensed_email (line 7), send_medicine_payment_confirmation_email (line 63)
-                  [file: apps/pharmacy/notifications.py]; notify_low_stock (line 46), send_low_stock_admin_email (line 59),
-                  send_low_stock_supplier_email (line 97)   [file: apps/stock/notifications.py]
-
-URL: /dashboard/pharmacy/prescribe/<pk>/search/
-  urls.py      -> line 14
-  views.py     -> appointment_pharmacy_search (line 103)
-  forms.py     -> none
-  email        -> none
-  notify.py    -> none
+                  [file: apps/pharmacy/notifications.py]
 
 URL: /dashboard/pharmacy/prescribe/<pk>/remove-medicine/<item_pk>/
-  urls.py      -> line 15
-  views.py     -> prescription_item_delete (line 116)
+  urls.py      -> line 14
+  views.py     -> prescription_item_delete (line 85)
   forms.py     -> none
   email        -> none
   notify.py    -> none

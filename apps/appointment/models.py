@@ -99,8 +99,9 @@ class Payment(models.Model):
 
     # each appointment has exactly one payment record
     appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE, related_name='payment')
-    amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # total fee charged: department fee + doctor fee
+    amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # total fee charged: department fee + doctor fee, after discount
     doctor_fee_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # snapshot of just the doctor's own cut, for revenue reports
+    discount_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # money taken off for the under-10 age discount, 0 means no discount
     method = models.CharField(max_length=10, choices=METHOD_CHOICES)  # how the patient is paying
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')  # has it been paid yet
     transaction_ref = models.CharField(max_length=50, blank=True)  # fake receipt/reference number

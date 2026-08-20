@@ -81,6 +81,13 @@ def _create_appointment_payment_record(appointment, payment_method, paid_now=Fal
     doctor_fee = _doctor_fee(appointment.doctor)  # this doctor's own cut
     fee_amount = department_fee + doctor_fee  # total the patient pays
 
+    # children below 10 years old get 10% off the total fee
+    # patient_age may still be the raw text typed on the booking form here, so convert it to a number first
+    discount_amount = Decimal('0')
+    if int(appointment.patient_age) < 10:
+        discount_amount = (fee_amount * Decimal('0.10')).quantize(Decimal('0.01'))  # 10% of the total, rounded to cents
+    fee_amount = fee_amount - discount_amount  # final amount the patient pays, after discount
+
     if paid_now:
         appointment.status = 'confirmed'  # money is in, so confirm right away
         appointment.save()
@@ -88,8 +95,9 @@ def _create_appointment_payment_record(appointment, payment_method, paid_now=Fal
     ref_prefix = 'PAY' if payment_method == 'online' else 'CASH'  # demo receipt number style
     Payment.objects.create(
         appointment=appointment,  # link the payment to this appointment
-        amount=fee_amount,  # department fee + doctor fee
+        amount=fee_amount,  # department fee + doctor fee, after discount
         doctor_fee_amount=doctor_fee,  # snapshot of just the doctor's cut, used later in revenue reports
+        discount_amount=discount_amount,  # how much was taken off for the age discount, so the bill can show it
         method=payment_method,  # 'online' or 'cash'
         status='paid' if paid_now else 'pending',
         paid_at=timezone.now() if paid_now else None,  # paid time, if any
@@ -485,7 +493,8 @@ def download_appointment_bill(request, pk):
         messages.error(request, 'This appointment has no paid bill yet.')
         return redirect('my_appointment_detail', pk=appointment.pk)
 
-    department_fee = payment.amount - payment.doctor_fee_amount  # hospital's own base charge, doctor's cut taken out
+    amount_before_discount = payment.amount + payment.discount_amount  # add the discount back to see the original total
+    department_fee = amount_before_discount - payment.doctor_fee_amount  # hospital's own base charge, doctor's cut taken out
     doctor_fee = payment.doctor_fee_amount  # the doctor's own cut, snapshotted at payment time
 
     from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
@@ -494,6 +503,7 @@ def download_appointment_bill(request, pk):
         'payment': payment,
         'department_fee': department_fee,
         'doctor_fee': doctor_fee,
+        'discount_amount': payment.discount_amount,
     })
     response = HttpResponse(content_type='application/pdf')  # tell the browser this is a pdf file
     response['Content-Disposition'] = f'attachment; filename="bill_{payment.transaction_ref}.pdf"'  # force a download prompt

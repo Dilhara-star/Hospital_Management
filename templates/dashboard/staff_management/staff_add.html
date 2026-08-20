@@ -112,15 +112,6 @@
                         </select>
                         {% if form.role.errors %}<div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>{% endif %}
                     </div>
-                    <div class="form-group col-md-6">
-                        <label for="sector">Sector</label>
-                        <select id="sector" name="sector" class="form-control">
-                            {% for value, label in staff_profile.SECTOR_CHOICES %}
-                            <option value="{{ value }}" {% if value == staff_profile.sector %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                        {% if form.sector.errors %}<div class="text-danger small mt-1">{{ form.sector.errors.0 }}</div>{% endif %}
-                    </div>
                 </div>
             </div>
         </div>

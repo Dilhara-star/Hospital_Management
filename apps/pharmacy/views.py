@@ -1,3 +1,4 @@
+from decimal import Decimal  # for exact money math, e.g. the age discount
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator  # splits a long medicine list into pages
@@ -126,6 +127,11 @@ def pharmacy_order_detail(request, pk):
     # total price of every prescribed item, worked out fresh each time from the current catalog price
     total_amount = sum(item.medicine.price * item.quantity for item in prescribed_items)
 
+    # children below 10 years old get 10% off the total medicine price
+    discount_amount = Decimal('0')
+    if appointment.patient_age < 10:
+        discount_amount = (total_amount * Decimal('0.10')).quantize(Decimal('0.01'))  # 10% of the total, rounded to cents
+
     if request.method == 'POST':
         action = request.POST.get('action')
 
@@ -142,7 +148,8 @@ def pharmacy_order_detail(request, pk):
                         MedicineStock.objects.filter(pk=batch.pk).update(quantity=F('quantity') - take)
                         remaining -= take
 
-                order.total_amount = total_amount
+                order.total_amount = total_amount - discount_amount  # final amount the patient pays, after discount
+                order.discount_amount = discount_amount  # how much was taken off, so the bill can show it
                 order.status = 'dispensed'
                 order.dispensed_by = request.user
                 order.dispensed_at = timezone.now()
@@ -180,6 +187,8 @@ def pharmacy_order_detail(request, pk):
         'order': order,
         'prescribed_items': prescribed_items,
         'total_amount': total_amount,
+        'discount_amount': discount_amount,
+        'final_total': total_amount - discount_amount,
     })
 
 
@@ -226,12 +235,20 @@ def download_medicine_bill(request, pk):
         })
     medicine_total = sum(row['subtotal'] for row in billed_items)  # total of every row above
 
+    # children below 10 years old get 10% off the total medicine price
+    discount_amount = Decimal('0')
+    if appointment.patient_age < 10:
+        discount_amount = (medicine_total * Decimal('0.10')).quantize(Decimal('0.01'))  # 10% of the total, rounded to cents
+    final_total = medicine_total - discount_amount  # what the patient actually pays
+
     from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
     html = render_to_string('frontend/pharmacy/medicine_bill_pdf.html', {
         'appointment': appointment,
         'order': order,
         'billed_items': billed_items,
         'medicine_total': medicine_total,
+        'discount_amount': discount_amount,
+        'final_total': final_total,
     })
     response = HttpResponse(content_type='application/pdf')  # tell the browser this is a pdf file
     response['Content-Disposition'] = f'attachment; filename="bill_{order.transaction_ref}.pdf"'  # force a download prompt

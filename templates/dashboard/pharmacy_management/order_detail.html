@@ -91,9 +91,19 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="5" class="text-right">Grand Total</th>
+                            <th colspan="5" class="text-right">{% if discount_amount %}Subtotal{% else %}Grand Total{% endif %}</th>
                             <th>Rs. {{ total_amount }}</th>
                         </tr>
+                        {% if discount_amount %}
+                        <tr>
+                            <th colspan="5" class="text-right text-success">Age Discount (10%)</th>
+                            <th class="text-success">- Rs. {{ discount_amount }}</th>
+                        </tr>
+                        <tr>
+                            <th colspan="5" class="text-right">Grand Total</th>
+                            <th>Rs. {{ final_total }}</th>
+                        </tr>
+                        {% endif %}
                     </tfoot>
                 </table>
             </div>

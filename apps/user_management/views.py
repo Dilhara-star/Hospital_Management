@@ -333,12 +333,9 @@ def staff_add(request):
             gender=request.POST.get('gender', ''),  # gender
             role=request.POST.get('role', ''),  # staff role (admin, doctor, nurse, etc)
         )
-        # step 3: create their employment record (department, shift, etc all start blank,
+        # step 3: create their employment record (department, etc all start blank,
         # the staff member fills these in later by editing their own record)
-        StaffProfile.objects.create(
-            user=staff_user,  # link back to the User we just made
-            sector=request.POST.get('sector', ''),  # government or private sector
-        )
+        StaffProfile.objects.create(user=staff_user)
         send_staff_welcome_email(staff_user, request.POST.get('role', ''))  # email the new staff member their username
         # show a success banner
         messages.success(request, f'Staff member "{staff_user.get_full_name()}" added successfully.')
@@ -348,7 +345,6 @@ def staff_add(request):
     # show the add staff page
     return render(request, 'dashboard/staff_management/staff_add.html', {
         'form': form, 'staff_user': staff_user, 'profile': profile, 'role_choices': STAFF_ROLE_CHOICES,
-        'staff_profile': StaffProfile(),  # blank, only used so the template can show sector choices
     })
 
 
@@ -391,7 +387,6 @@ def staff_edit(request, user_id):
         staff_profile, _created = StaffProfile.objects.get_or_create(user=staff_user)
         # update the employment fields
         staff_profile.department = request.POST.get('department', '')  # department
-        staff_profile.sector = request.POST.get('sector', '')  # government or private sector
         staff_profile.specialization = request.POST.get('specialization', '')  # specialization
         staff_profile.qualification = request.POST.get('qualification', '')  # qualification
         staff_profile.license_number = request.POST.get('license_number', '')  # license number

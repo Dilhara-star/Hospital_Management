@@ -63,13 +63,19 @@
                 <td class="amount">Rs. {{ row.subtotal }}</td>
             </tr>
             {% endfor %}
+            {% if discount_amount %}
+            <tr>
+                <td colspan="3">Age Discount (10%)</td>
+                <td class="amount">- Rs. {{ discount_amount }}</td>
+            </tr>
+            {% endif %}
         </tbody>
     </table>
 
     <table class="totals">
         <tr class="total">
             <td class="label">Total Amount</td>
-            <td class="value">Rs. {{ medicine_total }}</td>
+            <td class="value">Rs. {{ final_total }}</td>
         </tr>
     </table>
 

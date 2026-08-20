@@ -159,21 +159,12 @@ class StaffProfile(models.Model):
         ('part_time', 'Part Time'),
         ('contract', 'Contract'),
     ]
-    # drop-down choices for sector (private hospital or government hospital)
-    SECTOR_CHOICES = [
-        ('', '---------'),
-        ('government', 'Government'),
-        ('private', 'Private'),
-    ]
-
     # one staff record belongs to exactly one User; deleting the User deletes this record too
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='staff_profile')
     # employee id, auto-filled after saving, must be unique
     employee_id = models.CharField(max_length=20, unique=True, blank=True)
     # department, can be left blank
     department = models.CharField(max_length=30, choices=DEPARTMENT_CHOICES, blank=True)
-    # sector, government or private hospital, can be left blank
-    sector = models.CharField(max_length=20, choices=SECTOR_CHOICES, blank=True)
     # which room this staff member sees patients in, e.g. a doctor
     room_number = models.CharField(max_length=20, blank=True)
     # specialization, can be left blank
