@@ -63,6 +63,10 @@
                             <div>{{ sp.get_department_display|default:"—" }}</div>
                         </div>
                         <div class="col-md-6 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Sector</div>
+                            <div>{{ sp.get_sector_display|default:"—" }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
                             <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Specialization</div>
                             <div>{{ sp.specialization|default:"—" }}</div>
                         </div>
@@ -74,11 +78,7 @@
                             <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">License / Registration No.</div>
                             <div>{{ sp.license_number|default:"—" }}</div>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Hire Date</div>
-                            <div>{{ sp.hire_date|default:"—" }}</div>
-                        </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-6 mb-3">
                             <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Employment Type</div>
                             <div>
                                 {% if sp.employment_type == 'full_time' %}<span class="badge badge-success">Full Time</span>
@@ -86,10 +86,6 @@
                                 {% elif sp.employment_type == 'contract' %}<span class="badge badge-info">Contract</span>
                                 {% else %}—{% endif %}
                             </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Shift</div>
-                            <div>{{ sp.get_shift_display|default:"—" }}</div>
                         </div>
                     </div>
                     {% else %}

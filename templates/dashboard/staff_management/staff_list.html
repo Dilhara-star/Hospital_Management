@@ -40,8 +40,6 @@
                             <!-- <th>Qualification</th> -->
                             <th>Phone</th>
                             <th>Employment Type</th>
-                            <th>Shift</th>
-                            <th>Hire Date</th>
                             <th>Status</th>
                             <th class="text-center">Actions</th>
                         </tr>
@@ -56,8 +54,6 @@
                             <!-- <th>Qualification</th> -->
                             <th>Phone</th>
                             <th>Employment Type</th>
-                            <th>Shift</th>
-                            <th>Hire Date</th>
                             <th>Status</th>
                             <th class="text-center">Actions</th>
                         </tr>
@@ -94,8 +90,6 @@
                                 {% endif %}
                                 {% endwith %}
                             </td>
-                            <td>{{ profile.user.staff_profile.get_shift_display|default:"—" }}</td>
-                            <td class="small">{{ profile.user.staff_profile.hire_date|default:"—" }}</td>
                             <td>
                                 {% if profile.user.is_active %}
                                 <span class="badge badge-success">Active</span>
@@ -120,7 +114,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="12" class="text-center text-muted py-4">
+                            <td colspan="10" class="text-center text-muted py-4">
                                 <i class="fas fa-user-md fa-2x mb-2 d-block"></i>
                                 No staff members found.
                             </td>

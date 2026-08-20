@@ -159,13 +159,11 @@ class StaffProfile(models.Model):
         ('part_time', 'Part Time'),
         ('contract', 'Contract'),
     ]
-    # drop-down choices for shift
-    SHIFT_CHOICES = [
+    # drop-down choices for sector (private hospital or government hospital)
+    SECTOR_CHOICES = [
         ('', '---------'),
-        ('morning', 'Morning'),
-        ('afternoon', 'Afternoon'),
-        ('night', 'Night'),
-        ('rotating', 'Rotating'),
+        ('government', 'Government'),
+        ('private', 'Private'),
     ]
 
     # one staff record belongs to exactly one User; deleting the User deletes this record too
@@ -174,6 +172,8 @@ class StaffProfile(models.Model):
     employee_id = models.CharField(max_length=20, unique=True, blank=True)
     # department, can be left blank
     department = models.CharField(max_length=30, choices=DEPARTMENT_CHOICES, blank=True)
+    # sector, government or private hospital, can be left blank
+    sector = models.CharField(max_length=20, choices=SECTOR_CHOICES, blank=True)
     # which room this staff member sees patients in, e.g. a doctor
     room_number = models.CharField(max_length=20, blank=True)
     # specialization, can be left blank
@@ -182,12 +182,8 @@ class StaffProfile(models.Model):
     qualification = models.CharField(max_length=100, blank=True)
     # license number, can be left blank
     license_number = models.CharField(max_length=50, blank=True)
-    # hire date, can be left empty
-    hire_date = models.DateField(null=True, blank=True)
     # employment type, can be left blank
     employment_type = models.CharField(max_length=20, choices=EMPLOYMENT_TYPE_CHOICES, blank=True)
-    # shift, can be left blank
-    shift = models.CharField(max_length=20, choices=SHIFT_CHOICES, blank=True)
     # emergency contact name, can be left blank
     emergency_contact_name = models.CharField(max_length=100, blank=True)
     # emergency contact phone, can be left blank

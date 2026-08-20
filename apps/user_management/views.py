@@ -335,7 +335,10 @@ def staff_add(request):
         )
         # step 3: create their employment record (department, shift, etc all start blank,
         # the staff member fills these in later by editing their own record)
-        StaffProfile.objects.create(user=staff_user)
+        StaffProfile.objects.create(
+            user=staff_user,  # link back to the User we just made
+            sector=request.POST.get('sector', ''),  # government or private sector
+        )
         send_staff_welcome_email(staff_user, request.POST.get('role', ''))  # email the new staff member their username
         # show a success banner
         messages.success(request, f'Staff member "{staff_user.get_full_name()}" added successfully.')
@@ -345,6 +348,7 @@ def staff_add(request):
     # show the add staff page
     return render(request, 'dashboard/staff_management/staff_add.html', {
         'form': form, 'staff_user': staff_user, 'profile': profile, 'role_choices': STAFF_ROLE_CHOICES,
+        'staff_profile': StaffProfile(),  # blank, only used so the template can show sector choices
     })
 
 
@@ -387,12 +391,11 @@ def staff_edit(request, user_id):
         staff_profile, _created = StaffProfile.objects.get_or_create(user=staff_user)
         # update the employment fields
         staff_profile.department = request.POST.get('department', '')  # department
+        staff_profile.sector = request.POST.get('sector', '')  # government or private sector
         staff_profile.specialization = request.POST.get('specialization', '')  # specialization
         staff_profile.qualification = request.POST.get('qualification', '')  # qualification
         staff_profile.license_number = request.POST.get('license_number', '')  # license number
-        staff_profile.hire_date = request.POST.get('hire_date') or None  # hire date
         staff_profile.employment_type = request.POST.get('employment_type', '')  # employment type
-        staff_profile.shift = request.POST.get('shift', '')  # shift
         staff_profile.hourly_fee = request.POST.get('hourly_fee') or 0  # consultation fee (doctors only)
         staff_profile.years_of_experience = request.POST.get('years_of_experience') or 0  # years of practice (doctors only)
         staff_profile.emergency_contact_name = request.POST.get('emergency_contact_name', '')  # emergency contact name

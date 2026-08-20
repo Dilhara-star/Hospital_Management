@@ -288,6 +288,7 @@ class StaffCreateForm(forms.Form):
     date_of_birth = forms.DateField(required=False)  # date of birth picker, not required
     gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False)  # gender drop-down
     role = forms.ChoiceField(choices=STAFF_ROLE_CHOICES, required=True)  # staff role drop-down, required
+    sector = forms.ChoiceField(choices=StaffProfile.SECTOR_CHOICES, required=False)  # government or private sector drop-down
     password = forms.CharField(widget=forms.PasswordInput)  # password text box (hidden characters)
     confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm password text box (hidden characters)
     is_active = forms.BooleanField(required=False, initial=True)  # checkbox for whether the account can log in
@@ -371,12 +372,11 @@ class StaffEditForm(forms.Form):
     role = forms.ChoiceField(choices=STAFF_ROLE_CHOICES, required=True)  # staff role drop-down, required
     # Employment
     department = forms.ChoiceField(choices=StaffProfile.DEPARTMENT_CHOICES, required=False)  # department drop-down
+    sector = forms.ChoiceField(choices=StaffProfile.SECTOR_CHOICES, required=False)  # government or private sector drop-down
     specialization = forms.CharField(max_length=100, required=False)  # specialization text box, not required
     qualification = forms.CharField(max_length=100, required=False)  # qualification text box, not required
     license_number = forms.CharField(max_length=50, required=False)  # license number text box, not required
-    hire_date = forms.DateField(required=False)  # hire date picker, not required
     employment_type = forms.ChoiceField(choices=StaffProfile.EMPLOYMENT_TYPE_CHOICES, required=False)  # employment type drop-down
-    shift = forms.ChoiceField(choices=StaffProfile.SHIFT_CHOICES, required=False)  # shift drop-down
     hourly_fee = forms.DecimalField(required=False, min_value=0)  # doctor's own consultation fee (doctors only)
     years_of_experience = forms.IntegerField(required=False, min_value=0)  # doctor's years of practice (doctors only)
     # Emergency contact
@@ -449,13 +449,3 @@ class StaffEditForm(forms.Form):
             raise forms.ValidationError('Date of birth cannot be in the future.')
         # date is fine (or was left blank)
         return dob
-
-    # stops a hire date being set in the future
-    def clean_hire_date(self):
-        # pull the cleaned hire date value out of the form
-        hire_date = self.cleaned_data.get('hire_date')
-        # stop if a date was picked and it is after today
-        if hire_date and hire_date > date.today():
-            raise forms.ValidationError('Hire date cannot be in the future.')
-        # date is fine (or was left blank)
-        return hire_date

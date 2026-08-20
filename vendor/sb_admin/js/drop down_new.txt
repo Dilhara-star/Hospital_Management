@@ -1,0 +1,52 @@
+--------------------------------
+Staff Sector dropdown (Private / Government)
+--------------------------------
+
+Paste in: apps/user_management/models.py -> class StaffProfile, right under SHIFT_CHOICES.
+    SECTOR_CHOICES = [('', '---------'), ('government', 'Government'), ('private', 'Private')]  # sector choices
+
+Paste in: apps/user_management/models.py -> class StaffProfile, right under the department field.
+    sector = models.CharField(max_length=20, choices=SECTOR_CHOICES, blank=True)  # government or private sector
+
+Paste in: apps/user_management/forms.py -> class StaffCreateForm, right under the role field.
+    sector = forms.ChoiceField(choices=StaffProfile.SECTOR_CHOICES, required=False)  # sector drop-down
+
+Paste in: apps/user_management/forms.py -> class StaffEditForm, right under the department field.
+    sector = forms.ChoiceField(choices=StaffProfile.SECTOR_CHOICES, required=False)  # sector drop-down
+
+Paste in: apps/user_management/views.py -> staff_add(), inside StaffProfile.objects.create(...).
+    sector=request.POST.get('sector', ''),  # save the picked sector
+
+Paste in: apps/user_management/views.py -> staff_add(), in the return render(...) context dict.
+    'staff_profile': StaffProfile(),  # blank, so the template can read SECTOR_CHOICES
+
+Paste in: apps/user_management/views.py -> staff_edit(), right under staff_profile.department = ...
+    staff_profile.sector = request.POST.get('sector', '')  # save the picked sector
+
+Paste in: templates/dashboard/staff_management/staff_add.html, right after the Role form-group, same form-row.
+    <div class="form-group col-md-6">
+        <label for="sector">Sector</label>
+        <select id="sector" name="sector" class="form-control">
+            {% for value, label in staff_profile.SECTOR_CHOICES %}
+            <option value="{{ value }}" {% if value == staff_profile.sector %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+Paste in: templates/dashboard/staff_management/staff_edit.html, Employment Details card, first empty form-group slot.
+    <label for="sector">Sector</label>
+    <select id="sector" name="sector" class="form-control">
+        {% for value, label in staff_profile.SECTOR_CHOICES %}
+        <option value="{{ value }}" {% if value == staff_profile.sector %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+
+Paste in: templates/dashboard/staff_management/staff_detail.html, Employment Details card, next to Department.
+    <div class="col-md-6 mb-3">
+        <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Sector</div>
+        <div>{{ sp.get_sector_display|default:"—" }}</div>
+    </div>
+
+After models.py change, run: python manage.py makemigrations user_management  then  python manage.py migrate
+
+----------------------------------------------------------------------------------------------------------
