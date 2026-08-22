@@ -1,0 +1,38 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+</style>
+</head>
+<body>
+
+    <h1>Stock Valuation Report</h1>
+    <p class="sub">Total stock value: Rs. {{ grand_total_value|floatformat:2 }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th>Total Quantity</th>
+                <th>Stock Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in valuation_rows %}
+            <tr>
+                <td>{{ row.medicine__name }}</td>
+                <td>{{ row.total_quantity }}</td>
+                <td>Rs. {{ row.total_value|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

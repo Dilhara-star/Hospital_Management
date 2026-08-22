@@ -65,6 +65,7 @@ class MedicineStockForm(forms.ModelForm):
 
 
 
+
     # stops a purchase price of zero, negative, or blank from being saved
     def clean_purchase_price(self):
         # pull the cleaned purchase price value out of the form

@@ -2,6 +2,7 @@ HOW TO ADD BACK THE REMOVED REPORT CARDS (HTML side only, server side is untouch
 ====================================================================================
 File: Hospital_Management\templates\dashboard\report_management\index.html
 
+* js wla report folder eke thma hide report html file tyne e html and pdf html ekth aran awith original report html ekt dnna 
 --------------------------------
 Appointment Status
 --------------------------------
@@ -224,6 +225,34 @@ Suggested spot: same Pharmacy & Stock section.
             </div>
         </div>
 
+--------------------------------------------------
+
+stock evalution- dnata tyna stock value(price)
+
+----------------------------------------------------
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-2x text-primary mb-3"></i>
+                    <h5>Stock Valuation</h5>
+                    <p class="text-muted small">How much money the current medicine stock is worth.</p>
+                    <a href="{% url 'stock_valuation_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
 ----------------------------------------------------------------------------------------------------------
 
 NOTE (new 8)
@@ -236,3 +265,6 @@ untouched - paste any block above into it to make that report clickable.
 
 Total reports with a working view/url/template but no index.html card: 13
 (the original 5 + these 8).
+
+
+

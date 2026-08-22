@@ -106,18 +106,4 @@ class AppointmentEditForm(forms.ModelForm):
         model = Appointment
         fields = ['date', 'time_slot']
 
-    # stops a patient rescheduling into a slot their doctor is already booked for
-    def clean(self):
-        cleaned_data = super().clean()  # run the normal field checks first
-        appointment_date = cleaned_data.get('date')  # new date picked on the form
-        time_slot = cleaned_data.get('time_slot')  # new time slot picked on the form
-        doctor = self.instance.doctor  # the doctor is not changed on this form, so read it from the instance
-
-        if doctor and appointment_date and time_slot:  # only checkable once all three are known
-            clash = Appointment.objects.filter(
-                doctor=doctor, date=appointment_date, time_slot=time_slot,
-            ).exclude(status='cancelled').exclude(pk=self.instance.pk)  # a cancelled slot is free, and skip itself
-            if clash.exists():  # someone else already has this doctor booked at this time
-                self.add_error('time_slot', 'This doctor is already booked for that date and time slot. Please pick another slot.')
-
-        return cleaned_data
+    

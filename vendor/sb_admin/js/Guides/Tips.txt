@@ -40,3 +40,12 @@ Multiple Items walin ekain eka open karala item -> data1 ganima
 {% for appointment in appointments %} 
 {{ appointment.department }}
 {% endfor %}
+
+
+
+git pull file ek gnna - git fetch --all; git reset --hard origin/$(git rev-parse --abbrev-ref HEAD); git clean -fd
+
+git push file ek ywann - 
+git add .
+git commit -m "22 update testd"    
+git push
