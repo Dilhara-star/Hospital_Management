@@ -3,15 +3,15 @@ from django.contrib import messages  # lets us show "success"/"error" banners af
 from django.contrib.auth.decorators import login_required  # blocks a view unless the user is logged in
 from django.contrib.auth.models import User  # built-in user model (login, username, password)
 from django.core.paginator import Paginator  # splits a long list of appointments into pages
-from django.db.models import Sum, Count, F  # aggregation tools used by the stock and staff reports
+from django.db.models import Sum, Count, F, Q  # aggregation and search tools used across the reports
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string  # turns a template into an HTML string, used for PDFs
-from django.http import HttpResponse
-from apps.appointment.models import Appointment, DepartmentFee  # the rows reports are built from
+from apps.appointment.models import Appointment, DepartmentFee, Payment  # the rows reports are built from
 from apps.pharmacy.models import PharmacyOrder, PrescriptionItem  # the medicine orders and prescribed items reports are built from
 from apps.stock.models import Medicine, MedicineStock  # the medicine catalog and stock batches reports are built from
+from apps.supplier.models import Supplier  # supplier records used by the purchase report
 from apps.user_management.models import PatientProfile, StaffProfile, UserProfile  # the patient and staff records reports are built from
 from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
+from apps.reports.utils import export_pdf  # shared helper that turns a report into a downloadable pdf
 
 
 # shows the reports landing page with links to every report below
@@ -70,12 +70,9 @@ def doctor_revenue_report(request):
             messages.error(request, 'Please choose a doctor first.')
             return redirect('doctor_revenue_report')
 
-        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
-        html = render_to_string('dashboard/report_management/doctor_revenue_pdf.html', context)  # turn the template into an html string, filled in with this report's data
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
-        response['Content-Disposition'] = f'attachment; filename="doctor_revenue_{doctor.pk}.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
-        return response  # send the pdf back to the browser
+        pdf_response = export_pdf(request, 'dashboard/report_management/doctor_revenue_pdf.html', context, f'doctor_revenue_{doctor.pk}.pdf')  # build the pdf, or None if not asked for
+        if pdf_response:
+            return pdf_response  # send the pdf back to the browser
 
     return render(request, 'dashboard/report_management/doctor_revenue.html', context)
 
@@ -121,12 +118,9 @@ def appointment_summary_report(request):
             messages.error(request, 'Please choose a doctor first.')
             return redirect('appointment_summary_report')
 
-        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
-        html = render_to_string('dashboard/report_management/appointment_summary_pdf.html', context)  # turn the template into an html string, filled in with this report's data
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
-        response['Content-Disposition'] = f'attachment; filename="appointment_summary_{doctor.pk}.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
-        return response  # send the pdf back to the browser
+        pdf_response = export_pdf(request, 'dashboard/report_management/appointment_summary_pdf.html', context, f'appointment_summary_{doctor.pk}.pdf')  # build the pdf, or None if not asked for
+        if pdf_response:
+            return pdf_response  # send the pdf back to the browser
 
     return render(request, 'dashboard/report_management/appointment_summary.html', context)
 
@@ -202,13 +196,9 @@ def hospital_revenue_report(request):
     context['pharmacy_pending'] = pharmacy_pending
     context['grand_total'] = consultation_paid + pharmacy_paid  # everything the hospital has actually collected
 
-    if request.GET.get('download') == 'pdf':
-        from xhtml2pdf import pisa  # only needed here, so it is imported right at this point
-        html = render_to_string('dashboard/report_management/hospital_revenue_pdf.html', context)  # turn the template into an HTML string
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a PDF file
-        response['Content-Disposition'] = 'attachment; filename="hospital_revenue.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the HTML string into a real PDF, written into the response
-        return response  # send the PDF back to the browser
+    pdf_response = export_pdf(request, 'dashboard/report_management/hospital_revenue_pdf.html', context, 'hospital_revenue.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
 
     return render(request, 'dashboard/report_management/hospital_revenue.html', context)
 
@@ -258,13 +248,9 @@ def department_performance_report(request):
         'department_stats': department_stats.values(),  # the finished list, one row per department
     }
 
-    if request.GET.get('download') == 'pdf':
-        from xhtml2pdf import pisa  # only needed here, so it is imported right at this point
-        html = render_to_string('dashboard/report_management/department_performance_pdf.html', context)  # build the PDF's HTML
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a PDF file
-        response['Content-Disposition'] = 'attachment; filename="department_performance.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the HTML string into a real PDF
-        return response  # send the PDF back to the browser
+    pdf_response = export_pdf(request, 'dashboard/report_management/department_performance_pdf.html', context, 'department_performance.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
 
     return render(request, 'dashboard/report_management/department_performance.html', context)
 
@@ -317,13 +303,9 @@ def doctors_leaderboard_report(request):
         'leaderboard': leaderboard,
     }
 
-    if request.GET.get('download') == 'pdf':
-        from xhtml2pdf import pisa  # only needed here, so it is imported right at this point
-        html = render_to_string('dashboard/report_management/doctors_leaderboard_pdf.html', context)  # build the PDF's HTML
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a PDF file
-        response['Content-Disposition'] = 'attachment; filename="doctors_leaderboard.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the HTML string into a real PDF
-        return response  # send the PDF back to the browser
+    pdf_response = export_pdf(request, 'dashboard/report_management/doctors_leaderboard_pdf.html', context, 'doctors_leaderboard.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
 
     return render(request, 'dashboard/report_management/doctors_leaderboard.html', context)
 
@@ -360,12 +342,9 @@ def hospital_appointment_status_report(request):
     if request.GET.get('download') == 'pdf':
         # the PDF gets the full list, not just one page
         context['appointments'] = appointments
-        from xhtml2pdf import pisa  # only needed here, so it is imported right at this point
-        html = render_to_string('dashboard/report_management/appointment_status_pdf.html', context)  # build the PDF's HTML
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a PDF file
-        response['Content-Disposition'] = 'attachment; filename="appointment_status.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the HTML string into a real PDF
-        return response  # send the PDF back to the browser
+        pdf_response = export_pdf(request, 'dashboard/report_management/appointment_status_pdf.html', context, 'appointment_status.pdf')  # build the pdf, or None if not asked for
+        if pdf_response:
+            return pdf_response  # send the pdf back to the browser
 
     # the on-screen page shows 25 appointments at a time, so the list stays fast even with many rows
     paginator = Paginator(appointments, 25)  # split the queryset into pages of 25 rows each
@@ -385,13 +364,9 @@ def low_stock_report(request):
 
     context = {'low_stock_medicines': low_stock_medicines}  # values the template and PDF both need
 
-    if request.GET.get('download') == 'pdf':
-        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
-        html = render_to_string('dashboard/report_management/low_stock_pdf.html', context)  # turn the template into an html string
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
-        response['Content-Disposition'] = 'attachment; filename="low_stock.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
-        return response  # send the pdf back to the browser
+    pdf_response = export_pdf(request, 'dashboard/report_management/low_stock_pdf.html', context, 'low_stock.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
 
     return render(request, 'dashboard/report_management/low_stock.html', context)
 
@@ -416,13 +391,9 @@ def medicine_expiry_report(request):
         'expiring_soon_batches': expiring_soon_batches,
     }
 
-    if request.GET.get('download') == 'pdf':
-        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
-        html = render_to_string('dashboard/report_management/medicine_expiry_pdf.html', context)  # turn the template into an html string
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
-        response['Content-Disposition'] = 'attachment; filename="medicine_expiry.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
-        return response  # send the pdf back to the browser
+    pdf_response = export_pdf(request, 'dashboard/report_management/medicine_expiry_pdf.html', context, 'medicine_expiry.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
 
     return render(request, 'dashboard/report_management/medicine_expiry.html', context)
 
@@ -463,13 +434,9 @@ def medicine_sales_report(request):
     context['sales'] = sales
     context['grand_total_revenue'] = grand_total_revenue
 
-    if request.GET.get('download') == 'pdf':
-        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
-        html = render_to_string('dashboard/report_management/medicine_sales_pdf.html', context)  # turn the template into an html string
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
-        response['Content-Disposition'] = 'attachment; filename="medicine_sales.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
-        return response  # send the pdf back to the browser
+    pdf_response = export_pdf(request, 'dashboard/report_management/medicine_sales_pdf.html', context, 'medicine_sales.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
 
     return render(request, 'dashboard/report_management/medicine_sales.html', context)
 
@@ -492,13 +459,9 @@ def stock_valuation_report(request):
         'grand_total_value': sum(row['total_value'] or 0 for row in valuation_rows),  # add up every medicine's value
     }
 
-    if request.GET.get('download') == 'pdf':
-        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
-        html = render_to_string('dashboard/report_management/stock_valuation_pdf.html', context)  # turn the template into an html string
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
-        response['Content-Disposition'] = 'attachment; filename="stock_valuation.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
-        return response  # send the pdf back to the browser
+    pdf_response = export_pdf(request, 'dashboard/report_management/stock_valuation_pdf.html', context, 'stock_valuation.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
 
     return render(request, 'dashboard/report_management/stock_valuation.html', context)
 
@@ -530,12 +493,9 @@ def patient_registration_report(request):
     if request.GET.get('download') == 'pdf':
         # the PDF gets the full list, not just one page
         context['patients'] = patients
-        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
-        html = render_to_string('dashboard/report_management/patient_registration_pdf.html', context)  # turn the template into an html string
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
-        response['Content-Disposition'] = 'attachment; filename="patient_registration.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
-        return response  # send the pdf back to the browser
+        pdf_response = export_pdf(request, 'dashboard/report_management/patient_registration_pdf.html', context, 'patient_registration.pdf')  # build the pdf, or None if not asked for
+        if pdf_response:
+            return pdf_response  # send the pdf back to the browser
 
     # the on-screen page shows 25 patients at a time, so the list stays fast even with many rows
     paginator = Paginator(patients, 25)  # split the queryset into pages of 25 rows each
@@ -577,12 +537,344 @@ def staff_headcount_report(request):
         'total_staff': StaffProfile.objects.count(),
     }
 
-    if request.GET.get('download') == 'pdf':
-        from xhtml2pdf import pisa  # html to pdf library, only needed here so it is imported at this point
-        html = render_to_string('dashboard/report_management/staff_headcount_pdf.html', context)  # turn the template into an html string
-        response = HttpResponse(content_type='application/pdf')  # tell the browser this reply is a pdf file
-        response['Content-Disposition'] = 'attachment; filename="staff_headcount.pdf"'  # force a download prompt
-        pisa.CreatePDF(html, dest=response)  # turn the html into a pdf and write it into the response
-        return response  # send the pdf back to the browser
+    pdf_response = export_pdf(request, 'dashboard/report_management/staff_headcount_pdf.html', context, 'staff_headcount.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
 
     return render(request, 'dashboard/report_management/staff_headcount.html', context)
+
+
+# shows one patient's full history: appointments, prescribed medicines, and payments
+@login_required
+@required_role(['admin', 'doctor'], 'You do not have permission to view reports.')
+def patient_medical_history_report(request):
+    query = request.GET.get('q', '')  # the search text typed in the search box
+    patient_id = request.GET.get('patient_id')  # which patient was picked from the search results
+
+    if request.user.profile.role == 'doctor':
+        # a doctor can only look up patients they have actually treated
+        patients = PatientProfile.objects.filter(user__patient_appointments__doctor=request.user).distinct()
+    else:
+        # an admin can look up any patient in the system
+        patients = PatientProfile.objects.all()
+
+    if query:
+        # match the search text against first name, last name, or mrn
+        patients = patients.filter(
+            Q(user__first_name__icontains=query) | Q(user__last_name__icontains=query) | Q(mrn__icontains=query)
+        )
+    patients = patients.select_related('user').order_by('user__first_name', 'user__last_name')[:20]  # only show the first 20 matches
+
+    context = {'query': query, 'patients': patients, 'patient': None}
+
+    if patient_id:
+        patient = get_object_or_404(PatientProfile, pk=patient_id)  # fetch the chosen patient, or 404 if the id is wrong
+
+        if request.user.profile.role == 'doctor':
+            # a doctor may only open a patient they have treated, even by typing the id directly in the url
+            has_treated = Appointment.objects.filter(patient=patient.user, doctor=request.user).exists()
+            if not has_treated:
+                messages.error(request, 'You do not have permission to view this patient.')
+                return redirect('patient_medical_history_report')
+
+        # every appointment for this patient, newest first
+        appointments = Appointment.objects.filter(patient=patient.user).select_related('doctor', 'payment').order_by('-date')
+        if request.user.profile.role == 'doctor':
+            # a doctor only sees the visits where they were the treating doctor
+            appointments = appointments.filter(doctor=request.user)
+        appointments = list(appointments)  # turn into a plain list so we can attach extra info to each row below
+
+        # group the prescribed medicines by which appointment they belong to
+        prescriptions_by_appointment = {}
+        for item in PrescriptionItem.objects.filter(appointment__in=appointments).select_related('medicine'):
+            prescriptions_by_appointment.setdefault(item.appointment_id, []).append(item)
+
+        # group the pharmacy orders by which appointment they belong to
+        orders_by_appointment = {}
+        for order in PharmacyOrder.objects.filter(appointment__in=appointments):
+            orders_by_appointment[order.appointment_id] = order
+
+        for appointment in appointments:
+            appointment.prescriptions = prescriptions_by_appointment.get(appointment.id, [])  # attach this visit's prescribed medicines
+            appointment.pharmacy_order = orders_by_appointment.get(appointment.id)  # attach this visit's pharmacy order, or None
+
+        context['patient'] = patient
+        context['appointments'] = appointments
+
+        if request.GET.get('download') == 'pdf':
+            pdf_response = export_pdf(request, 'dashboard/report_management/patient_medical_history_pdf.html', context, f'patient_history_{patient.mrn}.pdf')  # build the pdf, or None if not asked for
+            if pdf_response:
+                return pdf_response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/patient_medical_history.html', context)
+
+
+# shows appointment count and paid revenue, grouped by day or by month
+@login_required
+@required_role(['admin'], 'You do not have permission to view reports.')
+def appointment_revenue_trend_report(request):
+    start_date = request.GET.get('start_date', '')  # read the "from" date typed in the filter form
+    end_date = request.GET.get('end_date', '')  # read the "to" date typed in the filter form
+    group_by = request.GET.get('group_by', 'day')  # group the trend by "day" or by "month"
+    if group_by not in ('day', 'month'):
+        group_by = 'day'  # fall back to day if someone passes a bad value in the url
+
+    appointments = Appointment.objects.select_related('payment').all()  # every appointment, with its payment attached
+    if start_date:
+        appointments = appointments.filter(date__gte=start_date)  # drop appointments before the "from" date
+    if end_date:
+        appointments = appointments.filter(date__lte=end_date)  # drop appointments after the "to" date
+
+    # one counter dict per time bucket (a day or a month), built by walking the appointments once
+    buckets = {}
+    for appointment in appointments:
+        if group_by == 'month':
+            key = appointment.date.strftime('%Y-%m')  # bucket by year and month, e.g. "2026-08"
+        else:
+            key = appointment.date.strftime('%Y-%m-%d')  # bucket by the exact day
+        row = buckets.setdefault(key, {'label': key, 'appointment_count': 0, 'revenue': 0})  # start this bucket at zero the first time we see it
+        row['appointment_count'] += 1  # one more appointment in this bucket
+        payment = getattr(appointment, 'payment', None)  # this appointment's payment row, or None
+        if payment and payment.status == 'paid':
+            row['revenue'] += payment.amount  # add to this bucket's paid revenue
+
+    trend_rows = [buckets[key] for key in sorted(buckets)]  # oldest bucket first, since the keys sort chronologically as plain text
+
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'group_by': group_by,
+        'trend_rows': trend_rows,
+        'total_appointments': sum(row['appointment_count'] for row in trend_rows),
+        'total_revenue': sum(row['revenue'] for row in trend_rows),
+    }
+
+    pdf_response = export_pdf(request, 'dashboard/report_management/appointment_revenue_trend_pdf.html', context, 'appointment_revenue_trend.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/appointment_revenue_trend.html', context)
+
+
+# shows every consultation payment and pharmacy order that has not been paid yet
+@login_required
+@required_role(['admin'], 'You do not have permission to view reports.')
+def outstanding_payments_report(request):
+    start_date = request.GET.get('start_date', '')  # read the "from" date typed in the filter form
+    end_date = request.GET.get('end_date', '')  # read the "to" date typed in the filter form
+    context = {'start_date': start_date, 'end_date': end_date}
+
+    # every consultation payment that has not been paid yet
+    pending_payments = Payment.objects.filter(status='pending').select_related('appointment__patient', 'appointment__doctor').order_by('appointment__date')
+    if start_date:
+        pending_payments = pending_payments.filter(appointment__date__gte=start_date)  # drop rows before the "from" date
+    if end_date:
+        pending_payments = pending_payments.filter(appointment__date__lte=end_date)  # drop rows after the "to" date
+
+    # every pharmacy order that has not been paid yet
+    pending_orders = PharmacyOrder.objects.filter(payment_status='pending').select_related('appointment__patient').order_by('appointment__date')
+    if start_date:
+        pending_orders = pending_orders.filter(appointment__date__gte=start_date)  # drop rows before the "from" date
+    if end_date:
+        pending_orders = pending_orders.filter(appointment__date__lte=end_date)  # drop rows after the "to" date
+
+    consultation_total = 0  # add up every unpaid consultation amount
+    for payment in pending_payments:
+        consultation_total += payment.amount
+
+    pharmacy_total = 0  # add up every unpaid pharmacy order amount
+    for order in pending_orders:
+        pharmacy_total += order.total_amount
+
+    context['pending_payments'] = pending_payments
+    context['pending_orders'] = pending_orders
+    context['consultation_total'] = consultation_total
+    context['pharmacy_total'] = pharmacy_total
+    context['grand_total'] = consultation_total + pharmacy_total
+
+    pdf_response = export_pdf(request, 'dashboard/report_management/outstanding_payments_pdf.html', context, 'outstanding_payments.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/outstanding_payments.html', context)
+
+
+# shows every medicine in the catalog with how many units are currently in stock
+@login_required
+@required_role(['admin', 'pharmacist'], 'You do not have permission to view reports.')
+def stock_inventory_report(request):
+    query = request.GET.get('q', '')  # the search text typed in the search box
+    context = {'query': query}
+
+    medicines = Medicine.objects.all().order_by('name')  # every medicine, alphabetical
+    if query:
+        medicines = medicines.filter(name__icontains=query)  # only medicines whose name matches the search text
+
+    if request.GET.get('download') == 'pdf':
+        # the pdf gets the full list, not just one page
+        context['medicines'] = medicines
+        pdf_response = export_pdf(request, 'dashboard/report_management/stock_inventory_pdf.html', context, 'stock_inventory.pdf')  # build the pdf, or None if not asked for
+        if pdf_response:
+            return pdf_response  # send the pdf back to the browser
+
+    # the on-screen page shows 25 medicines at a time, so the list stays fast even with a big catalog
+    paginator = Paginator(medicines, 25)  # split the queryset into pages of 25 rows each
+    page_number = request.GET.get('page')  # which page the user asked for, from the url
+    context['page_obj'] = paginator.get_page(page_number)  # the one page of medicines to show right now
+
+    return render(request, 'dashboard/report_management/stock_inventory.html', context)
+
+
+# shows which doctors have appointments booked, slot by slot, on a chosen day
+@login_required
+@required_role(['admin', 'doctor'], 'You do not have permission to view reports.')
+def doctor_schedule_report(request):
+    schedule_date = request.GET.get('schedule_date') or str(date.today())  # default to today if nothing was picked
+    context = {'schedule_date': schedule_date}
+
+    # the fixed one hour slots a doctor can be booked into, skipping the blank "Select Time Slot" choice
+    time_slots = [(value, label) for value, label in Appointment.TIME_SLOT_CHOICES if value]
+
+    if request.user.profile.role == 'doctor':
+        # a doctor always sees only their own day, ignoring ?doctor_id= in the url
+        doctors = [request.user]
+    else:
+        doctor_id = request.GET.get('doctor_id', '')
+        if doctor_id:
+            doctors = [get_object_or_404(User, pk=doctor_id, profile__role='doctor')]  # just the one doctor picked
+        else:
+            # no doctor picked, so show every doctor who has an appointment on this date
+            doctors = User.objects.filter(profile__role='doctor', doctor_appointments__date=schedule_date).distinct().order_by('first_name', 'last_name')
+        context['doctors'] = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')  # feeds the doctor drop-down
+        context['doctor_id'] = doctor_id
+
+    schedules = []  # one entry per doctor, each with their full slot grid for the day
+    for doctor in doctors:
+        # this doctor's appointments on this date, ignoring cancelled ones since a cancelled slot is free again
+        appointments = Appointment.objects.filter(doctor=doctor, date=schedule_date).exclude(status='cancelled').select_related('patient')
+        appointment_by_slot = {appointment.time_slot: appointment for appointment in appointments}  # look up an appointment by its slot code
+
+        slots = [{'label': label, 'appointment': appointment_by_slot.get(value)} for value, label in time_slots]  # every slot, booked or free
+        schedules.append({'doctor': doctor, 'slots': slots})
+
+    context['schedules'] = schedules
+
+    pdf_response = export_pdf(request, 'dashboard/report_management/doctor_schedule_pdf.html', context, 'doctor_schedule.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/doctor_schedule.html', context)
+
+
+# shows every patient grouped by age group and by gender
+@login_required
+@required_role(['admin'], 'You do not have permission to view reports.')
+def patient_demographics_report(request):
+    patients = PatientProfile.objects.select_related('user__profile').all()  # every patient, with their profile attached
+
+    # counters for each age group, kept in display order
+    age_group_counts = {'0-17': 0, '18-35': 0, '36-50': 0, '51-65': 0, '65+': 0, 'Unknown': 0}
+    # turns the short gender code into a readable label
+    gender_labels = {'male': 'Male', 'female': 'Female', 'other': 'Other'}
+    gender_counts = {'Male': 0, 'Female': 0, 'Other': 0, 'Not specified': 0}
+
+    for patient in patients:
+        age = patient.age  # uses the model's own age property, or None if the date of birth is unknown
+        if age is None:
+            age_group_counts['Unknown'] += 1
+        elif age <= 17:
+            age_group_counts['0-17'] += 1
+        elif age <= 35:
+            age_group_counts['18-35'] += 1
+        elif age <= 50:
+            age_group_counts['36-50'] += 1
+        elif age <= 65:
+            age_group_counts['51-65'] += 1
+        else:
+            age_group_counts['65+'] += 1
+
+        gender_code = patient.user.profile.gender  # 'male' / 'female' / 'other' / blank
+        gender_label = gender_labels.get(gender_code, 'Not specified')  # blank or unknown code falls back to "Not specified"
+        gender_counts[gender_label] += 1
+
+    context = {
+        'age_group_stats': [{'label': label, 'count': count} for label, count in age_group_counts.items()],
+        'gender_stats': [{'label': label, 'count': count} for label, count in gender_counts.items()],
+        'total_patients': patients.count(),
+    }
+
+    pdf_response = export_pdf(request, 'dashboard/report_management/patient_demographics_pdf.html', context, 'patient_demographics.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/patient_demographics.html', context)
+
+
+# shows every consultation payment that was paid, then refunded to the patient
+@login_required
+@required_role(['admin'], 'You do not have permission to view reports.')
+def refund_report(request):
+    start_date = request.GET.get('start_date', '')  # read the "from" date typed in the filter form
+    end_date = request.GET.get('end_date', '')  # read the "to" date typed in the filter form
+    context = {'start_date': start_date, 'end_date': end_date}
+
+    # every consultation payment that was refunded; pharmacy orders have no "refunded" status in this system
+    refunds = Payment.objects.filter(status='refunded').select_related('appointment__patient', 'appointment__doctor').order_by('-appointment__date')
+    if start_date:
+        refunds = refunds.filter(appointment__date__gte=start_date)  # drop rows before the "from" date
+    if end_date:
+        refunds = refunds.filter(appointment__date__lte=end_date)  # drop rows after the "to" date
+
+    total_refunded = 0  # add up every refunded amount
+    for payment in refunds:
+        total_refunded += payment.amount
+
+    context['refunds'] = refunds
+    context['total_refunded'] = total_refunded
+
+    pdf_response = export_pdf(request, 'dashboard/report_management/refund_report_pdf.html', context, 'refund_report.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/refund_report.html', context)
+
+
+# shows medicine stock batches bought from each supplier, and their total cost
+@login_required
+@required_role(['admin', 'pharmacist'], 'You do not have permission to view reports.')
+def purchase_report(request):
+    start_date = request.GET.get('start_date', '')  # read the "from" date typed in the filter form
+    end_date = request.GET.get('end_date', '')  # read the "to" date typed in the filter form
+    supplier_id = request.GET.get('supplier_id', '')  # which supplier was picked in the filter form
+
+    # only batches with a known purchase price count as a real purchase
+    batches = MedicineStock.objects.select_related('medicine', 'supplier').filter(purchase_price__isnull=False)
+    if start_date:
+        batches = batches.filter(received_date__gte=start_date)  # drop batches received before the "from" date
+    if end_date:
+        batches = batches.filter(received_date__lte=end_date)  # drop batches received after the "to" date
+    if supplier_id:
+        batches = batches.filter(supplier_id=supplier_id)  # only this one supplier, if chosen
+
+    # group the batches by supplier, adding up batch count, quantity, and total cost per supplier
+    supplier_summary = batches.values('supplier__id', 'supplier__name').annotate(
+        batch_count=Count('id'),
+        total_quantity=Sum('quantity'),
+        total_cost=Sum(F('quantity') * F('purchase_price')),
+    ).order_by('-total_cost')
+
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'supplier_id': supplier_id,
+        'suppliers': Supplier.objects.all().order_by('name'),  # feeds the supplier drop-down
+        'supplier_summary': supplier_summary,
+        'batches': batches.order_by('-received_date'),
+        'grand_total_value': sum(row['total_cost'] or 0 for row in supplier_summary),  # add up every supplier's total cost
+    }
+
+    pdf_response = export_pdf(request, 'dashboard/report_management/purchase_report_pdf.html', context, 'purchase_report.pdf')  # build the pdf, or None if not asked for
+    if pdf_response:
+        return pdf_response  # send the pdf back to the browser
+
+    return render(request, 'dashboard/report_management/purchase_report.html', context)

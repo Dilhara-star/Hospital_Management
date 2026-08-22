@@ -1,0 +1,136 @@
+{% extends 'dashboard/layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Purchase Report</h1>
+        <a href="{% url 'reports_index' %}" class="btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm"></i> Back to Reports
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-truck-loading mr-1"></i> Stock Purchased, By Supplier
+            </h6>
+            <a href="{% url 'purchase_report' %}?download=pdf&start_date={{ start_date }}&end_date={{ end_date }}&supplier_id={{ supplier_id }}" class="btn btn-sm btn-danger">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </a>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small">Batches with no recorded purchase price are left out of these totals.</p>
+
+            <!-- filter row, GET so the page can be bookmarked / shared -->
+            <form method="get" action="{% url 'purchase_report' %}" class="form-row align-items-end mb-4">
+                <div class="form-group col-md-3">
+                    <label>From</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="form-group col-md-3">
+                    <label>To</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Supplier</label>
+                    <select name="supplier_id" class="form-control">
+                        <option value="">-- All Suppliers --</option>
+                        {% for supplier in suppliers %}
+                        <option value="{{ supplier.pk }}" {% if supplier_id == supplier.pk|stringformat:"s" %}selected{% endif %}>{{ supplier.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+                    <a href="{% url 'purchase_report' %}" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+
+            <!-- grand total -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Purchase Cost</div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">Rs. {{ grand_total_value|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="font-weight-bold text-gray-700">By Supplier</h6>
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Supplier</th>
+                            <th>Batches</th>
+                            <th>Total Quantity</th>
+                            <th>Total Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in supplier_summary %}
+                        <tr>
+                            <td>{{ row.supplier__name|default:"Unknown Supplier" }}</td>
+                            <td>{{ row.batch_count }}</td>
+                            <td>{{ row.total_quantity }}</td>
+                            <td>Rs. {{ row.total_cost|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">No priced purchases found for this period.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <h6 class="font-weight-bold text-gray-700">Batch Detail</h6>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Supplier</th>
+                            <th>Batch Number</th>
+                            <th>Quantity</th>
+                            <th>Purchase Price</th>
+                            <th>Received Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for batch in batches %}
+                        <tr>
+                            <td>{{ batch.medicine.name }}</td>
+                            <td>{{ batch.supplier.name|default:"Unknown Supplier" }}</td>
+                            <td>{{ batch.batch_number }}</td>
+                            <td>{{ batch.quantity }}</td>
+                            <td>Rs. {{ batch.purchase_price|floatformat:2 }}</td>
+                            <td>{{ batch.received_date }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No priced purchases found for this period.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

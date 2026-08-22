@@ -1,0 +1,56 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    h3 { font-size: 13px; margin: 14px 0 4px 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+</style>
+</head>
+<body>
+
+    <h1>Patient Medical History</h1>
+    <p class="sub">
+        {{ patient.user.get_full_name }} &mdash; MRN: {{ patient.mrn }} &mdash; Age: {{ patient.age|default:"Unknown" }}
+        &mdash; Gender: {{ patient.user.profile.get_gender_display|default:"Not specified" }} &mdash; Blood Type: {{ patient.blood_type|default:"-" }}
+    </p>
+    <p class="sub">Allergies: {{ patient.allergies|default:"None on file" }} &mdash; Chronic Conditions: {{ patient.chronic_conditions|default:"None on file" }}</p>
+
+    {% for appointment in appointments %}
+    <h3>{{ appointment.date }} &mdash; {{ appointment.get_department_display }} &mdash; Dr. {{ appointment.doctor.get_full_name|default:"Unassigned" }} ({{ appointment.get_status_display }})</h3>
+    <p class="sub">
+        Consultation: {% if appointment.payment %}Rs. {{ appointment.payment.amount|floatformat:2 }} ({{ appointment.payment.get_status_display }}){% else %}No payment record{% endif %}
+        &mdash; Pharmacy: {% if appointment.pharmacy_order %}Rs. {{ appointment.pharmacy_order.total_amount|floatformat:2 }} ({{ appointment.pharmacy_order.get_payment_status_display }}){% else %}No pharmacy order{% endif %}
+    </p>
+    {% if appointment.prescriptions %}
+    <table>
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th>Dosage</th>
+                <th>Quantity</th>
+                <th>Instructions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in appointment.prescriptions %}
+            <tr>
+                <td>{{ item.medicine.name }}</td>
+                <td>{{ item.dosage }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.instructions|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% empty %}
+    <p>No visits found for this patient.</p>
+    {% endfor %}
+
+</body>
+</html>

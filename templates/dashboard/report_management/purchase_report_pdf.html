@@ -1,0 +1,71 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    h3 { font-size: 13px; margin: 14px 0 4px 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+</style>
+</head>
+<body>
+
+    <h1>Purchase Report</h1>
+    <p class="sub">
+        {% if start_date or end_date %}{{ start_date|default:"the start" }} to {{ end_date|default:"today" }}{% else %}All time{% endif %}
+        &mdash; Total Purchase Cost: Rs. {{ grand_total_value|floatformat:2 }}
+    </p>
+
+    <h3>By Supplier</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Supplier</th>
+                <th>Batches</th>
+                <th>Total Quantity</th>
+                <th>Total Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in supplier_summary %}
+            <tr>
+                <td>{{ row.supplier__name|default:"Unknown Supplier" }}</td>
+                <td>{{ row.batch_count }}</td>
+                <td>{{ row.total_quantity }}</td>
+                <td>Rs. {{ row.total_cost|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Batch Detail</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th>Supplier</th>
+                <th>Batch Number</th>
+                <th>Quantity</th>
+                <th>Purchase Price</th>
+                <th>Received Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for batch in batches %}
+            <tr>
+                <td>{{ batch.medicine.name }}</td>
+                <td>{{ batch.supplier.name|default:"Unknown Supplier" }}</td>
+                <td>{{ batch.batch_number }}</td>
+                <td>{{ batch.quantity }}</td>
+                <td>Rs. {{ batch.purchase_price|floatformat:2 }}</td>
+                <td>{{ batch.received_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

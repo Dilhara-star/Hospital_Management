@@ -1,0 +1,44 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    h3 { font-size: 13px; margin: 14px 0 4px 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+</style>
+</head>
+<body>
+
+    <h1>Doctor Schedule</h1>
+    <p class="sub">Date: {{ schedule_date }}</p>
+
+    {% for row in schedules %}
+    <h3>{{ row.doctor.get_full_name }}</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Time Slot</th>
+                <th>Status</th>
+                <th>Patient</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot in row.slots %}
+            <tr>
+                <td>{{ slot.label }}</td>
+                <td>{% if slot.appointment %}Booked{% else %}Free{% endif %}</td>
+                <td>{% if slot.appointment %}{{ slot.appointment.patient.get_full_name }}{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% empty %}
+    <p>No doctors have appointments on this date.</p>
+    {% endfor %}
+
+</body>
+</html>

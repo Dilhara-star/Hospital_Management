@@ -1,0 +1,44 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+</style>
+</head>
+<body>
+
+    <h1>Current Stock / Inventory</h1>
+    <p class="sub">{% if query %}Search: "{{ query }}"{% else %}Every medicine in the catalog{% endif %}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Manufacturer</th>
+                <th>Reorder Level</th>
+                <th>Quantity In Stock</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for medicine in medicines %}
+            <tr>
+                <td>{{ medicine.name }}</td>
+                <td>{{ medicine.get_category_display|default:"-" }}</td>
+                <td>{{ medicine.manufacturer|default:"-" }}</td>
+                <td>{{ medicine.reorder_level }}</td>
+                <td>{{ medicine.total_quantity }}{% if medicine.is_low_stock %} (Low){% endif %}</td>
+                <td>Rs. {{ medicine.price|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

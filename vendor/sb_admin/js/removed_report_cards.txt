@@ -69,10 +69,170 @@ Danna "Medicine Expiry" card eke pahalin, "Stock Valuation" card eke uda (Pharma
         </div>
 
 ----------------------------------------------------------------------------------------------------------
+--------------------------------
+Medicine Expiry
+--------------------------------
 
-NOTE
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-times fa-2x text-primary mb-3"></i>
+                    <h5>Medicine Expiry</h5>
+                    <p class="text-muted small">Batches already expired, or expiring within the next 30 days.</p>
+                    <a href="{% url 'medicine_expiry_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+
+
+
+----------------------------------------------------------------------------------------------------
+
+--------------------------------
+Patient Medical History
+--------------------------------
+Suggested spot: top row, next to "Doctor Revenue" / "Appointment Summary"
+(admin + doctor both use it - it's a personal lookup, not hospital-wide).
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-notes-medical fa-2x text-primary mb-3"></i>
+                    <h5>Patient Medical History</h5>
+                    <p class="text-muted small">Search a patient, see their full visit, prescription, and payment history.</p>
+                    <a href="{% url 'patient_medical_history_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Doctor Schedule
+--------------------------------
+Suggested spot: same top row as Patient Medical History (admin + doctor).
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-2x text-primary mb-3"></i>
+                    <h5>Doctor Schedule</h5>
+                    <p class="text-muted small">Which doctors have appointments booked, slot by slot, on a chosen day.</p>
+                    <a href="{% url 'doctor_schedule_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Appointment & Revenue Trend
+--------------------------------
+Suggested spot: Hospital-Wide section (admin only), next to "Doctors Leaderboard".
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-2x text-primary mb-3"></i>
+                    <h5>Appointment &amp; Revenue Trend</h5>
+                    <p class="text-muted small">Appointment count and revenue collected, grouped by day or by month.</p>
+                    <a href="{% url 'appointment_revenue_trend_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Outstanding Payments
+--------------------------------
+Suggested spot: Hospital-Wide section (admin only), next to "Hospital Revenue".
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-hand-holding-usd fa-2x text-primary mb-3"></i>
+                    <h5>Outstanding Payments</h5>
+                    <p class="text-muted small">Unpaid consultations and pharmacy orders, with totals still owed.</p>
+                    <a href="{% url 'outstanding_payments_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Patient Demographics
+--------------------------------
+Suggested spot: Hospital-Wide section (admin only).
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-pie fa-2x text-primary mb-3"></i>
+                    <h5>Patient Demographics</h5>
+                    <p class="text-muted small">Every patient broken down by age group and by gender.</p>
+                    <a href="{% url 'patient_demographics_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Refund Report
+--------------------------------
+Suggested spot: Hospital-Wide section (admin only).
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-undo fa-2x text-primary mb-3"></i>
+                    <h5>Refund Report</h5>
+                    <p class="text-muted small">Consultation payments that were paid, then refunded to the patient.</p>
+                    <a href="{% url 'refund_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Current Stock / Inventory
+--------------------------------
+Suggested spot: Pharmacy & Stock section, next to "Stock Valuation".
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-warehouse fa-2x text-primary mb-3"></i>
+                    <h5>Current Stock / Inventory</h5>
+                    <p class="text-muted small">Every medicine in the catalog with how many units are on hand right now.</p>
+                    <a href="{% url 'stock_inventory_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+--------------------------------
+Purchase Report
+--------------------------------
+Suggested spot: same Pharmacy & Stock section.
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-truck-loading fa-2x text-primary mb-3"></i>
+                    <h5>Purchase Report</h5>
+                    <p class="text-muted small">Medicine stock batches bought from each supplier, and their total cost.</p>
+                    <a href="{% url 'purchase_report' %}" class="btn btn-primary btn-sm">View Report</a>
+                </div>
+            </div>
+        </div>
+
+----------------------------------------------------------------------------------------------------------
+
+NOTE (new 8)
 --------------------------------------------------------------
-Views, urls.py, and templates for these 4 reports (low_stock, medicine_sales,
-patient_registration, hospital_appointment_status) are all still working.
-Only the card links on the Reports index page were removed. Paste any block
-back in to bring that card back.
+Views, urls.py, and both templates (screen + pdf) for these 8 reports
+(patient_medical_history, doctor_schedule, appointment_revenue_trend,
+outstanding_payments, patient_demographics, refund_report, stock_inventory,
+purchase_report) are all fully working. index.html was intentionally left
+untouched - paste any block above into it to make that report clickable.
+
+Total reports with a working view/url/template but no index.html card: 13
+(the original 5 + these 8).

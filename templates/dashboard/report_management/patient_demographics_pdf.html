@@ -1,0 +1,56 @@
+<html>
+<head>
+<style>
+    /* xhtml2pdf only understands basic CSS, so this page stays plain (no Bootstrap) */
+    body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+    h1 { font-size: 18px; margin-bottom: 0; }
+    h3 { font-size: 13px; margin: 14px 0 4px 0; }
+    p.sub { color: #777; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background-color: #f4f4f4; }
+</style>
+</head>
+<body>
+
+    <h1>Patient Demographics</h1>
+    <p class="sub">Total Patients: {{ total_patients }}</p>
+
+    <h3>By Age Group</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Age Group</th>
+                <th>Patient Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in age_group_stats %}
+            <tr>
+                <td>{{ row.label }}</td>
+                <td>{{ row.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>By Gender</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Gender</th>
+                <th>Patient Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in gender_stats %}
+            <tr>
+                <td>{{ row.label }}</td>
+                <td>{{ row.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
