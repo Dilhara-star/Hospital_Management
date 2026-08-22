@@ -1,9 +1,13 @@
-  
-  line 21 eke danna. (class meta eka kelin pahalata)
-  
-    # check the expiry date is not a future date
+  stock wala, forms.py wala, "clean_batch_number" def eka iwara unata passe pahala def eka paste karanna.
+
+    # stops an expiry date that is today or already in the past
     def clean_expiry_date(self):
-        expiry_date = self.cleaned_data.get('expiry_date')  # get the typed expiry date
-        if expiry_date and expiry_date > date.today():  # block any date after today
-            raise forms.ValidationError('Expiry date cannot be a future date. Please pick today or an earlier date.')
-        return expiry_date  # give back the checked date
+        # pull the cleaned expiry date value out of the form
+        expiry_date = self.cleaned_data.get('expiry_date')
+        # stop if the date is today or earlier - a new batch must expire in the future
+        if expiry_date and expiry_date <= date.today():
+            raise forms.ValidationError('Expiry date must be in the future.')
+        # date is fine
+        return expiry_date
+
+

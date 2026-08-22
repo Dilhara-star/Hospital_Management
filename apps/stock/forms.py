@@ -63,15 +63,7 @@ class MedicineStockForm(forms.ModelForm):
         # batch number is fine
         return batch_number
 
-    # stops an expiry date that is today or already in the past
-    def clean_expiry_date(self):
-        # pull the cleaned expiry date value out of the form
-        expiry_date = self.cleaned_data.get('expiry_date')
-        # stop if the date is today or earlier - a new batch must expire in the future
-        if expiry_date and expiry_date <= date.today():
-            raise forms.ValidationError('Expiry date must be in the future.')
-        # date is fine
-        return expiry_date
+
 
     # stops a purchase price of zero, negative, or blank from being saved
     def clean_purchase_price(self):
