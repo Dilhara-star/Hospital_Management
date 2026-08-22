@@ -484,7 +484,7 @@ def appointment_form(request):
     # department each doctor belongs to, so the page can hide doctors from other departments
     doctor_departments = {str(doctor.pk): _doctor_department(doctor) for doctor in doctors}
     # each doctor's own saved time slots, so the page can hide slots this doctor doesn't work.
-    # a doctor with no saved slots yet has not configured Doctor Settings, so treat them as
+    # a doctor with no saved slots yet has not configured Doctor Settings, so treat them as 
     # available in every slot rather than hiding all of them
     all_slot_values = [value for value, _label in Appointment.TIME_SLOT_CHOICES if value]
     doctor_slots = {}
@@ -581,6 +581,7 @@ def download_appointment_bill(request, pk):
         'department_fee': department_fee,
         'doctor_fee': doctor_fee,
         'discount_amount': payment.discount_amount,
+  
     })
     response = HttpResponse(content_type='application/pdf')  # tell the browser this is a pdf file
     response['Content-Disposition'] = f'attachment; filename="bill_{payment.transaction_ref}.pdf"'  # force a download prompt

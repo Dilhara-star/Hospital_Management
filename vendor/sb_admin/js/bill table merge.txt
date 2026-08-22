@@ -1,0 +1,39 @@
+1. c:\AI Projects\Hospital_Management\templates\frontend\appointment\appointment_bill_pdf.html
+exsting table eka iwara unata passe, me pahala table eka add karanna.
+
+    {% if prescription_items %}
+    <!-- prescription is just shown here for reference, it is not part of this payment or its total -->
+    <h1 style="font-size: 14px; margin-top: 25px; margin-bottom: 0;">Prescription</h1>
+    <table class="items">
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th>Dosage</th>
+                <th>Quantity</th>
+                <th>Instructions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in prescription_items %}
+            <tr>
+                <td>{{ item.medicine.name }}</td>
+                <td>{{ item.dosage }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.instructions }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+
+2. c:\AI Projects\Hospital_Management\apps\appointment\views.py
+"download_appointment_bill" def eke, 'doctor_fee' ekata passe line ekata add karanna pahala line eka
+
+    prescription_items = appointment.prescription_items.select_related('medicine').all()  # medicines prescribed for this appointment, just to show on the bill
+
+3. ita passe, e def ekema pahala, "'discount_amount': payment.discount_amount," menna ekata pahalin danna mehema
+
+      'prescription_items': prescription_items,
+
+-----------------------------------------------------------------------------------------------
