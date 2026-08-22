@@ -1,0 +1,81 @@
+{% extends 'frontend/layouts/base.html' %}
+{% load static %}
+
+    {% block content %}
+
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title">
+      <div class="heading">
+        <div class="container">
+          <div class="row d-flex justify-content-center text-center">
+            <div class="col-lg-8">
+              <h1 class="heading-title">Privacy Policy</h1>
+              <p class="mb-0">
+                How Medi Plus collects, uses, and protects your information.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <nav class="breadcrumbs">
+        <div class="container">
+          <ol>
+            <li><a href="{% url 'frontend_index' %}">Home</a></li>
+            <li class="current">Privacy Policy</li>
+          </ol>
+        </div>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <!-- Privacy Policy Section -->
+    <section id="privacy-policy" class="section">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+        <p><em>Last updated: August 22, 2026</em></p>
+
+        <p>This Privacy Policy explains what information Medi Plus collects when you use our website and
+          appointment booking system, and how that information is used and protected.</p>
+
+        <h3>1. Information We Collect</h3>
+        <p>When you register, book an appointment, or contact us, we may collect information such as your
+          name, phone number, email address, date of birth, gender, and any medical or appointment
+          details you provide. We also collect payment details when you pay for a consultation or
+          medicine order, through our payment provider.</p>
+
+        <h3>2. How We Use Your Information</h3>
+        <p>We use your information to create and manage your account, book and manage your appointments,
+          process payments and refunds, send appointment reminders and updates, and respond to your
+          questions through our contact form.</p>
+
+        <h3>3. Sharing of Information</h3>
+        <p>We share your information with the doctors and staff involved in your care, and with payment
+          providers to process your payments. We do not sell your personal information to third parties.</p>
+
+        <h3>4. Data Security</h3>
+        <p>We take reasonable steps to protect your information, including keeping passwords stored in a
+          secure, encrypted form. However, no method of storage or transmission over the internet is
+          completely secure, so we cannot guarantee absolute security.</p>
+
+        <h3>5. Your Choices</h3>
+        <p>You can view and update most of your personal information at any time from your
+          <a href="{% url 'profile' %}">Profile</a> page. If you would like your account or data removed,
+          please contact us using the details on our <a href="{% url 'contact_us_index' %}">Contact page</a>.</p>
+
+        <h3>6. Changes to This Policy</h3>
+        <p>We may update this Privacy Policy from time to time. Any changes will be posted on this page
+          with an updated "Last updated" date.</p>
+
+        <h3>7. Contact Us</h3>
+        <p>If you have questions about this Privacy Policy, please reach us using the details on our
+          <a href="{% url 'contact_us_index' %}">Contact page</a>.</p>
+
+      </div>
+
+    </section><!-- /Privacy Policy Section -->
+
+  </main>
+
+{% endblock content %}

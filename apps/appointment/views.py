@@ -1,3 +1,4 @@
+import re  # used to strip a phone number down to digits, for building a call-in patient's username
 from datetime import datetime, timedelta  # used to work out the 24 hour appointment cancel cutoff
 from decimal import Decimal  # turns the posted amount text into a real decimal number
 from django.contrib import messages
@@ -9,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string  # turns a template into an html string, used for pdf bills
 from django.http import HttpResponse  # used to send a pdf file back as the response
 from django.utils import timezone  # used to stamp when a payment was paid
-from .models import Appointment, DepartmentFee, Payment
+from .models import Appointment, DepartmentFee, DoctorAvailability, Payment
 from .forms import AppointmentForm, StaffAppointmentForm, PaymentForm, AppointmentEditForm
 from .notifications import (
     send_appointment_confirmation_email, send_appointment_confirmation_email_admin,
@@ -18,7 +19,7 @@ from .notifications import (
 )  # emails the patient once an appointment is confirmed, updated, cancelled, or refunded
 from apps.pharmacy.models import PharmacyOrder  # the medicine order linked to an appointment
 from apps.pharmacy.views import prescribe_medicine_for_appointment  # doctor's "prescribe medicine" screen
-from apps.user_management.models import StaffProfile  # holds the room number and hourly fee for a doctor
+from apps.user_management.models import StaffProfile, UserProfile, PatientProfile  # doctor employment info, and patient account records
 from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
 
 
@@ -44,6 +45,40 @@ def _doctor_fee(doctor):
         return doctor.staff_profile.hourly_fee
     except StaffProfile.DoesNotExist:
         return 0
+
+
+# finds an existing patient account by phone number, or creates a lightweight one if none
+# exists yet - used when reception registers an appointment for a caller over the phone
+def _find_or_create_call_in_patient(patient_name, patient_contact):
+    # reuse the account if this phone number already belongs to a patient
+    existing = User.objects.filter(profile__role='patient', profile__phone=patient_contact).first()
+    if existing:
+        return existing
+
+    # split "Jane Doe" into first name "Jane" and last name "Doe"
+    name_parts = patient_name.strip().split(' ', 1)
+    first_name = name_parts[0]
+    last_name = name_parts[1] if len(name_parts) > 1 else ''
+
+    # build a username out of the phone number's digits, e.g. "patient0771234567"
+    base_username = 'patient' + re.sub(r'\D', '', patient_contact)
+    username = base_username
+    suffix = 1
+    # keep trying a new suffix until the username is free
+    while User.objects.filter(username=username).exists():
+        suffix += 1
+        username = f'{base_username}{suffix}'
+
+    # step 1: create the login account - no usable password yet, since reception is
+    # filling this in on the caller's behalf, not the patient themself
+    patient_user = User.objects.create_user(username=username, first_name=first_name, last_name=last_name)
+    patient_user.set_unusable_password()
+    patient_user.save()
+    # step 2: create their basic profile
+    UserProfile.objects.create(user=patient_user, phone=patient_contact, role='patient')
+    # step 3: create their medical/insurance record
+    PatientProfile.objects.create(user=patient_user, status='active')
+    return patient_user
 
 
 # looks up the department a doctor belongs to, or '' if none has been set yet
@@ -111,6 +146,31 @@ def _create_appointment_payment_record(appointment, payment_method, paid_now=Fal
 
 # ── Dashboard ────────────────────────────────────────────────────────────────
 
+# lets a doctor pick which of the fixed one hour time slots they are available in,
+# so the public booking form only offers patients slots this doctor actually works
+@login_required
+@required_role(['doctor'], 'You do not have permission to view this page.')
+def doctor_settings(request):
+    doctor = request.user  # only doctors can reach this page, and only for their own slots
+
+    if request.method == 'POST':
+        # every slot checkbox the doctor ticked, e.g. ['09:00-10:00', '10:00-11:00']
+        picked_slots = request.POST.getlist('time_slots')
+        # clear their old slots first, then save the new set fresh
+        DoctorAvailability.objects.filter(doctor=doctor).delete()
+        for slot in picked_slots:
+            DoctorAvailability.objects.create(doctor=doctor, time_slot=slot)
+        messages.success(request, 'Your available time slots have been updated.')
+        return redirect('doctor_settings')
+
+    # this doctor's currently saved slots, so the template can show them pre-ticked
+    saved_slots = list(DoctorAvailability.objects.filter(doctor=doctor).values_list('time_slot', flat=True))
+    return render(request, 'dashboard/appointment_management/doctor_settings.html', {
+        'time_slot_choices': Appointment.TIME_SLOT_CHOICES,
+        'saved_slots': saved_slots,
+    })
+
+
 # lists appointments for staff: doctors see only their own, everyone else sees all
 @login_required
 @required_role(['admin', 'doctor', 'nurse', 'receptionist'], 'You do not have permission to view appointments.')
@@ -148,18 +208,24 @@ def appointment_add(request):
         # this checkbox just says whether the cash was already handed over
         cash_received = request.POST.get('cash_received') == 'yes'
 
-        appointment.patient_id = request.POST.get('patient') or None
+        # the patient details fields, already trimmed (and the NIC upper-cased) by the form's checks
+        patient_name = form.cleaned_data['patient_name']
+        patient_contact = form.cleaned_data['patient_contact']
+        # find this caller's existing patient account by phone number, or make a new one
+        patient_user = _find_or_create_call_in_patient(patient_name, patient_contact)
+
+        appointment.patient = patient_user
         appointment.department = request.POST.get('department', '')
         appointment.date = request.POST.get('date', '')
         appointment.time_slot = request.POST.get('time_slot', '')
         appointment.doctor_id = request.POST.get('doctor') or None
         appointment.message = request.POST.get('message', '')
         appointment.status = request.POST.get('status', 'pending')
-        appointment.patient_name = request.POST.get('patient_name', '')
-        appointment.patient_contact = request.POST.get('patient_contact', '')
-        appointment.patient_age = request.POST.get('patient_age') or 0
-        appointment.patient_address = request.POST.get('patient_address', '')
-        appointment.patient_nic = request.POST.get('patient_nic', '')
+        appointment.patient_name = patient_name
+        appointment.patient_contact = patient_contact
+        appointment.patient_age = form.cleaned_data['patient_age']
+        appointment.patient_address = form.cleaned_data['patient_address']
+        appointment.patient_nic = form.cleaned_data['patient_nic']
         appointment.save()
         if appointment.doctor:
             send_doctor_assignment_email(appointment)  # let the doctor know they have a new appointment
@@ -167,11 +233,14 @@ def appointment_add(request):
         messages.success(request, 'Appointment has been registered.')
         return redirect('appointment_index')
 
-    # every active patient/doctor, so the page can build the patient and doctor dropdowns
-    patients = User.objects.filter(profile__role='patient', is_active=True).order_by('first_name', 'last_name')
-    doctors = User.objects.filter(profile__role='doctor', is_active=True).order_by('first_name', 'last_name')
+    # every active doctor, so the page can build the doctor dropdown - their department and
+    # available time slots are loaded here too, so the page can filter the Doctor dropdown by
+    # department and the Time Slot dropdown by the picked doctor's own availability
+    doctors = User.objects.filter(
+        profile__role='doctor', is_active=True
+    ).select_related('staff_profile').prefetch_related('available_slots').order_by('first_name', 'last_name')
     return render(request, 'dashboard/appointment_management/add.html', {
-        'form': form, 'appointment': appointment, 'patients': patients, 'doctors': doctors,
+        'form': form, 'appointment': appointment, 'doctors': doctors,
     })
 
 
@@ -414,11 +483,19 @@ def appointment_form(request):
     doctor_fees = {str(doctor.pk): str(_doctor_fee(doctor)) for doctor in doctors}
     # department each doctor belongs to, so the page can hide doctors from other departments
     doctor_departments = {str(doctor.pk): _doctor_department(doctor) for doctor in doctors}
+    # each doctor's own saved time slots, so the page can hide slots this doctor doesn't work.
+    # a doctor with no saved slots yet has not configured Doctor Settings, so treat them as
+    # available in every slot rather than hiding all of them
+    all_slot_values = [value for value, _label in Appointment.TIME_SLOT_CHOICES if value]
+    doctor_slots = {}
+    for doctor in doctors:
+        saved_slots = list(doctor.available_slots.values_list('time_slot', flat=True))
+        doctor_slots[str(doctor.pk)] = saved_slots if saved_slots else all_slot_values
     # doctor picked on the "Find a Doctor" page, so the dropdown here starts pre-selected on them
     selected_doctor_id = request.GET.get('doctor')
     return render(request, 'frontend/appointment/form.html', {
         'form': form, 'appointment': appointment, 'fees': fees, 'doctors': doctors, 'doctor_fees': doctor_fees,
-        'doctor_departments': doctor_departments, 'selected_doctor_id': selected_doctor_id,
+        'doctor_departments': doctor_departments, 'doctor_slots': doctor_slots, 'selected_doctor_id': selected_doctor_id,
     })
 
 

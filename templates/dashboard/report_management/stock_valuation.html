@@ -37,7 +37,7 @@
                     <div class="card border-left-primary shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Stock Value</div>
-                            <div class="h4 mb-0 font-weight-bold text-gray-800">Rs. {{ grand_total_value }}</div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">Rs. {{ grand_total_value|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
                         <tr>
                             <td>{{ row.medicine__name }}</td>
                             <td>{{ row.total_quantity }}</td>
-                            <td>Rs. {{ row.total_value }}</td>
+                            <td>Rs. {{ row.total_value|floatformat:2 }}</td>
                         </tr>
                         {% empty %}
                         <tr>

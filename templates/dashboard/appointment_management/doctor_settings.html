@@ -1,0 +1,55 @@
+{% extends 'dashboard/layouts/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Doctor Settings</h1>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-clock mr-1"></i> My Available Time Slots
+            </h6>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                Tick the one hour slots you are available for appointments. Patients booking with you on the
+                Appointment page will only be able to pick from these slots.
+            </p>
+            <form method="post" action="{% url 'doctor_settings' %}">
+                {% csrf_token %}
+                <div class="row">
+                    {% for value, label in time_slot_choices %}
+                    {% if value %}
+                    <div class="col-md-4 mb-3">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="slot_{{ forloop.counter }}"
+                                name="time_slots" value="{{ value }}" {% if value in saved_slots %}checked{% endif %}>
+                            <label class="custom-control-label" for="slot_{{ forloop.counter }}">{{ label }}</label>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Time Slots
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -26,14 +26,18 @@ HTML file hadala connected but html file is empty (html ekedi mukuth nathi nisa)
 =================================================================================
 
 ********************************************************************************
+# HTml Form eken data awama, e data monada kiyala balanna puluwan pahala pp eken. (meka danna ona def ekata yatin)
 from pprint import pprint 
 
 def my_view(request): 
 if request.method == 'POST': 
-# Prints neatly formatted dictionary to console 
 pprint(request.POST.dict())
 
 **********************************************************************************
+from pprint import pprint 
 
-print("FORM IS INVALID")
-        print(form.errors)
+# onama code ekak read unada nadda kiyala balanna puluwa. (awashya code eka udai yatai danna)
+pprint("COde IS INVALID")
+
+# forms wala error ekak thiynwa nam views.py wala form varible dammata passe danna.
+pprint(form.errors)

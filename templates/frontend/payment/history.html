@@ -48,7 +48,7 @@
                 <td>
                   {% if payment.appointment.doctor %}Dr. {{ payment.appointment.doctor.get_full_name }}{% else %}<span class="text-muted">-</span>{% endif %}
                 </td>
-                <td>{{ payment.amount }}</td>
+                <td>Rs. {{ payment.amount|floatformat:2 }}</td>
                 <td>{{ payment.get_method_display }}</td>
                 <td>
                   {% if payment.status == 'paid' %}
@@ -93,7 +93,7 @@
               {% for order in medicine_payments %}
               <tr>
                 <td>{{ order.appointment.date }}</td>
-                <td>{{ order.total_amount }}</td>
+                <td>Rs. {{ order.total_amount|floatformat:2 }}</td>
                 <td>{{ order.get_payment_method_display|default:"-" }}</td>
                 <td>
                   {% if order.payment_status == 'paid' %}

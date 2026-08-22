@@ -71,6 +71,28 @@ class Appointment(models.Model):
         return f"{self.patient.get_full_name()} - {doctor_name} ({self.date})"
 
 
+class DoctorAvailability(models.Model):
+    # one row means: this doctor works during this one hour time slot
+    doctor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        limit_choices_to={'profile__role': 'doctor'},
+        related_name='available_slots',
+    )
+    time_slot = models.CharField(max_length=20, choices=Appointment.TIME_SLOT_CHOICES)  # one of the fixed one hour slots
+
+    class Meta:
+        db_table = 'doctor_availability'
+        # a doctor cannot have the same time slot listed twice
+        unique_together = ('doctor', 'time_slot')
+        verbose_name = 'Doctor Availability'
+        verbose_name_plural = 'Doctor Availability'
+
+    # text shown for this row in the admin site and in debug output
+    def __str__(self):
+        return f"{self.doctor.get_full_name()} - {self.get_time_slot_display()}"
+
+
 class DepartmentFee(models.Model):
     # one row per department, holds how much a consultation costs there
     department = models.CharField(max_length=20, choices=Appointment.DEPARTMENT_CHOICES, unique=True)  # which department this price is for

@@ -61,7 +61,7 @@
             </table>
 
             <div class="alert alert-warning">
-              <strong>Amount to be refunded: Rs. {{ payment.amount }}</strong>
+              <strong>Amount to be refunded: Rs. {{ payment.amount|floatformat:2 }}</strong>
               <p class="mb-0 mt-2 small">
                 This is a demo refund process. In a real system this would send the money back to your
                 original payment method. Click the button below to process the demo refund and cancel

@@ -22,6 +22,7 @@ if settings.DEBUG:
 
 # staff-facing appointment management pages, mounted at "dashboard/appointments/"
 dashboard_urlpatterns = [
+    path('doctor-settings/', views.doctor_settings, name='doctor_settings'),
     path('index/', views.appointment_index, name='appointment_index'),
     path('add/', views.appointment_add, name='appointment_add'),
     path('view/<int:pk>/', views.appointment_view, name='appointment_view'),

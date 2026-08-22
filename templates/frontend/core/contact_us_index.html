@@ -91,6 +91,11 @@
                  {% csrf_token %}
                 <div class="row g-4">
 
+                  <!-- spam trap: kept off-screen with css, not type="hidden", so simple bots still find and fill it in -->
+                  <div style="position: absolute; left: -9999px;" aria-hidden="true">
+                    <input type="text" name="website" tabindex="-1" autocomplete="off">
+                  </div>
+
                   <div class="col-md-6">
                     <input type="text" class="form-control" name="name" id="name" placeholder="Your Name" required="">
                     {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}

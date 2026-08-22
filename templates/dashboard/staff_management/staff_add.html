@@ -22,7 +22,7 @@
     </div>
     {% endif %}
 
-    <form method="post" action="{% url 'staff_add' %}">
+    <form method="post" action="{% url 'staff_add' %}" enctype="multipart/form-data">
         {% csrf_token %}
 
         <!-- Account Information -->
@@ -82,6 +82,11 @@
                 <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-id-card mr-1"></i> Personal Information</h6>
             </div>
             <div class="card-body">
+                <div class="form-group">
+                    <label for="profile_picture">Profile Picture</label>
+                    <input type="file" id="profile_picture" name="profile_picture" class="form-control-file" accept="image/*">
+                    <small class="form-text text-muted">JPG, PNG, or WEBP, up to 5 MB. Shown on the public "Find A Doctor" page for doctors.</small>
+                </div>
                 <div class="form-row">
                     <div class="form-group col-md-4">
                         <label for="phone">Phone Number</label>
@@ -116,6 +121,36 @@
             </div>
         </div>
 
+        <!-- Doctor Settings: only meaningful when Role above is "Doctor", shown/hidden by the script below -->
+        <div class="card shadow mb-4" id="doctorSettingsCard">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-user-md mr-1"></i> Doctor Settings</h6>
+            </div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="hourly_fee">Hourly Fee (Rs.)</label>
+                        <input type="number" id="hourly_fee" name="hourly_fee" class="form-control" step="0.01" min="0" value="0">
+                        {% if form.hourly_fee.errors %}<div class="text-danger small mt-1">{{ form.hourly_fee.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+                <label>Available Time Slots</label>
+                <div class="row">
+                    {% for value, label in time_slot_choices %}
+                    {% if value %}
+                    <div class="col-md-4 mb-2">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="add_slot_{{ forloop.counter }}"
+                                name="time_slots" value="{{ value }}">
+                            <label class="custom-control-label" for="add_slot_{{ forloop.counter }}">{{ label }}</label>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex justify-content-end">
             <a href="{% url 'staff_user_list' %}" class="btn btn-secondary mr-2">Cancel</a>
             <button type="submit" class="btn btn-primary">
@@ -126,4 +161,19 @@
     </form>
 
 </div>
+
+<script>
+    // shows the Doctor Settings card only while the Role dropdown is set to "Doctor"
+    document.addEventListener('DOMContentLoaded', function () {
+        var roleField = document.getElementById('role');  // the Role dropdown
+        var doctorCard = document.getElementById('doctorSettingsCard');  // the Doctor Settings card
+
+        function toggleDoctorCard() {
+            doctorCard.style.display = (roleField.value === 'doctor') ? '' : 'none';
+        }
+
+        toggleDoctorCard();  // set the correct state on page load (e.g. after a validation error)
+        roleField.addEventListener('change', toggleDoctorCard);
+    });
+</script>
 {% endblock %}

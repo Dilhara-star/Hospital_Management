@@ -70,14 +70,14 @@ def profile_view(request):
         action = request.POST.get('action')  # which form on the page was submitted
 
         if action == 'update_details' and details_form.is_valid():
-            account.first_name = request.POST.get('first_name', '')  # first name
-            account.last_name = request.POST.get('last_name', '')  # last name
-            account.email = request.POST.get('email', '')  # email address
+            account.first_name = details_form.cleaned_data['first_name']  # first name, already trimmed by the form
+            account.last_name = details_form.cleaned_data['last_name']  # last name, already trimmed by the form
+            account.email = details_form.cleaned_data['email']  # email address
             account.save()  # write the changes to the database
 
-            profile.phone = request.POST.get('phone', '')  # phone number
-            profile.date_of_birth = request.POST.get('date_of_birth') or None  # date of birth
-            profile.gender = request.POST.get('gender', '')  # gender
+            profile.phone = details_form.cleaned_data.get('phone', '')  # phone number
+            profile.date_of_birth = details_form.cleaned_data.get('date_of_birth')  # date of birth
+            profile.gender = details_form.cleaned_data.get('gender', '')  # gender
             profile.save()  # write the changes to the database
 
             messages.success(request, 'Profile details updated successfully.')

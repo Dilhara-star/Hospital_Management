@@ -33,7 +33,7 @@
     </div>
     {% endif %}
 
-    <form method="post" action="{% url 'staff_edit' staff_user.pk %}">
+    <form method="post" action="{% url 'staff_edit' staff_user.pk %}" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="row">
 
@@ -86,6 +86,16 @@
                         <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-id-card mr-1"></i> Personal Information</h6>
                     </div>
                     <div class="card-body">
+                        <div class="form-group">
+                            <label for="profile_picture">Profile Picture</label>
+                            {% if profile.profile_picture %}
+                            <div class="mb-2">
+                                <img src="{{ profile.profile_picture.url }}" alt="{{ staff_user.get_full_name }}" class="img-thumbnail" style="max-height: 100px;">
+                            </div>
+                            {% endif %}
+                            <input type="file" id="profile_picture" name="profile_picture" class="form-control-file" accept="image/*">
+                            <small class="form-text text-muted">JPG, PNG, or WEBP, up to 5 MB. Leave empty to keep the current picture.</small>
+                        </div>
                         <div class="form-row">
                             <div class="form-group col-md-4">
                                 <label for="phone">Phone Number</label>
@@ -165,11 +175,28 @@
                         {# only doctors charge a personal consultation fee and show years of experience, so only show these fields for them #}
                         <div class="form-row">
                             <div class="form-group col-md-6">
+                                <label for="hourly_fee">Hourly Fee (Rs.) <span class="text-muted">(Doctors only)</span></label>
+                                <input type="number" id="hourly_fee" name="hourly_fee" class="form-control" step="0.01" min="0" value="{{ staff_profile.hourly_fee }}">
+                                {% if form.hourly_fee.errors %}<div class="text-danger small mt-1">{{ form.hourly_fee.errors.0 }}</div>{% endif %}
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="years_of_experience">Years of Experience <span class="text-muted">(Doctors only)</span></label>
                                 <input type="number" id="years_of_experience" name="years_of_experience" class="form-control" min="0" value="{{ staff_profile.years_of_experience }}">
                             </div>
+                        </div>
+                        <label>Available Time Slots <span class="text-muted">(Doctors only)</span></label>
+                        <div class="row">
+                            {% for value, label in time_slot_choices %}
+                            {% if value %}
+                            <div class="col-md-4 mb-2">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="edit_slot_{{ forloop.counter }}"
+                                        name="time_slots" value="{{ value }}" {% if value in saved_slots %}checked{% endif %}>
+                                    <label class="custom-control-label" for="edit_slot_{{ forloop.counter }}">{{ label }}</label>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
                         </div>
                         {% endif %}
                     </div>

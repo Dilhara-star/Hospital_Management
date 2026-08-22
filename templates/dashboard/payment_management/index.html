@@ -66,7 +66,7 @@
                             <td>
                                 {% if payment.appointment.doctor %}Dr. {{ payment.appointment.doctor.get_full_name }}{% else %}<span class="text-muted">-</span>{% endif %}
                             </td>
-                            <td>{{ payment.amount }}</td>
+                            <td>Rs. {{ payment.amount|floatformat:2 }}</td>
                             <td>{{ payment.get_method_display }}</td>
                             <td>
                                 {% if payment.status == 'paid' %}
@@ -83,13 +83,13 @@
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 {% if payment.status == 'paid' %}
-                                <form method="post" action="{% url 'payment_refund' payment.pk %}" class="d-inline"
-                                    onsubmit="return confirm('Refund this payment and cancel the appointment?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Refund">
-                                        <i class="fas fa-undo"></i> Refund
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-danger" title="Refund"
+                                    data-toggle="modal" data-target="#refundModal"
+                                    data-refund-url="{% url 'payment_refund' payment.pk %}"
+                                    data-patient-name="{{ payment.appointment.patient_name }}"
+                                    data-amount="{{ payment.amount|floatformat:2 }}">
+                                    <i class="fas fa-undo"></i> Refund
+                                </button>
                                 {% endif %}
                             </td>
                         </tr>
@@ -122,4 +122,41 @@
     </div>
 
 </div>
+
+<!-- Refund Modal -->
+<div class="modal fade" id="refundModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Refund</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <p>Refund payment for <strong id="refundPatientName"></strong> — amount <strong>Rs. <span id="refundAmount"></span></strong>?</p>
+                <p class="text-danger small"><i class="fas fa-exclamation-triangle"></i> This will refund the payment and cancel the appointment. This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <form id="refundForm" method="POST" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-undo"></i> Confirm Refund
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // fills in the refund modal's text and form action from the button that opened it
+    $('#refundModal').on('show.bs.modal', function (e) {
+        var btn = $(e.relatedTarget);
+        $('#refundPatientName').text(btn.data('patient-name'));
+        $('#refundAmount').text(btn.data('amount'));
+        $('#refundForm').attr('action', btn.data('refund-url'));
+    });
+</script>
 {% endblock %}

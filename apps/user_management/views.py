@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404  # helpers for rendering pages and redirecting
 from django.contrib import messages  # lets us show "success"/"error" banners after an action
+from django.core.exceptions import ValidationError  # raised when the uploaded picture fails a check
 from django.contrib.auth import authenticate, login, logout  # django's login tools
 from django.contrib.auth.decorators import login_required  # blocks a view unless the user is logged in
 from django.contrib.auth.models import User  # built-in user model (login, username, password)
@@ -12,11 +13,12 @@ from .forms import (
     ForgotPasswordForm, SetNewPasswordForm,
 )  # our forms
 from .models import UserProfile, PatientProfile, StaffProfile  # our own profile models
+from apps.appointment.models import Appointment, DoctorAvailability  # doctor time slot choices and availability rows
 from .notifications import send_staff_welcome_email  # emails a new staff member their username
 from .notifications import send_patient_welcome_email  # emails a new patient their username
 from .notifications import send_patient_discharge_email  # emails a patient once they are discharged
 from .notifications import send_password_reset_email  # emails the reset link to the account's email
-from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
+from apps.core.utils import required_role, check_image_file  # role check decorator, and a picture file size/type check
 
 # role codes that count as "staff" (not a patient, not a plain "user")
 STAFF_ROLES = ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'lab_technician']
@@ -49,20 +51,27 @@ def login_view(request):
         # read the username/password typed in the form
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
-        # check the username/password match an account
-        person = authenticate(request, username=username, password=password)
+        # find the account with this username, if any, so we can tell an inactive account apart from a wrong password
+        matching_user = User.objects.filter(username=username).first()
 
-        if person is not None:
-            # log this account in
-            login(request, person)
-            # if they were sent here from another page, go back there after logging in
-            next_url = request.GET.get('next')
-            if next_url:
-                return redirect(next_url)
-            return _redirect_by_role(person)
+        if matching_user and not matching_user.is_active:
+            # the account exists but has been switched off, so don't even try to log it in
+            messages.error(request, 'This account has been deactivated. Please contact the hospital administrator.')
         else:
-            # username/password did not match any account
-            messages.error(request, 'Invalid username or password.')
+            # check the username/password match an account
+            person = authenticate(request, username=username, password=password)
+
+            if person is not None:
+                # log this account in
+                login(request, person)
+                # if they were sent here from another page, go back there after logging in
+                next_url = request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+                return _redirect_by_role(person)
+            else:
+                # username/password did not match any account
+                messages.error(request, 'Invalid username or password.')
 
     return render(request, 'dashboard/auth/login.html')
 
@@ -187,7 +196,6 @@ def patient_add(request):
             emergency_contact_relationship=request.POST.get('emergency_contact_relationship', ''),  # relationship
             insurance_provider=request.POST.get('insurance_provider', ''),  # insurance provider
             insurance_number=request.POST.get('insurance_number', ''),  # insurance policy number
-            insurance_expiry=request.POST.get('insurance_expiry') or None,  # insurance expiry date
             status=request.POST.get('status', 'active'),  # patient status
         )
         send_patient_welcome_email(patient_user)
@@ -314,6 +322,14 @@ def staff_add(request):
     profile = UserProfile()  # a blank profile, only used so the template can show default field values
     # form is only used to check the typed data is valid; the actual save is done by hand below
     form = StaffCreateForm(request.POST or None)
+    picture = request.FILES.get('profile_picture')  # optional profile picture upload
+
+    # check the picture before anything else, so a bad file stops the whole submission
+    if request.method == 'POST' and picture:
+        try:
+            check_image_file(picture)
+        except ValidationError as error:
+            form.add_error(None, error.message)
 
     if request.method == 'POST' and form.is_valid():
         # step 1: create the login account (User model)
@@ -326,16 +342,27 @@ def staff_add(request):
             is_active=request.POST.get('is_active') == 'on',  # can they log in
         )
         # step 2: create their profile row with the staff role they picked
-        UserProfile.objects.create(
+        profile = UserProfile.objects.create(
             user=staff_user,  # link back to the User we just made
             phone=request.POST.get('phone', ''),  # phone number
             date_of_birth=request.POST.get('date_of_birth') or None,  # date of birth
             gender=request.POST.get('gender', ''),  # gender
             role=request.POST.get('role', ''),  # staff role (admin, doctor, nurse, etc)
         )
+        # save the profile picture too, if one was uploaded
+        if picture:
+            profile.profile_picture = picture
+            profile.save()
         # step 3: create their employment record (department, etc all start blank,
         # the staff member fills these in later by editing their own record)
-        StaffProfile.objects.create(user=staff_user)
+        # hourly_fee only matters for doctors, but it's harmless to save it for anyone
+        StaffProfile.objects.create(user=staff_user, hourly_fee=request.POST.get('hourly_fee') or 0)
+
+        # step 4: if this new staff member is a doctor, save the time slots picked for them
+        if request.POST.get('role', '') == 'doctor':
+            for slot in request.POST.getlist('time_slots'):
+                DoctorAvailability.objects.create(doctor=staff_user, time_slot=slot)
+
         send_staff_welcome_email(staff_user, request.POST.get('role', ''))  # email the new staff member their username
         # show a success banner
         messages.success(request, f'Staff member "{staff_user.get_full_name()}" added successfully.')
@@ -345,6 +372,7 @@ def staff_add(request):
     # show the add staff page
     return render(request, 'dashboard/staff_management/staff_add.html', {
         'form': form, 'staff_user': staff_user, 'profile': profile, 'role_choices': STAFF_ROLE_CHOICES,
+        'time_slot_choices': Appointment.TIME_SLOT_CHOICES,
     })
 
 
@@ -361,6 +389,14 @@ def staff_edit(request, user_id):
 
     # form is only used to check the typed data is valid; the actual save is done by hand below
     form = StaffEditForm(request.POST or None, current_user=staff_user)
+    picture = request.FILES.get('profile_picture')  # optional new profile picture upload
+
+    # check the picture before anything else, so a bad file stops the whole submission
+    if request.method == 'POST' and picture:
+        try:
+            check_image_file(picture)
+        except ValidationError as error:
+            form.add_error(None, error.message)
 
     if request.method == 'POST' and form.is_valid():
         # update the login account fields
@@ -376,6 +412,8 @@ def staff_edit(request, user_id):
         profile.date_of_birth = request.POST.get('date_of_birth') or None  # date of birth
         profile.gender = request.POST.get('gender', '')  # gender
         profile.role = request.POST.get('role', '')  # staff role
+        if picture:
+            profile.profile_picture = picture  # only replace the picture if a new one was uploaded
         profile.save()  # write the changes to the database
 
         # this person is now staff, so remove any old patient record they might still
@@ -397,15 +435,26 @@ def staff_edit(request, user_id):
         staff_profile.emergency_contact_phone = request.POST.get('emergency_contact_phone', '')  # emergency contact phone
         staff_profile.save()  # write the changes to the database
 
+        # if this staff member is a doctor, replace their saved time slots with whatever
+        # was ticked on this page; if their role isn't doctor anymore, clear any old slots
+        DoctorAvailability.objects.filter(doctor=staff_user).delete()
+        if profile.role == 'doctor':
+            for slot in request.POST.getlist('time_slots'):
+                DoctorAvailability.objects.create(doctor=staff_user, time_slot=slot)
+
         # show a success banner
         messages.success(request, f'Staff "{staff_user.get_full_name()}" updated successfully.')
         # go back to the staff list page
         return redirect('staff_user_list')
 
+    # this doctor's currently saved time slots, so the template can show them pre-ticked
+    saved_slots = list(DoctorAvailability.objects.filter(doctor=staff_user).values_list('time_slot', flat=True))
+
     # show the edit staff page
     return render(request, 'dashboard/staff_management/staff_edit.html', {
         'form': form, 'staff_user': staff_user, 'profile': profile, 'staff_profile': staff_profile,
-        'role_choices': STAFF_ROLE_CHOICES,
+        'role_choices': STAFF_ROLE_CHOICES, 'time_slot_choices': Appointment.TIME_SLOT_CHOICES,
+        'saved_slots': saved_slots,
     })
 
 

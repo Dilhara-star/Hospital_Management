@@ -53,7 +53,7 @@
                     <div class="card border-left-primary shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Estimated Total Revenue (at current prices)</div>
-                            <div class="h4 mb-0 font-weight-bold text-gray-800">Rs. {{ grand_total_revenue }}</div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">Rs. {{ grand_total_revenue|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -78,8 +78,8 @@
                             <td>{{ row.name }}</td>
                             <td>{{ row.total_quantity }}</td>
                             <td>{{ row.times_prescribed }}</td>
-                            <td>Rs. {{ row.price }}</td>
-                            <td>Rs. {{ row.revenue }}</td>
+                            <td>Rs. {{ row.price|floatformat:2 }}</td>
+                            <td>Rs. {{ row.revenue|floatformat:2 }}</td>
                         </tr>
                         {% empty %}
                         <tr>

@@ -13,9 +13,9 @@ from apps.stock.models import Medicine, MedicineStock
 from apps.core.utils import required_role  # decorator that checks the logged in user's profile role
 from apps.user_management.models import StaffProfile  # holds the room number for a doctor
 from .models import PrescriptionItem, PharmacyOrder
-from .notifications import send_medicine_dispensed_email, send_medicine_payment_confirmation_email
-
-
+from .notifications import send_medicine_payment_confirmation_email
+from apps.stock.notifications import notify_low_stock  # emails admin/supplier when a medicine's stock is low
+from pprint import pprint 
 # ── Dashboard ────────────────────────────────────────────────────────────────
 
 # looks up a doctor's assigned room number, or '' if none has been set yet
@@ -155,7 +155,7 @@ def pharmacy_order_detail(request, pk):
                 order.dispensed_at = timezone.now()
                 order.save()
 
-            send_medicine_dispensed_email(order)  # let the patient know their medicine is ready and awaiting payment
+
 
             messages.success(request, 'Medicine has been given to the patient.')
 

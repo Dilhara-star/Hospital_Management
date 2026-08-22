@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.contact',
     'apps.reports',
-    
 
 ]
 STATICFILES_DIRS = [

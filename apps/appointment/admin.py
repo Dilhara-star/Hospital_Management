@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Appointment, DepartmentFee, Payment
+from .models import Appointment, DepartmentFee, DoctorAvailability, Payment
 
 
 @admin.register(Appointment)
@@ -23,3 +23,9 @@ class PaymentAdmin(admin.ModelAdmin):
     list_display = ('appointment', 'amount', 'doctor_fee_amount', 'method', 'status', 'transaction_ref', 'paid_at', 'created_at')
     list_filter = ('method', 'status')
     search_fields = ('transaction_ref', 'appointment__patient_name')
+
+
+@admin.register(DoctorAvailability)
+class DoctorAvailabilityAdmin(admin.ModelAdmin):
+    list_display = ('doctor', 'time_slot')  # show doctor and their slot in the list
+    list_filter = ('doctor', 'time_slot')

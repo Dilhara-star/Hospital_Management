@@ -27,7 +27,7 @@
         </li>
         <li style="margin-bottom: 8px; font-size: 14px;">
           <span style="color: #64748b; font-weight: 600; display: inline-block; width: 150px;">Refunded Amount:</span>
-          <strong style="color: #0f172a;">Rs. {{ payment.amount }}</strong>
+          <strong style="color: #0f172a;">Rs. {{ payment.amount|floatformat:2 }}</strong>
         </li>
         <li style="margin: 0; font-size: 14px;">
           <span style="color: #64748b; font-weight: 600; display: inline-block; width: 150px;">Transaction Ref:</span>

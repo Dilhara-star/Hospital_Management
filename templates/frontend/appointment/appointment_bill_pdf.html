@@ -55,18 +55,18 @@
         <tbody>
             <tr>
                 <td>Consultation Fee &mdash; {{ appointment.get_department_display }}</td>
-                <td class="amount">Rs. {{ department_fee }}</td>
+                <td class="amount">Rs. {{ department_fee|floatformat:2 }}</td>
             </tr>
             {% if doctor_fee %}
             <tr>
                 <td>Doctor's Fee &mdash; {% if appointment.doctor %}Dr. {{ appointment.doctor.get_full_name }}{% else %}Not assigned{% endif %}</td>
-                <td class="amount">Rs. {{ doctor_fee }}</td>
+                <td class="amount">Rs. {{ doctor_fee|floatformat:2 }}</td>
             </tr>
             {% endif %}
             {% if discount_amount %}
             <tr>
                 <td>Age Discount (10%)</td>
-                <td class="amount">- Rs. {{ discount_amount }}</td>
+                <td class="amount">- Rs. {{ discount_amount|floatformat:2 }}</td>
             </tr>
             {% endif %}
         </tbody>
@@ -75,7 +75,7 @@
     <table class="totals">
         <tr class="total">
             <td class="label">Total Amount</td>
-            <td class="value">Rs. {{ payment.amount }}</td>
+            <td class="value">Rs. {{ payment.amount|floatformat:2 }}</td>
         </tr>
     </table>
 

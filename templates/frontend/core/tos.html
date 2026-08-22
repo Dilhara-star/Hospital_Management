@@ -1,0 +1,79 @@
+{% extends 'frontend/layouts/base.html' %}
+{% load static %}
+
+    {% block content %}
+
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title">
+      <div class="heading">
+        <div class="container">
+          <div class="row d-flex justify-content-center text-center">
+            <div class="col-lg-8">
+              <h1 class="heading-title">Terms of Service</h1>
+              <p class="mb-0">
+                Please read these terms carefully before using Medi Plus.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <nav class="breadcrumbs">
+        <div class="container">
+          <ol>
+            <li><a href="{% url 'frontend_index' %}">Home</a></li>
+            <li class="current">Terms of Service</li>
+          </ol>
+        </div>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <!-- Terms of Service Section -->
+    <section id="tos" class="section">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+        <p><em>Last updated: August 22, 2026</em></p>
+
+        <p>These Terms of Service ("Terms") govern your use of the Medi Plus website and appointment
+          booking system ("Service"). By creating an account, booking an appointment, or otherwise using
+          the Service, you agree to these Terms.</p>
+
+        <h3>1. Using the Service</h3>
+        <p>You must provide accurate information when you register or book an appointment, and keep your
+          account details up to date. You are responsible for keeping your login password safe and for
+          all activity that happens under your account.</p>
+
+        <h3>2. Appointments and Payments</h3>
+        <p>Appointments booked through the Service are subject to doctor availability and may be
+          rescheduled or cancelled by the clinic when necessary. Consultation fees, medicine charges, and
+          any other amounts shown at checkout must be paid through the payment methods offered on the
+          Service. Refunds, where applicable, are processed according to the clinic's cancellation and
+          refund policy shown at the time of booking.</p>
+
+        <h3>3. Medical Disclaimer</h3>
+        <p>Medi Plus provides a platform to find doctors and manage appointments. It does not replace
+          in-person medical examination or emergency care. In a medical emergency, contact your local
+          emergency services immediately instead of using this Service.</p>
+
+        <h3>4. Acceptable Use</h3>
+        <p>You agree not to misuse the Service, including attempting to access another user's account,
+          uploading harmful content, or interfering with the normal operation of the website.</p>
+
+        <h3>5. Changes to the Service</h3>
+        <p>We may update, suspend, or discontinue parts of the Service at any time. We may also update
+          these Terms from time to time; continued use of the Service after a change means you accept the
+          updated Terms.</p>
+
+        <h3>6. Contact Us</h3>
+        <p>If you have questions about these Terms, please reach us using the details on our
+          <a href="{% url 'contact_us_index' %}">Contact page</a>.</p>
+
+      </div>
+
+    </section><!-- /Terms of Service Section -->
+
+  </main>
+
+{% endblock content %}

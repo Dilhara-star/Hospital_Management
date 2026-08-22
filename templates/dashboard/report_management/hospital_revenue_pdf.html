@@ -25,7 +25,7 @@
     <table class="totals">
         <tr>
             <td class="label">Grand Total Collected</td>
-            <td class="value">Rs. {{ grand_total }}</td>
+            <td class="value">Rs. {{ grand_total|floatformat:2 }}</td>
         </tr>
     </table>
 
@@ -33,11 +33,11 @@
     <table>
         <tr><th>Collected</th><th>Online</th><th>Cash</th><th>Pending</th><th>Refunded</th></tr>
         <tr>
-            <td>Rs. {{ consultation_paid }}</td>
-            <td>Rs. {{ consultation_online }}</td>
-            <td>Rs. {{ consultation_cash }}</td>
-            <td>Rs. {{ consultation_pending }}</td>
-            <td>Rs. {{ consultation_refunded }}</td>
+            <td>Rs. {{ consultation_paid|floatformat:2 }}</td>
+            <td>Rs. {{ consultation_online|floatformat:2 }}</td>
+            <td>Rs. {{ consultation_cash|floatformat:2 }}</td>
+            <td>Rs. {{ consultation_pending|floatformat:2 }}</td>
+            <td>Rs. {{ consultation_refunded|floatformat:2 }}</td>
         </tr>
     </table>
 
@@ -45,10 +45,10 @@
     <table>
         <tr><th>Collected</th><th>Online</th><th>Cash</th><th>Pending</th></tr>
         <tr>
-            <td>Rs. {{ pharmacy_paid }}</td>
-            <td>Rs. {{ pharmacy_online }}</td>
-            <td>Rs. {{ pharmacy_cash }}</td>
-            <td>Rs. {{ pharmacy_pending }}</td>
+            <td>Rs. {{ pharmacy_paid|floatformat:2 }}</td>
+            <td>Rs. {{ pharmacy_online|floatformat:2 }}</td>
+            <td>Rs. {{ pharmacy_cash|floatformat:2 }}</td>
+            <td>Rs. {{ pharmacy_pending|floatformat:2 }}</td>
         </tr>
     </table>
 

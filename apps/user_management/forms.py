@@ -74,7 +74,6 @@ class PatientCreateForm(forms.Form):
     # Insurance
     insurance_provider = forms.CharField(max_length=100, required=False)  # insurance provider name text box
     insurance_number = forms.CharField(max_length=50, required=False)  # insurance policy number text box
-    insurance_expiry = forms.DateField(required=False)  # insurance expiry date picker, not required
     # Status
     status = forms.ChoiceField(choices=PatientProfile.STATUS_CHOICES)  # patient status drop-down (active, inactive, discharged)
 
@@ -136,16 +135,6 @@ class PatientCreateForm(forms.Form):
             raise forms.ValidationError('Date of birth cannot be in the future.')
         # date is fine (or was left blank)
         return dob
-
-    # stops an insurance policy expiry date being set in the past
-    def clean_insurance_expiry(self):
-        # pull the cleaned insurance expiry value out of the form
-        expiry = self.cleaned_data.get('insurance_expiry')
-        # stop if a date was picked and it is before today
-        if expiry and expiry < date.today():
-            raise forms.ValidationError('Insurance expiry date cannot be in the past.')
-        # date is fine (or was left blank)
-        return expiry
 
     # stops registration if the two password boxes don't match
     def clean(self):
@@ -288,6 +277,7 @@ class StaffCreateForm(forms.Form):
     date_of_birth = forms.DateField(required=False)  # date of birth picker, not required
     gender = forms.ChoiceField(choices=[('', '---------')] + UserProfile.GENDER_CHOICES, required=False)  # gender drop-down
     role = forms.ChoiceField(choices=STAFF_ROLE_CHOICES, required=True)  # staff role drop-down, required
+    hourly_fee = forms.DecimalField(required=False, min_value=0)  # doctor's own consultation fee (doctors only)
     password = forms.CharField(widget=forms.PasswordInput)  # password text box (hidden characters)
     confirm_password = forms.CharField(widget=forms.PasswordInput)  # confirm password text box (hidden characters)
     is_active = forms.BooleanField(required=False, initial=True)  # checkbox for whether the account can log in

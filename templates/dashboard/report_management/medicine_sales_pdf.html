@@ -15,7 +15,7 @@
     <h1>Medicine Sales Report</h1>
     <p class="sub">
         {% if start_date or end_date %}{{ start_date|default:"the start" }} to {{ end_date|default:"today" }}{% else %}All time{% endif %}
-        &mdash; Estimated total revenue: Rs. {{ grand_total_revenue }}
+        &mdash; Estimated total revenue: Rs. {{ grand_total_revenue|floatformat:2 }}
     </p>
 
     <table>
@@ -36,8 +36,8 @@
                 <td>{{ row.name }}</td>
                 <td>{{ row.total_quantity }}</td>
                 <td>{{ row.times_prescribed }}</td>
-                <td>Rs. {{ row.price }}</td>
-                <td>Rs. {{ row.revenue }}</td>
+                <td>Rs. {{ row.price|floatformat:2 }}</td>
+                <td>Rs. {{ row.revenue|floatformat:2 }}</td>
             </tr>
             {% endfor %}
         </tbody>

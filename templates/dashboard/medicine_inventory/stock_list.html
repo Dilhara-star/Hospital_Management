@@ -61,7 +61,7 @@
                             <td>{{ batch.batch_number }}</td>
                             <td>{{ batch.supplier.name|default:"—" }}</td>
                             <td>{{ batch.quantity }}</td>
-                            <td>{% if batch.purchase_price %}Rs. {{ batch.purchase_price }}{% else %}—{% endif %}</td>
+                            <td>{% if batch.purchase_price %}Rs. {{ batch.purchase_price|floatformat:2 }}{% else %}—{% endif %}</td>
                             <td>{{ batch.expiry_date }}</td>
                             <td>
                                 {% if batch.is_expired %}

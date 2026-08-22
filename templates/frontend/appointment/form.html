@@ -61,26 +61,7 @@
         margin-top: 4px;
       }
 
-      /* style for the "Back" button on step 2 of the form */
-      .appointmnet .appointment-form .django-form .btn-back {
-        background-color: transparent;
-        color: var(--accent-color);
-        padding: 15px 40px;
-        border: 2px solid var(--accent-color);
-        border-radius: 8px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-        cursor: pointer;
-      }
-
-      .appointmnet .appointment-form .django-form .btn-back:hover {
-        background-color: color-mix(in srgb, var(--accent-color), transparent 90%);
-      }
-
-      /* small heading shown above each step of the form */
+      /* small heading shown above each section of the form */
       .appointmnet .appointment-form .django-form .step-heading {
         font-size: 1.2rem;
         font-weight: 600;
@@ -88,7 +69,7 @@
         margin-bottom: 1rem;
       }
 
-      /* box that shows the consultation fee on the payment step */
+      /* box that shows the consultation fee */
       .appointmnet .appointment-form .django-form .fee-box {
         background: #f4f6fb;
         border-radius: 12px;
@@ -149,8 +130,8 @@
             <div class="booking-wrapper">
               <div class="booking-header text-center" data-aos="fade-up" data-aos-delay="200">
                 <h2>Schedule Your Appointment</h2>
-                <p>Book your medical appointment in just a few simple steps. Our experienced healthcare professionals
-                  are ready to provide you with the best care possible.</p>
+                <p>Book your medical appointment below. Our experienced healthcare professionals are ready to
+                  provide you with the best care possible.</p>
               </div>
 
               <div class="booking-steps" data-aos="fade-up" data-aos-delay="300">
@@ -207,8 +188,8 @@
                 <form method="post" action="{% url 'appointment_form' %}" class="django-form" id="appointmentForm">
                   {% csrf_token %}
 
-                  <!-- Step 1: appointment details (department, doctor, date, time slot) -->
-                  <div class="form-step" id="step-1">
+                  <!-- Appointment details (department, doctor, date, time slot) -->
+                  <div class="form-section" id="section-appointment">
                     <div class="step-heading">Appointment Details</div>
                     <div class="row gy-4">
                       <div class="col-12">
@@ -249,19 +230,18 @@
                         <textarea id="message" name="message" class="form-control" rows="4" placeholder="Additional notes or symptoms (optional)">{{ appointment.message }}</textarea>
                       </div>
                       <div class="col-12">
-                        <!-- updates live as soon as a department + doctor are picked, well before the payment step -->
+                        <!-- updates live as soon as a department + doctor are picked -->
                         <div class="fee-box">
                           Estimated Appointment Fee: <strong>Rs. <span class="fee-amount-value">0.00</span></strong>
                         </div>
                       </div>
-                      <div class="col-12 text-end">
-                        <button type="button" class="btn-book" id="nextBtn">Next</button>
-                      </div>
                     </div>
                   </div>
 
-                  <!-- Step 2: patient details (shown after Next is clicked) -->
-                  <div class="form-step d-none" id="step-2">
+                  <hr class="my-4">
+
+                  <!-- Patient details -->
+                  <div class="form-section" id="section-patient">
                     <div class="step-heading">Patient Details</div>
                     <div class="row gy-4">
                       <div class="col-md-6">
@@ -289,28 +269,14 @@
                         <input type="text" id="patient_address" name="patient_address" class="form-control" placeholder="Home address" value="{{ appointment.patient_address }}">
                         {% for error in form.patient_address.errors %}<div class="error-message">{{ error }}</div>{% endfor %}
                       </div>
-                      <div class="col-12 d-flex justify-content-between">
-                        <button type="button" class="btn-back" id="backBtn">Back</button>
-                        {% if user.is_authenticated %}
-                          <button type="button" class="btn-book" id="nextBtn2">Next: Payment</button>
-                        {% endif %}
-                      </div>
-
-                      {% if not user.is_authenticated %}
-                      <div class="col-12">
-                        <div class="login-prompt text-center p-4" style="background:#f4f6fb; border-radius:12px;">
-                          <p class="mb-3 fw-semibold">Please log in or create an account to complete your booking.</p>
-                          <a id="gotoLogin" href="{% url 'login' %}?next={% url 'appointment_form' %}" class="btn btn-primary px-4 me-2">Log In</a>
-                          <a id="gotoSignup" href="{% url 'register' %}?next={% url 'appointment_form' %}" class="btn btn-outline-primary px-4">Sign Up</a>
-                        </div>
-                      </div>
-                      {% endif %}
                     </div>
                   </div>
 
-                  <!-- Step 3: payment (shown after Next: Payment is clicked) -->
                   {% if user.is_authenticated %}
-                  <div class="form-step d-none" id="step-3">
+                  <hr class="my-4">
+
+                  <!-- Payment -->
+                  <div class="form-section" id="section-payment">
                     <div class="step-heading">Payment</div>
 
                     <div class="fee-box">
@@ -359,9 +325,16 @@
                       </div>
                     </div>
 
-                    <div class="col-12 d-flex justify-content-between mt-4">
-                      <button type="button" class="btn-back" id="backBtn2">Back</button>
+                    <div class="col-12 mt-4">
                       <button type="submit" class="btn-book">Confirm Booking</button>
+                    </div>
+                  </div>
+                  {% else %}
+                  <div class="col-12 mt-4">
+                    <div class="login-prompt text-center p-4" style="background:#f4f6fb; border-radius:12px;">
+                      <p class="mb-3 fw-semibold">Please log in or create an account to complete your booking.</p>
+                      <a id="gotoLogin" href="{% url 'login' %}?next={% url 'appointment_form' %}" class="btn btn-primary px-4 me-2">Log In</a>
+                      <a id="gotoSignup" href="{% url 'register' %}?next={% url 'appointment_form' %}" class="btn btn-outline-primary px-4">Sign Up</a>
                     </div>
                   </div>
                   {% endif %}
@@ -387,24 +360,20 @@
     {{ doctor_fees|json_script:"doctor-fees" }}
     <!-- department each doctor treats patients in, read by the script below -->
     {{ doctor_departments|json_script:"doctor-departments" }}
+    <!-- time slots each doctor is available in, read by the script below -->
+    {{ doctor_slots|json_script:"doctor-slots" }}
 
     <script>
-      // this script moves the booking form between step 1 (appointment details),
-      // step 2 (patient details) and step 3 (payment), without a page reload
+      // this script keeps the department/doctor/time-slot fields and the live fee total
+      // in sync as the patient fills in the one-page booking form
       document.addEventListener('DOMContentLoaded', function () {
-        var step1 = document.getElementById('step-1');  // appointment details block
-        var step2 = document.getElementById('step-2');  // patient details block
-        var step3 = document.getElementById('step-3');  // payment block (only exists if logged in)
-        var nextBtn = document.getElementById('nextBtn');  // Next button on step 1
-        var backBtn = document.getElementById('backBtn');  // Back button on step 2
-        var nextBtn2 = document.getElementById('nextBtn2');  // Next: Payment button on step 2
-        var backBtn2 = document.getElementById('backBtn2');  // Back button on step 3
-        var loginLink = document.getElementById('gotoLogin');  // Log In link on step 2
-        var signupLink = document.getElementById('gotoSignup');  // Sign Up link on step 2
-        var departmentField = document.getElementById('department');  // department dropdown on step 1
-        var doctorField = document.getElementById('doctor');  // doctor dropdown on step 1
-        var feeAmounts = document.querySelectorAll('.fee-amount-value');  // fee text shown on step 1 AND step 3
-        var cardFields = document.getElementById('cardFields');  // demo card fields on step 3
+        var loginLink = document.getElementById('gotoLogin');  // Log In link, only present when logged out
+        var signupLink = document.getElementById('gotoSignup');  // Sign Up link, only present when logged out
+        var departmentField = document.getElementById('department');  // department dropdown
+        var doctorField = document.getElementById('doctor');  // doctor dropdown
+        var timeSlotField = document.getElementById('time_slot');  // time slot dropdown
+        var feeAmounts = document.querySelectorAll('.fee-amount-value');  // fee text, shown once or twice on the page
+        var cardFields = document.getElementById('cardFields');  // demo card fields on the payment section
         var payOnline = document.getElementById('payOnline');  // "pay online" radio button
         var payCash = document.getElementById('payCash');  // "pay cash" radio button
 
@@ -414,6 +383,8 @@
         var doctorFees = JSON.parse(document.getElementById('doctor-fees').textContent);
         // department each doctor treats patients in, e.g. {"3": "cardiology"}
         var doctorDepartments = JSON.parse(document.getElementById('doctor-departments').textContent);
+        // time slots each doctor is available in, e.g. {"3": ["09:00-10:00", "10:00-11:00"]}
+        var doctorSlots = JSON.parse(document.getElementById('doctor-slots').textContent);
 
         // only show doctors that belong to the selected department in the Doctor dropdown
         function filterDoctorsByDepartment() {
@@ -430,8 +401,24 @@
           }
         }
 
+        // only show time slots the selected doctor is actually available in
+        function filterTimeSlotsByDoctor() {
+          var selectedDoctor = doctorField.value;
+          var slots = selectedDoctor ? doctorSlots[selectedDoctor] : null;
+          var options = timeSlotField.querySelectorAll('option');
+          options.forEach(function (option) {
+            if (option.value === '') return;  // always keep the "Select Time Slot" placeholder visible
+            var matches = !slots || slots.indexOf(option.value) !== -1;
+            option.hidden = !matches;
+          });
+          // if the slot that was picked is no longer offered by this doctor, clear it
+          if (timeSlotField.value && slots && slots.indexOf(timeSlotField.value) === -1) {
+            timeSlotField.value = '';
+          }
+        }
+
         // show the total fee (department fee + doctor's own fee) for the current picks,
-        // everywhere the fee is shown on the page (step 1 and step 3)
+        // everywhere the fee is shown on the page
         function updateFeeDisplay() {
           if (!departmentField || !doctorField) return;
           var deptFee = parseFloat(departmentFees[departmentField.value]) || 0;
@@ -465,86 +452,42 @@
         // put a saved draft back into the form fields, if one exists
         function restoreDraft() {
           var raw = sessionStorage.getItem('appointmentDraft');
-          if (!raw) return false;
+          if (!raw) return;
           var draft = JSON.parse(raw);
           fieldIds.forEach(function (id) {
             var field = document.getElementById(id);
             if (field && draft[id] !== undefined) field.value = draft[id];
           });
           sessionStorage.removeItem('appointmentDraft');
-          return true;
         }
-
-        // if the server sent back errors for the patient fields, open step 2 first
-        var hasStep2Errors = step2.querySelector('.error-message') !== null;
 
         // if we have a saved draft (from before a login/sign up trip), restore it
-        var draftRestored = restoreDraft();
+        restoreDraft();
 
-        if (hasStep2Errors || draftRestored) {
-          step1.classList.add('d-none');
-          step2.classList.remove('d-none');
-        }
-
-        // only show doctors from the selected department as soon as the page loads (covers a
-        // restored draft or a browser-remembered selection), and again whenever it is changed
+        // only show doctors from the selected department, and only show time slots the
+        // selected doctor works in, as soon as the page loads (covers a restored draft or
+        // a browser-remembered selection), and again whenever the pick changes
         filterDoctorsByDepartment();
+        filterTimeSlotsByDoctor();
         departmentField.addEventListener('change', function () {
           filterDoctorsByDepartment();
+          filterTimeSlotsByDoctor();
+          updateFeeDisplay();
+        });
+        doctorField.addEventListener('change', function () {
+          filterTimeSlotsByDoctor();
           updateFeeDisplay();
         });
 
-        // show the fee as soon as the page loads (covers a restored draft or a browser-remembered selection),
-        // and again live whenever the department or doctor is changed
+        // show the fee as soon as the page loads (covers a restored draft or a browser-remembered selection)
         updateFeeDisplay();
-        doctorField.addEventListener('change', updateFeeDisplay);
 
         // save the draft before leaving the page to log in or sign up
         if (loginLink) loginLink.addEventListener('click', saveDraft);
         if (signupLink) signupLink.addEventListener('click', saveDraft);
 
-        // when Next is clicked, check step 1 fields before moving on
-        nextBtn.addEventListener('click', function () {
-          var fields = step1.querySelectorAll('input, select, textarea');
-          for (var i = 0; i < fields.length; i++) {
-            if (!fields[i].checkValidity()) {
-              fields[i].reportValidity();  // show the browser's own error bubble
-              return;  // stop here, stay on step 1
-            }
-          }
-          step1.classList.add('d-none');  // hide appointment details
-          step2.classList.remove('d-none');  // show patient details
-        });
-
-        // when Back is clicked, return to step 1
-        backBtn.addEventListener('click', function () {
-          step2.classList.add('d-none');  // hide patient details
-          step1.classList.remove('d-none');  // show appointment details
-        });
-
-        // step 3 only exists for logged in users, so guard all of this
-        if (step3 && nextBtn2 && backBtn2) {
-          // when Next: Payment is clicked, check step 2 fields before moving on
-          nextBtn2.addEventListener('click', function () {
-            var fields = step2.querySelectorAll('input, select, textarea');
-            for (var i = 0; i < fields.length; i++) {
-              if (!fields[i].checkValidity()) {
-                fields[i].reportValidity();  // show the browser's own error bubble
-                return;  // stop here, stay on step 2
-              }
-            }
-            updateFeeDisplay();  // show the fee for the chosen department + doctor
-            step2.classList.add('d-none');  // hide patient details
-            step3.classList.remove('d-none');  // show payment step
-          });
-
-          // when Back is clicked on step 3, return to step 2
-          backBtn2.addEventListener('click', function () {
-            step3.classList.add('d-none');  // hide payment step
-            step2.classList.remove('d-none');  // show patient details
-          });
-
-          // switch the demo card fields on or off when the payment method changes
+        // switch the demo card fields on or off when the payment method changes
+        if (payOnline && payCash) {
           payOnline.addEventListener('change', updateCardFields);
           payCash.addEventListener('change', updateCardFields);
           updateCardFields();  // set the correct state on page load

@@ -65,9 +65,9 @@
                             <td>{{ forloop.counter }}</td>
                             <td>{{ row.doctor.get_full_name }}</td>
                             <td>{{ row.appointment_count }}</td>
-                            <td>Rs. {{ row.paid_total }}</td>
-                            <td>Rs. {{ row.take_home }}</td>
-                            <td>Rs. {{ row.hospital_share }}</td>
+                            <td>Rs. {{ row.paid_total|floatformat:2 }}</td>
+                            <td>Rs. {{ row.take_home|floatformat:2 }}</td>
+                            <td>Rs. {{ row.hospital_share|floatformat:2 }}</td>
                         </tr>
                         {% empty %}
                         <tr>

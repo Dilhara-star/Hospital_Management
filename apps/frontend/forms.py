@@ -1,15 +1,15 @@
-from datetime import date  # used to check a date of birth is not in the future
+from datetime import date, timedelta  # used to check a date of birth is not in the future or unreasonably old
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password  # checks a password is strong enough
-from apps.core.utils import check_phone_number  # checks a phone number is digits only, with a sensible length
+from apps.core.utils import check_phone_number, check_image_file  # checks a phone number and a picture file are sensible
 from apps.user_management.models import UserProfile
 
 
 class ProfileDetailsForm(forms.Form):
     """Fields checked when updating the logged in user's own details. Saving happens in the view."""
-    first_name = forms.CharField(max_length=150, required=False)  # first name text box
-    last_name = forms.CharField(max_length=150, required=False)  # last name text box
+    first_name = forms.CharField(max_length=150, required=True)  # first name text box
+    last_name = forms.CharField(max_length=150, required=True)  # last name text box
     email = forms.EmailField(required=True)  # email text box
     phone = forms.CharField(max_length=20, required=False)  # phone number text box, not required
     date_of_birth = forms.DateField(required=False)  # date of birth picker, not required
@@ -20,6 +20,26 @@ class ProfileDetailsForm(forms.Form):
         # remember which user is being edited, so we can allow them to keep their own email
         self.user = user
         super().__init__(*args, **kwargs)
+
+    # stops a first name that is just spaces from being saved
+    def clean_first_name(self):
+        # pull the cleaned first name value out of the form, with extra spaces removed
+        first_name = self.cleaned_data.get('first_name', '').strip()
+        # stop if nothing is left after removing spaces
+        if not first_name:
+            raise forms.ValidationError('Please enter your first name.')
+        # first name is fine
+        return first_name
+
+    # stops a last name that is just spaces from being saved
+    def clean_last_name(self):
+        # pull the cleaned last name value out of the form, with extra spaces removed
+        last_name = self.cleaned_data.get('last_name', '').strip()
+        # stop if nothing is left after removing spaces
+        if not last_name:
+            raise forms.ValidationError('Please enter your last name.')
+        # last name is fine
+        return last_name
 
     # stops someone from switching their email to one another account already uses
     def clean_email(self):
@@ -45,13 +65,18 @@ class ProfileDetailsForm(forms.Form):
         # phone number is fine (or was left blank)
         return phone
 
-    # stops a date of birth being set in the future
+    # stops a date of birth being set in the future or an unreasonable number of years ago
     def clean_date_of_birth(self):
         # pull the cleaned date of birth value out of the form
         dob = self.cleaned_data.get('date_of_birth')
-        # stop if a date was picked and it is after today
-        if dob and dob > date.today():
-            raise forms.ValidationError('Date of birth cannot be in the future.')
+        if dob:
+            # stop if the date is after today
+            if dob > date.today():
+                raise forms.ValidationError('Date of birth cannot be in the future.')
+            # stop if the date is more than 120 years ago - not a realistic age
+            earliest = date.today() - timedelta(days=120 * 365)
+            if dob < earliest:
+                raise forms.ValidationError('Please enter a valid date of birth.')
         # date is fine (or was left blank)
         return dob
 
@@ -59,6 +84,15 @@ class ProfileDetailsForm(forms.Form):
 class ProfilePictureForm(forms.Form):
     """Field checked when uploading a new profile picture. Saving happens in the view."""
     profile_picture = forms.ImageField(required=True)  # picture file upload
+
+    # stops a picture file that is too big or the wrong type from being saved
+    def clean_profile_picture(self):
+        # pull the cleaned picture file out of the form
+        profile_picture = self.cleaned_data.get('profile_picture')
+        # raises an error if the file is too big or not an allowed image type
+        check_image_file(profile_picture)
+        # picture is fine
+        return profile_picture
 
 
 class ChangePasswordForm(forms.Form):

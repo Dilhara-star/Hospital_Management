@@ -61,9 +61,9 @@
                         {% for stats in department_stats %}
                         <tr>
                             <td>{{ stats.label }}</td>
-                            <td>Rs. {{ stats.fee }}</td>
+                            <td>Rs. {{ stats.fee|floatformat:2 }}</td>
                             <td>{{ stats.appointment_count }}</td>
-                            <td>Rs. {{ stats.paid_revenue }}</td>
+                            <td>Rs. {{ stats.paid_revenue|floatformat:2 }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

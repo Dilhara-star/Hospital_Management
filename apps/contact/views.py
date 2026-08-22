@@ -22,10 +22,10 @@ def add_contact(request):
 
     if form.is_valid():
         inquiry = Contact_us()  # a blank inquiry
-        inquiry.name = request.POST.get('name', '')  # name of the sender
-        inquiry.email = request.POST.get('email', '')  # email to reply to
-        inquiry.subject = request.POST.get('subject', '')  # subject line
-        inquiry.message = request.POST.get('message', '')  # the message itself
+        inquiry.name = form.cleaned_data['name']  # name of the sender, already trimmed by the form
+        inquiry.email = form.cleaned_data['email']  # email to reply to
+        inquiry.subject = form.cleaned_data['subject']  # subject line, already trimmed by the form
+        inquiry.message = form.cleaned_data['message']  # the message itself, already trimmed by the form
         inquiry.save()  # write the new inquiry to the database
         send_contact_inquiry_admin_email(inquiry)  # let the admin know a new message has arrived
         messages.success(request, 'Your message has been sent. Thank you!')

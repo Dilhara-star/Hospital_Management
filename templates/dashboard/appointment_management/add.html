@@ -32,16 +32,6 @@
                 {% csrf_token %}
                 <div class="row">
                     <div class="col-md-6 form-group">
-                        <label for="patient">Patient</label>
-                        <select id="patient" name="patient" class="form-control">
-                            <option value="">Select Patient</option>
-                            {% for person in patients %}
-                            <option value="{{ person.pk }}" {% if person.pk == appointment.patient_id %}selected{% endif %}>{{ person.get_full_name }}</option>
-                            {% endfor %}
-                        </select>
-                        {% for error in form.patient.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-                    </div>
-                    <div class="col-md-6 form-group">
                         <label for="department">Department</label>
                         <select id="department" name="department" class="form-control">
                             {% for value, label in appointment.DEPARTMENT_CHOICES %}
@@ -55,9 +45,13 @@
                         <select id="doctor" name="doctor" class="form-control">
                             <option value="">Select Doctor</option>
                             {% for doctor in doctors %}
-                            <option value="{{ doctor.pk }}" {% if doctor.pk == appointment.doctor_id %}selected{% endif %}>{{ doctor.get_full_name }}</option>
+                            <option value="{{ doctor.pk }}"
+                                data-department="{{ doctor.staff_profile.department }}"
+                                data-slots="{% for slot in doctor.available_slots.all %}{{ slot.time_slot }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                                {% if doctor.pk == appointment.doctor_id %}selected{% endif %}>{{ doctor.get_full_name }}</option>
                             {% endfor %}
                         </select>
+                        <small class="form-text text-muted">Narrowed down to doctors in the picked department.</small>
                         {% for error in form.doctor.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                     </div>
                     <div class="col-md-6 form-group">
@@ -72,6 +66,7 @@
                             <option value="{{ value }}" {% if value == appointment.time_slot %}selected{% endif %}>{{ label }}</option>
                             {% endfor %}
                         </select>
+                        <small class="form-text text-muted">Narrowed down to slots the picked doctor marked as available.</small>
                         {% for error in form.time_slot.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                     </div>
                     <div class="col-md-6 form-group">
@@ -91,6 +86,7 @@
 
                 <hr>
                 <h6 class="font-weight-bold text-primary mb-3">Patient Details</h6>
+                <p class="text-muted small">Type the caller's details below. If this phone number already belongs to a patient, this appointment is linked to their existing record; otherwise a new patient record is created automatically.</p>
                 <div class="row">
                     <div class="col-md-6 form-group">
                         <label for="patient_name">Full Name</label>
@@ -99,17 +95,17 @@
                     </div>
                     <div class="col-md-6 form-group">
                         <label for="patient_contact">Contact</label>
-                        <input type="text" id="patient_contact" name="patient_contact" class="form-control" value="{{ appointment.patient_contact }}">
+                        <input type="text" id="patient_contact" name="patient_contact" class="form-control" placeholder="e.g. 0771234567" value="{{ appointment.patient_contact }}">
                         {% for error in form.patient_contact.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                     </div>
                     <div class="col-md-6 form-group">
                         <label for="patient_age">Age</label>
-                        <input type="number" id="patient_age" name="patient_age" class="form-control" min="0" value="{{ appointment.patient_age|default_if_none:'' }}">
+                        <input type="number" id="patient_age" name="patient_age" class="form-control" min="1" max="120" value="{{ appointment.patient_age|default_if_none:'' }}">
                         {% for error in form.patient_age.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                     </div>
                     <div class="col-md-6 form-group">
                         <label for="patient_nic">NIC</label>
-                        <input type="text" id="patient_nic" name="patient_nic" class="form-control" value="{{ appointment.patient_nic }}">
+                        <input type="text" id="patient_nic" name="patient_nic" class="form-control" placeholder="e.g. 901234567V or 200012345678" value="{{ appointment.patient_nic }}">
                         {% for error in form.patient_nic.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                     </div>
                     <div class="col-12 form-group">
@@ -135,4 +131,66 @@
     </div>
 
 </div>
+
+<script>
+    // filters the Doctor dropdown down to the picked department, and the Time Slot dropdown
+    // down to the picked doctor's own available slots (set on their staff edit page)
+    document.addEventListener('DOMContentLoaded', function () {
+        var departmentField = document.getElementById('department');  // the Department dropdown
+        var doctorField = document.getElementById('doctor');  // the Doctor dropdown
+        var timeSlotField = document.getElementById('time_slot');  // the Time Slot dropdown
+
+        // shows only the doctor options in the picked department; hides the rest
+        function filterDoctorsByDepartment() {
+            var pickedDepartment = departmentField.value;  // department code picked above, e.g. "cardiology"
+            var options = doctorField.options;  // every option in the Doctor dropdown
+
+            for (var i = 0; i < options.length; i++) {
+                var option = options[i];  // one doctor option
+                if (!option.value) {
+                    continue;  // always keep the blank "Select Doctor" option visible
+                }
+                // show this doctor only if no department is picked yet, or their department matches
+                var matches = !pickedDepartment || option.getAttribute('data-department') === pickedDepartment;
+                option.hidden = !matches;
+                option.disabled = !matches;
+            }
+
+            // the doctor picked before may no longer be in this department, so clear it if hidden
+            if (doctorField.selectedOptions[0] && doctorField.selectedOptions[0].hidden) {
+                doctorField.value = '';
+            }
+            filterTimeSlotsByDoctor();  // the doctor may have just changed, so refresh the time slots too
+        }
+
+        // shows only the time slot options the picked doctor is available for; shows all if no doctor is picked
+        function filterTimeSlotsByDoctor() {
+            var selectedOption = doctorField.selectedOptions[0];  // the doctor option currently picked
+            var availableSlots = (selectedOption && selectedOption.value) ? selectedOption.getAttribute('data-slots').split(',') : null;
+            var options = timeSlotField.options;  // every option in the Time Slot dropdown
+
+            for (var i = 0; i < options.length; i++) {
+                var option = options[i];  // one time slot option
+                if (!option.value) {
+                    continue;  // always keep the blank "Select Time Slot" option visible
+                }
+                // show this slot only if no doctor is picked yet, or the doctor listed it as available
+                var matches = !availableSlots || availableSlots.indexOf(option.value) !== -1;
+                option.hidden = !matches;
+                option.disabled = !matches;
+            }
+
+            // the time slot picked before may no longer be available, so clear it if hidden
+            if (timeSlotField.selectedOptions[0] && timeSlotField.selectedOptions[0].hidden) {
+                timeSlotField.value = '';
+            }
+        }
+
+        departmentField.addEventListener('change', filterDoctorsByDepartment);
+        doctorField.addEventListener('change', filterTimeSlotsByDoctor);
+
+        // apply both filters once on page load, in case a department/doctor is already picked
+        filterDoctorsByDepartment();
+    });
+</script>
 {% endblock %}

@@ -53,7 +53,7 @@
                     <div class="card border-left-primary shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Grand Total Collected (Consultations + Pharmacy)</div>
-                            <div class="h4 mb-0 font-weight-bold text-gray-800">Rs. {{ grand_total }}</div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">Rs. {{ grand_total|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                     <div class="card border-left-success shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Collected</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ consultation_paid }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ consultation_paid|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                     <div class="card border-left-info shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Online</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ consultation_online }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ consultation_online|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -81,7 +81,7 @@
                     <div class="card border-left-info shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Cash</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ consultation_cash }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ consultation_cash|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -89,12 +89,12 @@
                     <div class="card border-left-warning shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ consultation_pending }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ consultation_pending|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <p class="text-muted small">Refunded: Rs. {{ consultation_refunded }}</p>
+            <p class="text-muted small">Refunded: Rs. {{ consultation_refunded|floatformat:2 }}</p>
 
             <h6 class="font-weight-bold text-gray-700 mt-4">Pharmacy</h6>
             <div class="row mb-2">
@@ -102,7 +102,7 @@
                     <div class="card border-left-success shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Collected</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ pharmacy_paid }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ pharmacy_paid|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -110,7 +110,7 @@
                     <div class="card border-left-info shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Online</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ pharmacy_online }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ pharmacy_online|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -118,7 +118,7 @@
                     <div class="card border-left-info shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Cash</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ pharmacy_cash }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ pharmacy_cash|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -126,7 +126,7 @@
                     <div class="card border-left-warning shadow h-100 py-2">
                         <div class="card-body">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ pharmacy_pending }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rs. {{ pharmacy_pending|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>

@@ -13,7 +13,7 @@
 <body>
 
     <h1>Stock Valuation Report</h1>
-    <p class="sub">Total stock value: Rs. {{ grand_total_value }}</p>
+    <p class="sub">Total stock value: Rs. {{ grand_total_value|floatformat:2 }}</p>
 
     <table>
         <thead>
@@ -28,7 +28,7 @@
             <tr>
                 <td>{{ row.medicine__name }}</td>
                 <td>{{ row.total_quantity }}</td>
-                <td>Rs. {{ row.total_value }}</td>
+                <td>Rs. {{ row.total_value|floatformat:2 }}</td>
             </tr>
             {% endfor %}
         </tbody>

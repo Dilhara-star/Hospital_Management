@@ -21,6 +21,8 @@ App: `apps/core/` — urls: [apps/core/urls.py](apps/core/urls.py)
 | URL | urls.py | views.py | forms.py |
 |---|---|---|---|
 | `/core/about-us` | [line 7](apps/core/urls.py#L7) | `about_us` [line 5](apps/core/views.py#L5) | — |
+| `/core/terms-of-service` | [line 8](apps/core/urls.py#L8) | `terms_of_service` [line 10](apps/core/views.py#L10) | — |
+| `/core/privacy-policy` | [line 9](apps/core/urls.py#L9) | `privacy_policy` [line 15](apps/core/views.py#L15) | — |
 
 App: `apps/contact/` (public part) — urls: [apps/contact/urls.py](apps/contact/urls.py)
 

@@ -57,21 +57,15 @@
     </li>
     {% endif %}
 
+    {% if request.user.profile.role == 'doctor' %}
+    {# doctors edit their own bookable time slots here; other roles manage this per-doctor from Staff Management #}
     <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseinquiry"
-            aria-expanded="true" aria-controls="collapseinquiry">
-            <i class="fas fa-fw fa-procedures"></i>
-            <span>Customer Inquiries</span>
+        <a class="nav-link" href="{% url 'doctor_settings' %}">
+            <i class="fas fa-fw fa-clock"></i>
+            <span>Doctor Settings</span>
         </a>
-        <div id="collapseinquiry" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                <h6 class="collapse-header">View All Inquiries:</h6>
-                <a class="collapse-item" href="{% url 'view_inquiries' %}">All Inquiries</a>
-            </div>
-        </div>
     </li>
-
-
+    {% endif %}
 
     {% if request.user.profile.role != 'doctor' and request.user.profile.role != 'pharmacist' %}
     {# doctors do not manage staff, and pharmacists only need their own menus, so hide this for both #}

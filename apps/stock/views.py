@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect, get_object_or_404  # helpers to render pages and redirect
 from django.contrib import messages  # helper to show success/error messages
 from django.contrib.auth.decorators import login_required  # decorator to require login
-from datetime import date  # import date so the templates can block future expiry dates
+from datetime import date, timedelta  # import date/timedelta so the templates can steer expiry dates into the future
 from .models import Medicine, MedicineStock  # import our models
 from .forms import MedicineForm, MedicineStockForm  # import our forms
 from apps.supplier.models import Supplier  # suppliers are picked from a dropdown on the stock pages
@@ -121,7 +121,8 @@ def stock_add(request):
     medicines = Medicine.objects.all().order_by('name')
     suppliers = Supplier.objects.all().order_by('name')
     return render(request, 'dashboard/medicine_inventory/stock_add.html', {
-        'form': form, 'batch': batch, 'medicines': medicines, 'suppliers': suppliers, 'today': date.today(),
+        'form': form, 'batch': batch, 'medicines': medicines, 'suppliers': suppliers,
+        'tomorrow': date.today() + timedelta(days=1),
     })
 
 
@@ -148,7 +149,8 @@ def stock_edit(request, pk):
     medicines = Medicine.objects.all().order_by('name')
     suppliers = Supplier.objects.all().order_by('name')
     return render(request, 'dashboard/medicine_inventory/stock_edit.html', {
-        'form': form, 'batch': batch, 'medicines': medicines, 'suppliers': suppliers, 'today': date.today(),
+        'form': form, 'batch': batch, 'medicines': medicines, 'suppliers': suppliers,
+        'tomorrow': date.today() + timedelta(days=1),
     })
 
 

@@ -21,7 +21,11 @@
             <div class="card shadow mb-4">
                 <div class="card-body text-center py-4">
                     <div class="mb-3">
+                        {% if profile.profile_picture %}
+                        <img src="{{ profile.profile_picture.url }}" alt="{{ staff_user.get_full_name }}" class="img-thumbnail rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
                         <i class="fas fa-user-md fa-4x text-primary"></i>
+                        {% endif %}
                     </div>
                     <h5 class="font-weight-bold">{{ staff_user.get_full_name }}</h5>
                     <p class="text-muted mb-1">@{{ staff_user.username }}</p>
@@ -83,6 +87,12 @@
                                 {% else %}—{% endif %}
                             </div>
                         </div>
+                        {% if profile.role == 'doctor' %}
+                        <div class="col-md-6 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Hourly Fee</div>
+                            <div>Rs. {{ sp.hourly_fee|floatformat:2 }}</div>
+                        </div>
+                        {% endif %}
                     </div>
                     {% else %}
                     <p class="text-muted mb-0">Employment details not yet recorded. <a href="{% url 'staff_edit' staff_user.pk %}">Add details</a></p>

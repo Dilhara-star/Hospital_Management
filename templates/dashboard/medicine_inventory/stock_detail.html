@@ -53,7 +53,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Purchase Price</div>
-                            <div>{% if batch.purchase_price %}Rs. {{ batch.purchase_price }}{% else %}—{% endif %}</div>
+                            <div>{% if batch.purchase_price %}Rs. {{ batch.purchase_price|floatformat:2 }}{% else %}—{% endif %}</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <div class="text-xs font-weight-bold text-uppercase text-muted mb-1">Expiry Date</div>
