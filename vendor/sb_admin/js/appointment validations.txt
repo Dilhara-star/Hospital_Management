@@ -1,9 +1,9 @@
 --------------------------------
 Preferred Date validation
 --------------------------------
-Preferred Date validation ekata pahala code eka line 24 ta paste karanna - Hospital_Management\apps\appointment\forms.py.
-"class Meta:" mekata kelin pahalata paste wenna ona.
-Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+Hospital_Management\apps\appointment\forms.py.
+"AppointmentForm" eke, "class Meta:" mekata kelin pahalata paste wenna ona.
+
     # stops a patient from booking an appointment on a date that has already passed
     def clean_date(self):
         appointment_date = self.cleaned_data['date']
@@ -12,8 +12,8 @@ Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
         return appointment_date
 
 
-meka danna 65 ta (antimata) "class Meta:" eka pahalata kelin hode.
-Page eka: http://127.0.0.1:8000/Appointment/edit_appointment/<id>/  (patient's own Reschedule Appointment page)
+"StaffAppointmentForm" - meka athule, "class meta" eka kelin pahala paste krnn.
+
     # stops a patient from rescheduling their appointment into the past
     def clean_date(self):
         # stop the patient from rescheduling into the past
@@ -27,9 +27,9 @@ Page eka: http://127.0.0.1:8000/Appointment/edit_appointment/<id>/  (patient's o
 --------------------------------
 Patient Name validation
 --------------------------------
-Patient Name validation ekata pahala code eka line 24 ta paste karanna - Hospital_Management\apps\appointment\forms.py.
-"class Meta:" (AppointmentForm eke) mekata kelinma pahalata paste wenna ona.
-Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+Hospital_Management\apps\appointment\forms.py.
+"AppointmentForm" eke, "class Meta:" mekata kelin pahalata paste wenna ona.
+
     # stops a blank or too short name, and blocks numbers/symbols in the name
     def clean_patient_name(self):
         name = self.cleaned_data['patient_name'].strip()  # remove extra spaces from the start/end
@@ -41,9 +41,8 @@ Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
         return name
 
 
-meka danna 43 ta, "class Meta:" (StaffAppointmentForm eke) mekata kelinma pahalata.
-Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appointment - staff)
-         saha http://127.0.0.1:8000/dashboard/appointments/edit/<id>/  (Edit Appointment - staff)
+"StaffAppointmentForm" - meka athule, "class meta" eka kelin pahala paste krnn.
+
     # stops a blank or too short name, and blocks numbers/symbols in the name
     def clean_patient_name(self):
         name = self.cleaned_data['patient_name'].strip()  # remove extra spaces from the start/end
@@ -59,8 +58,9 @@ Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appoi
 --------------------------------
 Patient Contact validation
 --------------------------------
-Patient Contact validation ekata pahala code eka line 24 ta paste karanna, "class Meta:" (AppointmentForm eke) mekata kelinma pahalata.
-Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+Hospital_Management\apps\appointment\forms.py.
+"AppointmentForm" eke, "class Meta:" mekata kelin pahalata paste wenna ona.
+
     # stops a contact number that is not a valid 10 digit Sri Lankan number
     def clean_patient_contact(self):
         contact = self.cleaned_data['patient_contact'].strip()  # remove extra spaces
@@ -70,9 +70,8 @@ Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
         return contact
 
 
-meka danna 43 ta, "class Meta:" (StaffAppointmentForm eke) mekata kelinma pahalata.
-Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appointment - staff)
-         saha http://127.0.0.1:8000/dashboard/appointments/edit/<id>/  (Edit Appointment - staff)
+"StaffAppointmentForm" - meka athule, "class meta" eka kelin pahala paste krnn.
+
     # stops a contact number that is not a valid 10 digit Sri Lankan number
     def clean_patient_contact(self):
         contact = self.cleaned_data['patient_contact'].strip()  # remove extra spaces
@@ -86,8 +85,9 @@ Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appoi
 --------------------------------
 Patient Age validation
 --------------------------------
-Patient Age validation ekata pahala code eka line 24 ta paste karanna, "class Meta:" (AppointmentForm eke) mekata kelinma pahalata.
-Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+Hospital_Management\apps\appointment\forms.py.
+"AppointmentForm" eke, "class Meta:" mekata kelin pahalata paste wenna ona.
+
     # stops an age that is not realistic for a patient
     def clean_patient_age(self):
         age = self.cleaned_data['patient_age']  # age typed on the form
@@ -96,9 +96,8 @@ Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
         return age
 
 
-meka danna 43 ta, "class Meta:" (StaffAppointmentForm eke) mekata kelinma pahalata.
-Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appointment - staff)
-         saha http://127.0.0.1:8000/dashboard/appointments/edit/<id>/  (Edit Appointment - staff)
+"StaffAppointmentForm" - meka athule, "class meta" eka kelin pahala paste krnn.
+
     # stops an age that is not realistic for a patient
     def clean_patient_age(self):
         age = self.cleaned_data['patient_age']  # age typed on the form
@@ -111,8 +110,9 @@ Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appoi
 --------------------------------
 Patient Address validation
 --------------------------------
-Patient Address validation ekata pahala code eka line 24 ta paste karanna, "class Meta:" (AppointmentForm eke) mekata kelinma pahalata.
-Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+Hospital_Management\apps\appointment\forms.py.
+"AppointmentForm" eke, "class Meta:" mekata kelin pahalata paste wenna ona.
+
     # stops a blank or too short address
     def clean_patient_address(self):
         address = self.cleaned_data['patient_address'].strip()  # remove extra spaces
@@ -121,9 +121,8 @@ Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
         return address
 
 
-meka danna 43 ta, "class Meta:" (StaffAppointmentForm eke) mekata kelinma pahalata.
-Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appointment - staff)
-         saha http://127.0.0.1:8000/dashboard/appointments/edit/<id>/  (Edit Appointment - staff)
+"StaffAppointmentForm" - meka athule, "class meta" eka kelin pahala paste krnn.
+
     # stops a blank or too short address
     def clean_patient_address(self):
         address = self.cleaned_data['patient_address'].strip()  # remove extra spaces
@@ -136,12 +135,13 @@ Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appoi
 --------------------------------
 Patient NIC validation
 --------------------------------
-Meka danna kalin, file eke uda "from datetime import date" line ekata pahalin "import re" kiyala tiyak danna one (NIC eka check karanna re module eka one wenawa).
-line 1 -> from datetime import date
-line 2 (aluthin) -> import re  # used to check the NIC number matches the Sri Lankan NIC format
+Meka danna kalin, file eke uda "from datetime import date" line ekata pahalin danna mehema.
+from datetime import date
+import re  
 
-Patient NIC validation ekata pahala code eka line 25 ta paste karanna ("import re" danna passe, line ekak wadi wena nisa 24 wenuwata 25), "class Meta:" (AppointmentForm eke) mekata kelinma pahalata.
-Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
+Hospital_Management\apps\appointment\forms.py.
+"AppointmentForm" eke, "class Meta:" mekata kelin pahalata paste wenna ona.
+
     # stops a NIC number that does not match the Sri Lankan NIC format
     def clean_patient_nic(self):
         nic = self.cleaned_data['patient_nic'].strip().upper()  # remove spaces, make the V/X letter uppercase
@@ -152,9 +152,8 @@ Page eka: http://127.0.0.1:8000/Appointment/  (Book Appointment page)
         return nic
 
 
-meka danna 44 ta ("import re" danna passe), "class Meta:" (StaffAppointmentForm eke) mekata kelinma pahalata.
-Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appointment - staff)
-         saha http://127.0.0.1:8000/dashboard/appointments/edit/<id>/  (Edit Appointment - staff)
+"StaffAppointmentForm" - meka athule, "class meta" eka kelin pahala paste krnn.
+
     # stops a NIC number that does not match the Sri Lankan NIC format
     def clean_patient_nic(self):
         nic = self.cleaned_data['patient_nic'].strip().upper()  # remove spaces, make the V/X letter uppercase
@@ -164,4 +163,44 @@ Page eka: http://127.0.0.1:8000/dashboard/appointments/add/  (Register New Appoi
             raise forms.ValidationError('Enter a valid NIC number, e.g. 991234567V or 199912345678.')
         return nic
 
-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+Time Slot
+
+Hospital_Management\apps\appointment\forms.py.
+"AppointmentForm" eke, "class Meta:" mekata kelin pahalata paste wenna ona.
+
+    # stops a patient booking a doctor who is already booked for that date and time slot
+    def clean(self):
+        cleaned_data = super().clean()  # run the normal field checks first
+        appointment_date = cleaned_data.get('date')  # date picked on the form
+        time_slot = cleaned_data.get('time_slot')  # time slot picked on the form
+        doctor = cleaned_data.get('doctor')  # doctor picked on the form; this is a brand new booking, so
+        # self.instance.doctor is not set yet at this point - read the picked value from cleaned_data instead
+        if doctor and appointment_date and time_slot:  # only checkable once all three are known
+            clash = Appointment.objects.filter(
+                doctor=doctor, date=appointment_date, time_slot=time_slot,
+            ).exclude(status='cancelled')  # a cancelled slot is free to book again
+            if clash.exists():  # someone else already has this doctor booked at this time
+                self.add_error('time_slot', 'This doctor is already booked for that date and time slot. Please pick another slot.')
+        return cleaned_data
+
+
+"StaffAppointmentForm" - meka athule, "class meta" eka kelin pahala paste krnn.
+
+    # stops staff booking a doctor who is already booked for that date and time slot
+    def clean(self):
+        cleaned_data = super().clean()  # run the normal field checks first
+        appointment_date = cleaned_data.get('date')  # date picked on the form
+        time_slot = cleaned_data.get('time_slot')  # time slot picked on the form
+        doctor = cleaned_data.get('doctor')  # doctor picked on the form; read from cleaned_data so this
+        # also catches a doctor change on the edit page, not just the old doctor stored on the instance
+        if doctor and appointment_date and time_slot:  # only checkable once all three are known
+            clash = Appointment.objects.filter(
+                doctor=doctor, date=appointment_date, time_slot=time_slot,
+            ).exclude(status='cancelled').exclude(pk=self.instance.pk)  # a cancelled slot is free, and skip itself
+            if clash.exists():  # someone else already has this doctor booked at this time
+                self.add_error('time_slot', 'This doctor is already booked for that date and time slot. Please pick another slot.')
+        return cleaned_data
+
+
+
